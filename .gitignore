@@ -1,1 +1,7 @@
 build/*
+*.mat
+*.m~
+*.pyc
+*.idea
+*.project
+*.cproject
