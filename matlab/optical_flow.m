@@ -7,7 +7,7 @@ function optical_flow()
     retinaSize = [128 128];
     
     
-    events = read_events('../data/events.tsv', 1);
+    events = read_events('../data/events_long.tsv', 1);
     quantized = quantize_events(events, time_resolution);
     
     filter = create_filter(angle, [time_start time_end], time_resolution);
@@ -25,12 +25,50 @@ function optical_flow()
 
     responses = convolve(fourierEvents, fourierFilter, [21 21]);
     size(responses)
-    for i = 1:size(responses, 3)
+    figure(1)
+    loops = size(responses, 3);
+    F(loops) = struct('cdata',[],'colormap',[]);
+    for i = 1:loops
         show_filter(responses, i)
-        pause
+        view([0 90]);
+        drawnow
+        F(i) = getframe(gcf);
     end
+    movie2avi(F, 'movie.avi', 'compression', 'none');
+    
     
 end
+
+function F = filter_animation( )
+%FILTER_ANIMATION Summary of this function goes here
+%   Detailed explanation goes here
+
+tdf = 200;
+cstFilter = cstf(15,1,tdf);
+
+loops = tdf;
+F(loops) = struct('cdata',[],'colormap',[]);
+figure('units','normalized','outerposition',[0 0 1 1]);
+for j = 1:loops
+    subplot(1,2,2);
+    surf(cstFilter(:,:,j));
+    view([40 0]);
+    xlim([0 31]);
+    ylim([0 31]);
+    zlim([-0.015 0.015]);
+    
+    subplot(1,2,1);
+    surf(cstFilter(:,:,j));
+    view([70 18]);
+    xlim([0 31]);
+    ylim([0 31]);
+    zlim([-0.015 0.015]);
+    drawnow
+    F(j) = getframe(gcf);
+end
+
+end
+
 
 function padded = pad_to_fourier(data, theOtherSize)
     if iscell(data)
@@ -90,9 +128,12 @@ function responses = convolve(fourierEventSlices, fourierFilterBank, filterSize)
     [N M K] = size(fourierEventSlices);
     toCompute = K - filterDepth;
     
+    h = waitbar(0, 'wait');
     responses = zeros([([N M] - filterSize + 1) toCompute]);
     for i = 1:toCompute
         responses(:, :, i) = convolve_one(fourierEventSlices(:, :, i:i+filterDepth-1),...
             fourierFilterBank, filterSize);
+        
+        waitbar(i / toCompute);
     end
 end
