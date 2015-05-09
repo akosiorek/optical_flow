@@ -14,27 +14,35 @@
 typedef Eigen::Matrix<int, 128, 128> EventSlice;
 
 class Quantizer {
+    typedef decltype(Event().time_) TimeType;
 public:
 
-    Quantizer(int timeResolution)
-        : currentTimeStep_(0), timeResolution_(timeResolution)
-         {};
+    Quantizer(int timeResolution);
 
     void quantize(const std::vector<Event>& events);
+    bool isEmpty();
     EventSlice getEventSlice();
     std::vector<EventSlice> getEventSlices();
 
 
+//  === Getters     ===========================================================
     unsigned int getTimeResolution() const {
         return timeResolution_;
     }
 
-    int currentTimeStep_;
+    TimeType getCurrentTimeStep() const {
+        return nextEventTime_;
+    }
 
 private:
+    void init(int time);
+
+private:
+    bool initialized_;
+    TimeType nextEventTime_;
     unsigned int timeResolution_;
     std::queue<EventSlice> eventSlices_;
-
+    EventSlice currentSlice_;
 };
 
 

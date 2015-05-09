@@ -2,7 +2,13 @@
 // Created by Adam Kosiorek on 09.05.15.
 //
 
+#include <glog/logging.h>
 #include "Quantizer.h"
+
+Quantizer::Quantizer(int timeResolution)
+    : initialized_(false), nextEventTime_(0), timeResolution_(timeResolution) {
+    currentSlice_.setZero();
+};
 
 void Quantizer::quantize(const std::vector<Event> &events) {
 
@@ -10,16 +16,26 @@ void Quantizer::quantize(const std::vector<Event> &events) {
         return;
     }
 
-    if(eventSlices_.empty()) {
-        eventSlices_.push(EventSlice());
+    if(!initialized_) {
+        nextEventTime_ = events[0].time_ + timeResolution_;
+        initialized_ = true;
     }
 
     for(const auto& event : events) {
-        if(event.time_ - currentTimeStep_ > timeResolution_) {
-            currentTimeStep_ = event.time_;
-            eventSlices_.push(EventSlice());
+        while(event.time_ >= nextEventTime_) {
+            eventSlices_.push(currentSlice_);
+            currentSlice_ = EventSlice();
+            currentSlice_.setZero();
+            nextEventTime_ += timeResolution_;
         }
-        eventSlices_.back()(event.x_, event.y_) += event.edge_;
+        currentSlice_(event.x_, event.y_) = event.edge_;
+    }
+
+    if(events[events.size() - 1].time_ == nextEventTime_ - 1) {
+        eventSlices_.push(currentSlice_);
+        currentSlice_ = EventSlice();
+        currentSlice_.setZero();
+        nextEventTime_ += timeResolution_;
     }
 }
 
@@ -34,9 +50,21 @@ std::vector<EventSlice> Quantizer::getEventSlices() {
 
 EventSlice Quantizer::getEventSlice() {
     if(eventSlices_.empty()) {
-        throw std::runtime_error("No Events");
+        EventSlice e;
+        e.setZero();
+        return e;
     }
     auto slice = eventSlices_.front();
     eventSlices_.pop();
     return slice;
+}
+
+bool Quantizer::isEmpty() {
+    return eventSlices_.empty();
+}
+
+void Quantizer::init(int time) {
+    eventSlices_.push(EventSlice());
+    eventSlices_.back().setZero();
+    nextEventTime_ = time;
 }
