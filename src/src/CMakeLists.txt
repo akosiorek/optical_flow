@@ -6,6 +6,7 @@ target_link_libraries(exe ${GLOG_LIBRARIES} ${Boost_LIBRARIES} ${FFTW_LIBRARIES}
 
 add_library(optical
         Quantizer.cpp
+        EventReader.cpp
         Filter.cpp
         FilterFactory.cpp
     	IFourierTransformer.cpp
