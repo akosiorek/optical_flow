@@ -76,22 +76,25 @@ TEST_F(EventTest, DefaultConstructorTest) {
     GTEST_ASSERT_EQ(e2.y_, 1);
     GTEST_ASSERT_EQ(e2.time_, 1);
     GTEST_ASSERT_EQ(e2.edge_, 1);
+
+
+}
+
+class SequentialBufferTest : public testing::Test {
+
+
+};
+
+
+TEST_F(SequentialBufferTest, SomeTest) {
+    Event e;
+    Event e2 = Event(1,1,1,1);
+
     SequentialBuffer b;
     b.push(e);
     b.push(e2);
     GTEST_ASSERT_EQ(b.pop().x_, e.x_);
 
-}
 
-//class SequentialBufferTest : public testing::Test {
-//
-//
-//};
-//
-//
-//TEST_F(sequentialBufferTest, SomeTest) {
-//
-//
-//
-//}
+}
 
