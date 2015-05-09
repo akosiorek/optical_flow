@@ -15,11 +15,11 @@ void Quantizer::quantize(const std::vector<Event> &events) {
     }
 
     for(const auto& event : events) {
-        if(event.time - currentTimeStep_ > timeResolution_) {
-            currentTimeStep_ = event.time;
+        if(event.time_ - currentTimeStep_ > timeResolution_) {
+            currentTimeStep_ = event.time_;
             eventSlices_.push(EventSlice());
         }
-        eventSlices_.back()(event.x, event.y) += event.edge;
+        eventSlices_.back()(event.x_, event.y_) += event.edge_;
     }
 }
 
