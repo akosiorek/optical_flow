@@ -6,31 +6,56 @@
  */
 
 #include <memory>
-
 #include "gtest/gtest.h"
 
-class Quantizer {
-public:
+#include "utils.h"
 
- int method() {return 0;};
+#include "Quantizer.h"
 
-};
+
 
 class QuantizerTest : public testing::Test {
 
     void SetUp() {
-
-        quantizer = std::unique_ptr<Quantizer>(new Quantizer());
+//        quantizer = std::unique_ptr<Quantizer>(new Quantizer());
     }
 
 public:
     std::unique_ptr<Quantizer> quantizer;
+
+
 };
 
+TEST_F(QuantizerTest, ConstructorTest) {
 
-TEST_F(QuantizerTest, SomeTest) {
+    quantizer = make_unique<Quantizer>(2);
+    ASSERT_EQ(quantizer->getTimeResolution(), 2);
+    ASSERT_EQ(quantizer->currentTimeStep_, 0);
+}
 
 
-    GTEST_ASSERT_EQ(this->quantizer->method(), 1);
+
+TEST_F(QuantizerTest, QuantizeTest) {
+
+    quantizer = make_unique<Quantizer>(2);
+    std::vector<Event> events = {{1, 1, 1, 1}, {2, 2, 2, 2}, {3, 3, 3, 3}};
+    quantizer->quantize(events);
+
+
+    auto event = quantizer->getEventSlice();
+    ASSERT_EQ(event(1, 1), 1);
+    ASSERT_EQ(event(2, 2), 2);
+    ASSERT_EQ(event(127, 127), 0);
+
+    event = quantizer->getEventSlice();
+    ASSERT_EQ(event(1, 1), 0);
+    ASSERT_EQ(event(3, 3), 3);
+
+    // throw if empty
+    ASSERT_THROW(quantizer->getEventSlice(), std::runtime_error);
+
+//    GTEST_ASSERT_EQ(quantizer->getEventSlices().size(), 2);
+
+
 }
 
