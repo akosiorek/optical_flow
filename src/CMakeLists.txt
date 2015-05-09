@@ -16,6 +16,13 @@ include_directories(${GLOG_INCLUDE_DIRS})
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
 
+#-------------------
+# Edvstools Build
+#-------------------
+set(EXT_PROJECTS_DIR ${PROJECT_SOURCE_DIR}/ext)
+add_subdirectory(${EXT_PROJECTS_DIR}/edvstools)
+include_directories(${EDVSTOOLS_INCLUDE_DIR})
+
 add_subdirectory(src)
 add_subdirectory(test)
 
