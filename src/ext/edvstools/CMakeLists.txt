@@ -4,7 +4,7 @@ project(edvstools)
 include(ExternalProject)
 
 ExternalProject_Add(edvstools
-    GIT_REPOSITORY git@github.com:Danvil/edvstools.git
+    GIT_REPOSITORY https://github.com/Danvil/edvstools.git
     CMAKE_ARGS -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG:PATH=DebugLibs
                -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE:PATH=ReleaseLibs
      PREFIX "${CMAKE_CURRENT_BINARY_DIR}"
