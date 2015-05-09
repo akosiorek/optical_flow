@@ -9,26 +9,7 @@
 #include "gtest/gtest.h"
 #include <queue>
 
-class Event{
-public:
-//    Event(){
-//        x=0;
-//        y=0;
-//        time=0;
-//        edge=0;
-//
-//    };
-
-    Event(unsigned int x, unsigned int y, unsigned time, int edge):x_(x),y_(y),time_(time),edge_(edge){
-    };
-    Event():Event(0,0,0,0){
-    };
-
-    unsigned int x_;
-    unsigned int y_;
-    unsigned int time_;
-    int edge_;
-};
+#include "Event.h"
 
 class SequentialBuffer{
 public:
@@ -76,8 +57,6 @@ TEST_F(EventTest, DefaultConstructorTest) {
     GTEST_ASSERT_EQ(e2.y_, 1);
     GTEST_ASSERT_EQ(e2.time_, 1);
     GTEST_ASSERT_EQ(e2.edge_, 1);
-
-
 }
 
 class SequentialBufferTest : public testing::Test {
