@@ -7,7 +7,7 @@
 
 Quantizer::Quantizer(int timeResolution)
     : initialized_(false), nextEventTime_(0), timeResolution_(timeResolution) {
-    currentSlice_.setZero();
+    currentEvents_.reserve(100);
 };
 
 void Quantizer::quantize(const std::vector<Event> &events) {
@@ -23,20 +23,27 @@ void Quantizer::quantize(const std::vector<Event> &events) {
 
     for(const auto& event : events) {
         while(event.time_ >= nextEventTime_) {
-            eventSlices_.push(currentSlice_);
-            currentSlice_ = EventSlice();
-            currentSlice_.setZero();
-            nextEventTime_ += timeResolution_;
+            advanceTimeStep();
         }
-        currentSlice_(event.x_, event.y_) = event.edge_;
+        currentEvents_.emplace_back(event.x_, event.y_, event.edge_);
     }
 
     if(events[events.size() - 1].time_ == nextEventTime_ - 1) {
-        eventSlices_.push(currentSlice_);
-        currentSlice_ = EventSlice();
-        currentSlice_.setZero();
-        nextEventTime_ += timeResolution_;
+        advanceTimeStep();
     }
+}
+
+void Quantizer::advanceTimeStep() {
+    if(!currentEvents_.empty()) {
+        EventSlice slice;
+        slice.setFromTriplets(currentEvents_.begin(), currentEvents_.end());
+        currentEvents_.clear();
+        eventSlices_.push(slice);
+    } else {
+        eventSlices_.emplace(EventSlice());
+    }
+
+    nextEventTime_ += timeResolution_;
 }
 
 std::vector<EventSlice> Quantizer::getEventSlices() {

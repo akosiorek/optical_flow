@@ -8,13 +8,26 @@
 #include <queue>
 #include <vector>
 #include <Eigen/Dense>
+#include <Eigen/SparseCore>
 
 #include "Event.h"
 
-typedef Eigen::Matrix<int, 128, 128> EventSlice;
+class EventSlice : public Eigen::SparseMatrix<int> {
+public:
+    EventSlice() : Eigen::SparseMatrix<int>(128, 128) {};
+
+    int& operator()(int x, int y) {
+        return this->coeffRef(y, x);
+    }
+
+    bool isZero() const {
+        return this->nonZeros() == 0 || this->squaredNorm() < 1e-8;
+    }
+};
+
+//typedef Eigen::Matrix<int, 128, 128> EventSlice;
 
 class Quantizer {
-    typedef decltype(Event().time_) TimeType;
 public:
 
     Quantizer(int timeResolution);
@@ -30,7 +43,7 @@ public:
         return timeResolution_;
     }
 
-    TimeType getCurrentTimeStep() const {
+    Event::TimeT getCurrentTimeStep() const {
         return nextEventTime_;
     }
 
@@ -39,10 +52,12 @@ private:
 
 private:
     bool initialized_;
-    TimeType nextEventTime_;
+    Event::TimeT nextEventTime_;
     unsigned int timeResolution_;
     std::queue<EventSlice> eventSlices_;
-    EventSlice currentSlice_;
+    std::vector<Eigen::Triplet<int>> currentEvents_;
+
+    void advanceTimeStep();
 };
 
 
