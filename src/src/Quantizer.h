@@ -5,16 +5,29 @@
 #ifndef NAME_QUANTIZER_H
 #define NAME_QUANTIZER_H
 
-#include <queue>
+#include <deque>
 #include <vector>
+#include <memory>
+
 #include <Eigen/Dense>
+#include <Eigen/SparseCore>
 
 #include "Event.h"
 
-typedef Eigen::Matrix<int, 128, 128> EventSlice;
+class EventSlice : public Eigen::SparseMatrix<int> {
+public:
+    EventSlice() : Eigen::SparseMatrix<int>(128, 128) {};
+
+    int& operator()(int x, int y) {
+        return this->coeffRef(y, x);
+    }
+
+    bool isZero() const {
+        return this->nonZeros() == 0 || this->squaredNorm() < 1e-8;
+    }
+};
 
 class Quantizer {
-    typedef decltype(Event().time_) TimeType;
 public:
 
     Quantizer(int timeResolution);
@@ -22,7 +35,7 @@ public:
     void quantize(const std::vector<Event>& events);
     bool isEmpty();
     EventSlice getEventSlice();
-    std::vector<EventSlice> getEventSlices();
+    std::shared_ptr<std::deque<EventSlice>> getEventSlices();
 
 
 //  === Getters     ===========================================================
@@ -30,19 +43,19 @@ public:
         return timeResolution_;
     }
 
-    TimeType getCurrentTimeStep() const {
+    Event::TimeT getCurrentTimeStep() const {
         return nextEventTime_;
     }
 
 private:
-    void init(int time);
+    void advanceTimeStep();
 
 private:
     bool initialized_;
-    TimeType nextEventTime_;
+    Event::TimeT nextEventTime_;
     unsigned int timeResolution_;
-    std::queue<EventSlice> eventSlices_;
-    EventSlice currentSlice_;
+    std::shared_ptr<std::deque<EventSlice>> eventSlices_;
+    std::vector<Eigen::Triplet<int>> currentEvents_;
 };
 
 

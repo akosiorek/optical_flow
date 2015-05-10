@@ -6,8 +6,9 @@
 #include "Quantizer.h"
 
 Quantizer::Quantizer(int timeResolution)
-    : initialized_(false), nextEventTime_(0), timeResolution_(timeResolution) {
-    currentSlice_.setZero();
+    : initialized_(false), nextEventTime_(0), timeResolution_(timeResolution),
+    eventSlices_(new std::deque<EventSlice>()) {
+    currentEvents_.reserve(100);
 };
 
 void Quantizer::quantize(const std::vector<Event> &events) {
@@ -23,48 +24,44 @@ void Quantizer::quantize(const std::vector<Event> &events) {
 
     for(const auto& event : events) {
         while(event.time_ >= nextEventTime_) {
-            eventSlices_.push(currentSlice_);
-            currentSlice_ = EventSlice();
-            currentSlice_.setZero();
-            nextEventTime_ += timeResolution_;
+            advanceTimeStep();
         }
-        currentSlice_(event.x_, event.y_) = event.edge_;
+        currentEvents_.emplace_back(event.x_, event.y_, event.parity_);
     }
 
     if(events[events.size() - 1].time_ == nextEventTime_ - 1) {
-        eventSlices_.push(currentSlice_);
-        currentSlice_ = EventSlice();
-        currentSlice_.setZero();
-        nextEventTime_ += timeResolution_;
+        advanceTimeStep();
     }
 }
 
-std::vector<EventSlice> Quantizer::getEventSlices() {
-    std::vector<EventSlice> events;
-    while(!eventSlices_.empty()) {
-        events.push_back(eventSlices_.front());
-        eventSlices_.pop();
+void Quantizer::advanceTimeStep() {
+    if(!currentEvents_.empty()) {
+        EventSlice slice;
+        slice.setFromTriplets(currentEvents_.begin(), currentEvents_.end());
+        currentEvents_.clear();
+        eventSlices_->push_back(slice);
+    } else {
+        eventSlices_->emplace_back(EventSlice());
     }
-    return events;
+
+    nextEventTime_ += timeResolution_;
+}
+
+std::shared_ptr<std::deque<EventSlice>> Quantizer::getEventSlices() {
+    auto oldSlices = eventSlices_;
+    eventSlices_.reset(new std::deque<EventSlice>());
+    return oldSlices;
 }
 
 EventSlice Quantizer::getEventSlice() {
-    if(eventSlices_.empty()) {
-        EventSlice e;
-        e.setZero();
-        return e;
+    if(eventSlices_->empty()) {
+        return EventSlice();
     }
-    auto slice = eventSlices_.front();
-    eventSlices_.pop();
+    auto slice = eventSlices_->front();
+    eventSlices_->pop_front();
     return slice;
 }
 
 bool Quantizer::isEmpty() {
-    return eventSlices_.empty();
-}
-
-void Quantizer::init(int time) {
-    eventSlices_.push(EventSlice());
-    eventSlices_.back().setZero();
-    nextEventTime_ = time;
+    return eventSlices_->empty();
 }
