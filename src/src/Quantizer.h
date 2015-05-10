@@ -5,8 +5,10 @@
 #ifndef NAME_QUANTIZER_H
 #define NAME_QUANTIZER_H
 
-#include <queue>
+#include <deque>
 #include <vector>
+#include <memory>
+
 #include <Eigen/Dense>
 #include <Eigen/SparseCore>
 
@@ -25,8 +27,6 @@ public:
     }
 };
 
-//typedef Eigen::Matrix<int, 128, 128> EventSlice;
-
 class Quantizer {
 public:
 
@@ -35,7 +35,7 @@ public:
     void quantize(const std::vector<Event>& events);
     bool isEmpty();
     EventSlice getEventSlice();
-    std::vector<EventSlice> getEventSlices();
+    std::shared_ptr<std::deque<EventSlice>> getEventSlices();
 
 
 //  === Getters     ===========================================================
@@ -48,16 +48,14 @@ public:
     }
 
 private:
-    void init(int time);
+    void advanceTimeStep();
 
 private:
     bool initialized_;
     Event::TimeT nextEventTime_;
     unsigned int timeResolution_;
-    std::queue<EventSlice> eventSlices_;
+    std::shared_ptr<std::deque<EventSlice>> eventSlices_;
     std::vector<Eigen::Triplet<int>> currentEvents_;
-
-    void advanceTimeStep();
 };
 
 

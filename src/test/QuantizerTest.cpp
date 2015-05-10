@@ -82,6 +82,7 @@ TEST_F(QuantizerTest, QuantizeGetMultipleEventsTest) {
 
     quantizer = make_unique<Quantizer>(3);
     std::vector<Event> events = {
+            // x, y, time, parity
             {1, 1, 1, 1},
             {2, 2, 2, -1},
             {3, 3, 3, 1},
@@ -89,15 +90,42 @@ TEST_F(QuantizerTest, QuantizeGetMultipleEventsTest) {
             {5, 5, 5, 1},
             {6, 6, 9, -1},
             {7, 7, 10, 1},
-            {8, 8, 11, -1},
+            {7, 7, 11, 1},
             {9, 9, 12, 1},
             {10, 10, 15, -1}
     };
+
+    std::vector<std::vector<int>> expectedEntries = {
+            // event, x, y, parity
+            {0, 1, 1, 1},
+            {0, 2, 2, -1},
+            {0, 3, 3, 1},
+            {1, 4, 4, -1},
+            {1, 5, 5, 1},
+            {2, 6, 6, -1},
+            {3, 7, 7, 2},
+            {3, 9, 9, 1},
+            {4, 10, 10, -1}
+    };
+
     quantizer->quantize(events);
 
     auto eventSlices = quantizer->getEventSlices();
     ASSERT_TRUE(quantizer->isEmpty());
-    ASSERT_EQ(eventSlices.size(), 5);
+    ASSERT_EQ(eventSlices->size(), 5);
+
+    for(const auto& expected : expectedEntries) {
+        auto slice = expected[0];
+        auto x = expected[1];
+        auto y = expected[2];
+        auto parity = expected[3];
+        ASSERT_EQ(eventSlices->at(slice)(x, y), parity) << "slice = " << slice << ", x = " << x << ", y = " << y;
+        eventSlices->at(slice)(x, y) = 0;
+    }
+
+    for(const auto& slice : *eventSlices) {
+        ASSERT_TRUE(slice.isZero());
+    }
 }
 
 TEST_F(QuantizerTest, LongPauseBetweenEventsTest) {
@@ -112,11 +140,11 @@ TEST_F(QuantizerTest, LongPauseBetweenEventsTest) {
     ASSERT_FALSE(quantizer->isEmpty());
     auto slices = quantizer->getEventSlices();
     ASSERT_TRUE(quantizer->isEmpty());
-    ASSERT_EQ(slices.size(), 100);
-    std::vector<EventSlice> nonZero = {slices[0], slices[49], slices[99]};
-    slices.erase(slices.begin()+99);
-    slices.erase(slices.begin()+49);
-    slices.erase(slices.begin());
+    ASSERT_EQ(slices->size(), 100);
+    std::vector<EventSlice> nonZero = {slices->at(0), slices->at(49), slices->at(99)};
+    slices->erase(slices->begin()+99);
+    slices->erase(slices->begin()+49);
+    slices->erase(slices->begin());
 
     for(auto& e : nonZero) {
         ASSERT_EQ(e(1, 1), 1);
@@ -124,8 +152,7 @@ TEST_F(QuantizerTest, LongPauseBetweenEventsTest) {
         ASSERT_TRUE(e.isZero());
     }
 
-    for(const auto& e : slices) {
+    for(const auto& e q: *slices) {
         ASSERT_TRUE(e.isZero());
     }
 }
-
