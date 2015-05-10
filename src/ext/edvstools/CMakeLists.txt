@@ -18,5 +18,5 @@ set(EDVSTOOLS_INCLUDE_DIR ${source_dir} PARENT_SCOPE) # force use to type Edvs/*
 
 # Specify edvs tools library dir and lib
 ExternalProject_Get_Property(edvstools binary_dir)
-# set(EDVSTOOLS_LIBS_DIR ${binary_dir} PARENT_SCOPE)
-set(EDVSTOOLS_LIB ${binary_dir}/Edvs PARENT_SCOPE)
+set(EDVSTOOLS_LIB_DIR ${binary_dir}/bin/ PARENT_SCOPE)
+set(EDVSTOOLS_LIB Edvs PARENT_SCOPE)

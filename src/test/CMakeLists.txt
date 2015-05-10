@@ -15,7 +15,8 @@ add_executable(test
     FilterFactoryTest.cpp
     FilteringEngineTest.cpp
     FourierTransformerTest.cpp
+    EventReaderTest.cpp
     )
 
-target_link_libraries(test gtest_main optical fftw3f)
+target_link_libraries(test gtest_main optical fftw3f ${EDVSTOOLS_LIB})
 add_custom_command(TARGET test POST_BUILD COMMAND test)

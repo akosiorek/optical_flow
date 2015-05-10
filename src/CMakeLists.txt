@@ -30,6 +30,7 @@ include_directories(${FFTW_INCLUDES}
 set(EXT_PROJECTS_DIR ${PROJECT_SOURCE_DIR}/ext)
 add_subdirectory(${EXT_PROJECTS_DIR}/edvstools)
 include_directories(${EDVSTOOLS_INCLUDE_DIR})
+link_directories(${EDVSTOOLS_LIB_DIR})
 
 # Doxygen
 find_package(Doxygen)
