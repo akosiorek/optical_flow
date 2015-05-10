@@ -51,12 +51,12 @@ TEST_F(EventTest, DefaultConstructorTest) {
     GTEST_ASSERT_EQ(e.x_, 0);
     GTEST_ASSERT_EQ(e.y_, 0);
     GTEST_ASSERT_EQ(e.time_, 0);
-    GTEST_ASSERT_EQ(e.edge_, 0);
+    GTEST_ASSERT_EQ(e.parity_, 0);
     Event e2 = Event(1,1,1,1);
     GTEST_ASSERT_EQ(e2.x_, 1);
     GTEST_ASSERT_EQ(e2.y_, 1);
     GTEST_ASSERT_EQ(e2.time_, 1);
-    GTEST_ASSERT_EQ(e2.edge_, 1);
+    GTEST_ASSERT_EQ(e2.parity_, 1);
 }
 
 class SequentialBufferTest : public testing::Test {

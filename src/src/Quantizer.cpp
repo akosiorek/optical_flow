@@ -25,7 +25,7 @@ void Quantizer::quantize(const std::vector<Event> &events) {
         while(event.time_ >= nextEventTime_) {
             advanceTimeStep();
         }
-        currentEvents_.emplace_back(event.x_, event.y_, event.edge_);
+        currentEvents_.emplace_back(event.x_, event.y_, event.parity_);
     }
 
     if(events[events.size() - 1].time_ == nextEventTime_ - 1) {
