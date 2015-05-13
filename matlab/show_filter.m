@@ -25,7 +25,7 @@ function show_filter(filter, varargin)
         t = 1;
         f = filter;
     end
-    
+
     mesh(x, y, f);
     title_string = sprintf('Gabor filter, time step = %d', t);
     title(title_string);
