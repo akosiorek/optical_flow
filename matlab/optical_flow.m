@@ -3,70 +3,52 @@ function optical_flow()
     time_resolution = 0.01;
     time_start = 0;
     time_end = 0.7;
-    angle = 45;
+    angles = [0 45 90 135];
     retinaSize = [128 128];
     
     
-    events = read_events('../data/events_long.tsv', 1);
+    events = read_events('../data/events_medium.tsv', 1);
+    fprintf('Number of events:\t%d\n', size(events, 1));
     quantized = quantize_events(events, time_resolution);
+    fprintf('Number of event slices:\t%d\n', size(quantized, 1));
     
-    filter = create_filter(angle, [time_start time_end], time_resolution);
-    fourierFilter = transform_to_fourier(filter, retinaSize);
-    fprintf('filter size = '), disp(size(filter))
-    fprintf('fourier filter size = '), disp(size(fourierFilter))
+%     % used to convert EventSlices to a displayable format
+%     opticalFlow = zeros(128, 128, size(quantized, 1));
+%     for i = 1:size(quantized, 1)
+%         opticalFlow(:, :, i) = quantized{i};
+%     end
     
-    fourierEvents = transform_to_fourier(quantized, size(filter(:, :, 1)));
-    fprintf('events size = '), disp(size(quantized))
-    fprintf('fourier events size = '), disp(size(fourierEvents))
-    
-%     response = convolve_one(fourierEvents(:, :, 1:101), fourierFilter, [21 21])
-%     size(response)
-%     show_filter(response)
 
-    responses = convolve(fourierEvents, fourierFilter, [21 21]);
-    size(responses)
-    figure(1)
-    loops = size(responses, 3);
-    F(loops) = struct('cdata',[],'colormap',[]);
-    for i = 1:loops
-        show_filter(responses, i)
-        view([0 90]);
-        drawnow
-        F(i) = getframe(gcf);
+    filterTimeSteps = numel(time_start:time_resolution:time_end);
+    numEventSlices = numel(quantized);
+    opticalFlowSize = [retinaSize numEventSlices-filterTimeSteps];
+    opticalFlowX = zeros(opticalFlowSize);
+    opticalFlowY = zeros(opticalFlowSize);
+    
+    for angle = angles
+        filter = create_filter(angle, [time_start time_end], time_resolution);
+        filterSize = size(filter);
+        fourierFilter = transform_to_fourier(filter, retinaSize);
+        fprintf('filter size = '), disp(size(filter))
+        fprintf('fourier filter size = '), disp(size(fourierFilter))
+
+        fourierEvents = transform_to_fourier(quantized, size(filter(:, :, 1)));
+        fprintf('events size = '), disp(size(quantized))
+        fprintf('fourier events size = '), disp(size(fourierEvents))
+
+        tic
+        responses = convolve(fourierEvents, fourierFilter, filterSize(1:2));
+        toc
+        
+        % sum up stuff in X direction
+        opticalFlowX = opticalFlowX + cos(angle / 180 * pi) * responses;
+        % and in Y direction
+        opticalFlowY = opticalFlowY - sin(angle / 180 * pi) * responses;
     end
-    movie2avi(F, 'movie.avi', 'compression', 'none');
+    save('flow.mat', 'opticalFlowX', 'opticalFlowY')
     
     
-end
-
-function F = filter_animation( )
-%FILTER_ANIMATION Summary of this function goes here
-%   Detailed explanation goes here
-
-tdf = 200;
-cstFilter = cstf(15,1,tdf);
-
-loops = tdf;
-F(loops) = struct('cdata',[],'colormap',[]);
-figure('units','normalized','outerposition',[0 0 1 1]);
-for j = 1:loops
-    subplot(1,2,2);
-    surf(cstFilter(:,:,j));
-    view([40 0]);
-    xlim([0 31]);
-    ylim([0 31]);
-    zlim([-0.015 0.015]);
-    
-    subplot(1,2,1);
-    surf(cstFilter(:,:,j));
-    view([70 18]);
-    xlim([0 31]);
-    ylim([0 31]);
-    zlim([-0.015 0.015]);
-    drawnow
-    F(j) = getframe(gcf);
-end
-
+    make_movie(opticalFlowX, 'flow_x.avi');      
 end
 
 
@@ -105,18 +87,16 @@ end
 
 function totalResponse = convolve_one(fourierEventSlices, fourierFilterBank, filterSize)
    
-    size(fourierEventSlices)
-    size(fourierFilterBank)
     assert(all(size(fourierEventSlices) == size(fourierFilterBank)),...
         'Event slices and filter bank have to be the same size')
     
     [N M K] = size(fourierEventSlices);
-    totalResponse = zeros([N M] - filterSize + 1);
+    totalResponse = zeros([N M]);
     for i = 1:K
         fourierResponse = fourierEventSlices(:, :, i) .* fourierFilterBank(:, :, i);
-        response = ifft2(fourierResponse);
-        totalResponse = totalResponse + extract_from_fourier(response, filterSize);
+        totalResponse = totalResponse + fourierResponse;        
     end    
+    totalResponse = extract_from_fourier(ifft2(totalResponse), filterSize);
 end
 
 function responses = convolve(fourierEventSlices, fourierFilterBank, filterSize)
@@ -128,12 +108,29 @@ function responses = convolve(fourierEventSlices, fourierFilterBank, filterSize)
     [N M K] = size(fourierEventSlices);
     toCompute = K - filterDepth;
     
-    h = waitbar(0, 'wait');
+    waitbarHandle = waitbar(0, 'Computing OpticalFlow. Please wait...');
     responses = zeros([([N M] - filterSize + 1) toCompute]);
     for i = 1:toCompute
         responses(:, :, i) = convolve_one(fourierEventSlices(:, :, i:i+filterDepth-1),...
             fourierFilterBank, filterSize);
-        
-        waitbar(i / toCompute);
+        if mod(i, 10) == 0
+            waitbar(i / toCompute, waitbarHandle);
+        end
     end
+    close(waitbarHandle)
+end
+
+function make_movie(data, name)
+    
+    figureHandle = figure('units','normalized','outerposition',[0 0 1 1]);
+    loops = size(data, 3);
+    F(loops) = struct('cdata',[],'colormap',[]);
+    for i = 1:loops
+        show_filter(data, i)
+        view([0 90]);
+        drawnow
+        F(i) = getframe(gcf);
+    end
+    movie2avi(F, name, 'compression', 'none');
+    close(figureHandle);    
 end
