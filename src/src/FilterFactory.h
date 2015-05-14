@@ -6,20 +6,42 @@
 #define OPTICAL_FLOW_FILTERFACTORY_H
 
 #include <memory>
+#include "../../../../../../usr/include/libio.h"
 
 class Filter;
 
 class FilterFactory {
 public:
     FilterFactory(float t0, float tk, float tResolution, int xRange, int yRange);
-    std::shared_ptr<Filter> createFilter(int angle);
+    std::shared_ptr<Filter> createFilter(int angle) const;
 
 private:
-    float t0_;
-    float tk_;
+    std::pair<float, float> rotate(int angle, const std::pair<float, float>& vec) const;
+    float gaus(float sigma, float mu, float x) const;
+    std::complex<float> spatial(float x, float y, float fx, float fy) const;
+    float timeMono(float t) const;
+    float timeBi(float t) const;
+
+private:
+    int t0_;
+    int timeSpan_;
     float tResolution_;
     int xRange_;
     int yRange_;
+    int xSize_;
+    int ySize_;
+
+ 
+    // filter parameters from paper
+    float sigma;
+    float s1;
+    float s2;
+    float mu_bi1;
+    float sigma_bi1;
+    float mu_bi2;
+    float sigma_bi2;
+    float mu_mono;
+    float sigma_mono;
 };
 
 

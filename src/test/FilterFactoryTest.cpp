@@ -11,11 +11,39 @@
 #include "Filter.h"
 #include "FilterFactory.h"
 
-class FactoryFilterTest : public testing::Test {};
+class FilterFactoryTest : public testing::Test {};
 
+TEST_F(FilterFactoryTest, AllowedParamtersTest) {
+
+    struct Params {
+        float t0;
+        float tk;
+        float timeResolution;
+        int xRange;
+        int yRange;
+    };
+
+    std::vector<Params> invalidParams = {
+            {0, 0, 0, 0, 0},    // all zero
+            {1, 1, 2, 3, 4},    // t0 == tk
+            {2, 1, 1, 1, 1},    // t0 < tk
+            {1, 2, 0, 3, 4},    // timeResolution 0= 0
+            {1, 2, 3, 0, 4},    // xRange == 0
+            {1, 2, 3, -1, 4},   // negative xRange
+            {1, 2, 3, 4, 0},    // yRange == 0;
+            {1, 2, 3, 4, -1}    // negative yRange
+    };
+
+    for(const auto& p : invalidParams) {
+        ASSERT_THROW(FilterFactory(p.t0, p.tk, p.timeResolution, p.xRange, p.yRange), std::invalid_argument);
+    }
+
+    // valid arguments
+    ASSERT_NO_THROW(FilterFactory(1, 2, 3, 4, 5));
+}
 
 // similar for another angle, at least 3 time slices, odd and even ranges
-TEST_F(FactoryFilterTest, DISABLED_SmallFilterTest) {
+TEST_F(FilterFactoryTest, DISABLED_SmallFilterTest) {
 
     int angle = 45;
     float t0 = 0;

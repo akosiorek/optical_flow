@@ -18,7 +18,7 @@
 class QuantizerTest : public testing::Test {
 
     void SetUp() {
-        quantizer = make_unique<Quantizer>(2);
+        quantizer = std::make_unique<Quantizer>(2);
     }
 
 public:
@@ -80,7 +80,7 @@ TEST_F(QuantizerTest, QuantizeTest) {
 
 TEST_F(QuantizerTest, QuantizeGetMultipleEventsTest) {
 
-    quantizer = make_unique<Quantizer>(3);
+    quantizer = std::make_unique<Quantizer>(3);
     std::vector<Event> events = {
             // x, y, time, parity
             {1, 1, 1, 1},

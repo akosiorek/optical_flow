@@ -11,6 +11,8 @@
 
 #include <glog/logging.h>
 
+#include "utils.h"
+
 class Filter {
 public:
     Filter();

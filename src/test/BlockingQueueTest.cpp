@@ -17,7 +17,7 @@
 class BlockingQueueTest : public testing::Test {
 
     void SetUp() {
-        bqueue = make_unique<BlockingQueue<int> >();
+        bqueue = std::make_unique<BlockingQueue<int> >();
     }
 
 public:

@@ -9,7 +9,9 @@ Filter::Filter() : angle_(0), xSize_(0), ySize_(0), filters_(nullptr) {}
 Filter::Filter(float angle, std::unique_ptr<std::vector<Eigen::MatrixXf>> filters)
         : angle_(angle), filters_(std::move(filters)) {
 
-    CHECK_GT(filters_->size(), 0);
+    if(filters_->size() == 0) {
+        THROW_INVALID_ARG("There has to be at least one filter");
+    }
     xSize_ = at(0).cols();
     ySize_ = at(0).rows();
 }
