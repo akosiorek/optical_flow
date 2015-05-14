@@ -31,6 +31,8 @@ private:
     int xSize_;
     int ySize_;
 
+    float PI_;
+
  
     // filter parameters from paper
     float sigma;
