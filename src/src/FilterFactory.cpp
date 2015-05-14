@@ -63,7 +63,7 @@ std::shared_ptr <Filter> FilterFactory::createFilter(int angle) const {
     for(int i = 0; i < timeSpan_; ++i) {
         LOG(ERROR) << currentTime;
         filters->push_back(spatialIm * timeMono(currentTime) + spatialRe * timeBi(currentTime));
-        currentTime += timeSpan_;
+        currentTime += tResolution_;
     }
 
     return std::make_shared<Filter>(angle, std::move(filters));
