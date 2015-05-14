@@ -13,42 +13,22 @@
 
 class Filter {
 public:
-    Filter() : angle_(0), xSize_(0), ySize_(0), filters_(nullptr) {}
-    Filter(float angle, std::unique_ptr<std::vector<Eigen::MatrixXf>> filters)
-    : angle_(angle), filters_(std::move(filters)) {
+    Filter();
+    Filter(float angle, std::unique_ptr<std::vector<Eigen::MatrixXf>> filters);
 
-        CHECK_GT(filters_->size(), 0);
-        xSize_ = at(0).cols();
-        ySize_ = at(0).rows();
-    }
+    const Eigen::MatrixXf& at(int index) const;
 
-    const Eigen::MatrixXf& at(int index) const {
-        return filters_->at(index);
-    }
+    const Eigen::MatrixXf& operator[](int index) const;
 
-    const Eigen::MatrixXf& operator[](int index) const {
-        return at(index);
-    }
+    float angle() const;
 
-    float angle() const {
-        return angle_;
-    }
+    int numSlices() const;
 
-    int numSlices() const {
-        return filters_->size();
-    }
+    bool empty() const;
 
-    bool empty() const {
-        return filters_ != nullptr && filters_->size() != 0;
-    }
+    int xSize() const;
 
-    int xSize() const {
-        return xSize_;
-    }
-
-    int ySize() const {
-        return ySize_;
-    }
+    int ySize() const;
 
 private:
     float angle_;
