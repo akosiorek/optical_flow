@@ -42,6 +42,7 @@ private:
     float sigma_bi2;
     float mu_mono;
     float sigma_mono;
+    std::pair<float, float> fxy;
 };
 
 

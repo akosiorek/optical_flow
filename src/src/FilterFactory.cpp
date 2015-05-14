@@ -20,8 +20,9 @@ FilterFactory::FilterFactory(float t0, float tk, float tResolution, int xRange, 
     sigma_bi1(mu_bi1 / 3),
     mu_bi2(2 * mu_bi1),
     sigma_bi2(1.5 * sigma_bi1),
-    mu_mono(0.2 * (1 + mu_bi1 * sqrt(36 + 19 * log(s1 / s2)))),
-    sigma_mono(mu_mono / 3) {
+    mu_mono(0.2 * (1 + mu_bi1 * sqrt(36 + 10 * log(s1 / s2)))),
+    sigma_mono(mu_mono / 3),
+    fxy(sqrt(2) * 0.08, 0) {
 
     if(t0 >= tk) {
         THROW_INVALID_ARG("t0 must be >= tk");
@@ -41,10 +42,26 @@ FilterFactory::FilterFactory(float t0, float tk, float tResolution, int xRange, 
 
 std::shared_ptr <Filter> FilterFactory::createFilter(int angle) const {
     auto filters = std::make_unique<std::vector<Eigen::MatrixXf>>();
-    filters->push_back(Eigen::MatrixXf());
+    filters->reserve(timeSpan_);
 
+    float fx, fy; // frequencies;
+    std::tie(fx, fy) = rotate(angle, fxy);
 
+    Eigen::MatrixXf spatialRe(xSize_, ySize_);
+    Eigen::MatrixXf spatialIm(xSize_, ySize_);
+    for(int x = 0; x < xSize_; ++x) {
+        for(int y = 0; y < ySize_; ++y) {
+            auto v = spatial(x - xRange_, y - yRange_, fx, fy);
+            spatialRe(x, y) = v.real();
+            spatialIm(x, y) = v.imag();
+        }
+    }
 
+    float currentTime = t0_ * tResolution_;
+    for(int i = 0; i < timeSpan_; ++i) {
+        filters->push_back(spatialIm * timeMono(currentTime) + spatialRe * timeBi(currentTime));
+        currentTime += timeSpan_;
+    }
 
     return std::make_shared<Filter>(angle, std::move(filters));
 }
