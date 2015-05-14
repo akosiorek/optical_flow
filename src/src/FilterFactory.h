@@ -30,9 +30,6 @@ private:
     int yRange_;
     int xSize_;
     int ySize_;
-
-    float PI_;
-
  
     // filter parameters from paper
     float sigma;
@@ -45,6 +42,8 @@ private:
     float mu_mono;
     float sigma_mono;
     std::pair<float, float> fxy;
+
+    static const float PI_;
 };
 
 

@@ -10,8 +10,11 @@
 #include "Filter.h"
 #include "FilterFactory.h"
 
+// static fields
+const float FilterFactory::PI_ = static_cast<float>(M_PI);
+
 FilterFactory::FilterFactory(float t0, float tk, float tResolution, int xRange, int yRange)
-    : xRange_(xRange), yRange_(yRange), PI_(static_cast<float>(M_PI)),
+    : xRange_(xRange), yRange_(yRange),
     // filters parameters
     sigma(25),
     s1(0.5),
@@ -47,8 +50,6 @@ std::shared_ptr <Filter> FilterFactory::createFilter(int angle) const {
     float fx, fy; // frequencies;
     std::tie(fx, fy) = rotate(angle, fxy);
 
-    LOG(ERROR) << "fx = " << fx << ", fy = " << fy;
-
     Eigen::MatrixXf spatialRe(xSize_, ySize_);
     Eigen::MatrixXf spatialIm(xSize_, ySize_);
     for(int x = 0; x < xSize_; ++x) {
@@ -61,14 +62,12 @@ std::shared_ptr <Filter> FilterFactory::createFilter(int angle) const {
 
     float currentTime = t0_ * tResolution_;
     for(int i = 0; i < timeSpan_; ++i) {
-        LOG(ERROR) << currentTime;
         filters->push_back(spatialIm * timeMono(currentTime) + spatialRe * timeBi(currentTime));
         currentTime += tResolution_;
     }
 
     return std::make_shared<Filter>(angle, std::move(filters));
 }
-
 
 std::pair<float, float> FilterFactory::rotate(int angle, const std::pair<float, float> &vec) const {
     float rad = (PI_ * angle) / 180;
