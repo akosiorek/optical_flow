@@ -51,6 +51,8 @@ TEST_F(FilterFactoryTest, SmallFilterTest) {
     float timeResolution = 0.01;
     int xRadius = 4;
     int yRadius = 4;
+    int xSize = 2 * xRadius + 1;
+    int ySize = 2 * yRadius + 1;
     FilterFactory factory(t0, tk, timeResolution, xRadius, yRadius);
 
 
@@ -62,7 +64,7 @@ TEST_F(FilterFactoryTest, SmallFilterTest) {
     auto filterSlice = filter->at(0);
 
     // prepare values we expect the filter to have
-    decltype(filterSlice) expectedFilter(xRadius, yRadius);
+    decltype(filterSlice) expectedFilter(2 * xRadius + 1, 2 * yRadius + 1);
     expectedFilter<< 0.0578,  0.0580,  0.0345, -0.0081, -0.0538, -0.0833, -0.0854, -0.0631, -0.0302
             ,  0.0580,  0.0368, -0.0092, -0.0651, -0.1073, -0.1171, -0.0921, -0.0469, -0.0029
             ,  0.0345, -0.0092, -0.0693, -0.1217, -0.1415, -0.1186, -0.0643, -0.0042,  0.0382
@@ -73,6 +75,13 @@ TEST_F(FilterFactoryTest, SmallFilterTest) {
             , -0.0631, -0.0469, -0.0042,  0.0524,  0.0994,  0.1165,  0.0981,  0.0563,  0.0120
             , -0.0302, -0.0029,  0.0382,  0.0772,  0.0964,  0.0865,  0.0529,  0.0120, -0.0194;
     expectedFilter = expectedFilter * 0.001;
+
+    for(int x = 0; x < xSize; ++x) {
+        for(int y = 0; y < ySize; ++y) {
+            ASSERT_FLOAT_EQ(filterSlice(x, y), expectedFilter(x, y));
+        }
+    }
+
     ASSERT_EQ(filterSlice, expectedFilter);
 
 //    angle = 45;
