@@ -13,6 +13,8 @@ template<typename T>
 class BlockingQueue
 {
 public:
+	typedef  std::shared_ptr<BlockingQueue>  Ptr;
+
 	BlockingQueue() {}
 
 	bool empty() const
