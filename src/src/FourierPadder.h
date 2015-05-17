@@ -26,7 +26,7 @@ T const& max(T const& a, T const& b)
 	return a > b ? a : b;
 }
 
-//fftw is faster with prime numbers?
+// TODO evaluate if we really need to pad up to power of two
 template<unsigned int dataSize, unsigned int filterSize>
 class FourierPadder
 {
@@ -38,7 +38,7 @@ public:
 	using FourierMatrixPtr = std::shared_ptr<FourierMatrix>;
 	using InputMatrix = Eigen::SparseMatrix<float>;
 	using InputMatrixPtr = std::shared_ptr<InputMatrix>;
-	using OutputMatrix = Eigen::Matrix<float, dataSize, dataSize>;
+	using OutputMatrixDense = Eigen::Matrix<float, dataSize, dataSize>;
 	using OutputMatrixSparse = Eigen::SparseMatrix<float>;
 
 	FourierPadder() {};
@@ -60,18 +60,24 @@ public:
 		return fm;
 	}
 
-	std::shared_ptr<OutputMatrix> extractDenseOuput(FourierMatrixPtr fm)
+	std::shared_ptr<OutputMatrixDense> extractDenseOuput(FourierMatrixPtr fm)
 	{
-		auto dout = std::make_shared<OutputMatrix>();
+		auto dout = std::make_shared<OutputMatrixDense>();
 		dout->setZero();
+
+		// USE BLOCK ACCESS
 
 		return dout;
 	}
 
-	std::shared_ptr<OutputMatrixSparse> extractSparseOutput()
+	std::shared_ptr<OutputMatrixSparse> extractSparseOutput(FourierMatrixPtr fm)
 	{
-		auto sout = std::make_shared<OutputMatrixSparse>();
+		auto sout = std::make_shared<OutputMatrixSparse>(dataSize,dataSize);
 		sout->setZero();
+
+		// USE BLOCK ACCESS to get small dense
+		// then initialize sparse from dense? 
+		// TODO How fast is this? Can/Will this be a bottleneck?
 
 		return sout;
 	}
