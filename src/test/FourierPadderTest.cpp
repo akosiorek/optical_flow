@@ -13,80 +13,66 @@
 class FourierPadderTest : public testing::Test {
 public:
 
-    // similar for odd/odd, odd/even, even/odd combinations of filter and input size
-    const uint32_t inputSize = 20;
-    const uint32_t filterSize = 10;
+	// similar for odd/odd, odd/even, even/odd combinations of filter and input size
+	static const uint32_t inputSize = 9;
+	static const uint32_t filterSize = 9;
+	typedef FourierPadder<inputSize, filterSize> FPType;
 
-    void SetUp() {
-        padder = make_unique<FourierPadder>(inputSize, filterSize);
-    }
+	void SetUp() {
+		padder = make_unique<FourierPadder<inputSize, filterSize> >();
+	}
 
 public:
-    std::unique_ptr<FourierPadder> padder;
+	std::unique_ptr<FourierPadder<inputSize, filterSize> > padder;
 };
 
+//Test had to be disabled as function is now  evaluate at compile time
 TEST_F(FourierPadderTest, GetPowerOfTwoTest)
 {
-    ASSERT_EQ(padder->getNextPowerOfTwo(0), 0);
-    ASSERT_EQ(padder->getNextPowerOfTwo(1), 1);
-    ASSERT_EQ(padder->getNextPowerOfTwo(2), 2);
-    ASSERT_EQ(padder->getNextPowerOfTwo(3), 4);   
-    ASSERT_EQ(padder->getNextPowerOfTwo(4), 4);  
-    ASSERT_EQ(padder->getNextPowerOfTwo(5), 8);        
-    ASSERT_EQ(padder->getNextPowerOfTwo(857), 1024);
-    ASSERT_EQ(padder->getNextPowerOfTwo(1023), 1024);
-    ASSERT_EQ(padder->getNextPowerOfTwo(1024), 1024);
-    ASSERT_EQ(padder->getNextPowerOfTwo(1025), 2048);
+	ASSERT_EQ(Pow2RoundUp<0>::value, 0);
+	ASSERT_EQ(Pow2RoundUp<1>::value, 1);
+	ASSERT_EQ(Pow2RoundUp<2>::value, 2);
+	ASSERT_EQ(Pow2RoundUp<3>::value, 4);
+	ASSERT_EQ(Pow2RoundUp<4>::value, 4);
+	ASSERT_EQ(Pow2RoundUp<5>::value, 8);
+	ASSERT_EQ(Pow2RoundUp<823>::value, 1024);
+	ASSERT_EQ(Pow2RoundUp<1023>::value, 1024);
+	ASSERT_EQ(Pow2RoundUp<1024>::value, 1024);
+	ASSERT_EQ(Pow2RoundUp<1025>::value, 2048);
 }
 
-// TEST_F(FourierPadderTest, PadInputTest) {
+TEST_F(FourierPadderTest, PadInputTest)
+{
+	auto input = std::make_shared<FPType::InputMatrix >
+					(FPType::FilterSize::value, FPType::FilterSize::value);
+	input->setZero();
+	input->insert(2, 3) = 1;
+	input->insert(4, 5) = 12;
 
-//     auto input = std::make_shared<Eigen::SparseMatrix>(inputSize, inputSize);
-//     input->setZero();
-//     input->insert(2, 3) = 1;
-//     input->insert(4, 5) = 12;
+	std::shared_ptr<FPType::FourierMatrix > padded = padder->padData(input);
 
-//     std::shared_ptr<Eigen::Matrix<float, paddedSize, paddedSize>> padded = padder.padInput(input);
+	ASSERT_EQ((*padded)(2, 3), 1);
+	ASSERT_EQ((*padded)(4, 5), 12);
+	(*padded)(2, 3) = 0;
+	(*padded)(4, 5) = 0;
+	ASSERT_TRUE(padded->isZero());
+}
 
-//     ASSERT_EQ(*padded(2, 3), 1);
-//     ASSERT_EQ(*padded(4, 5), 12);
-//     *padded(2, 3) = 0;
-//     *padded(4, 5) = 0;
-//     ASSERT_TRUE(padded->isZero(0));
-// }
+TEST_F(FourierPadderTest, ExtractDenseOutputTest)
+{
+	auto paddedOutput = std::make_shared<FPType::FourierMatrix>();
+	paddedOutput->setZero();
+	(*paddedOutput)(15, 19) = 1;
+	(*paddedOutput)(21, 16) = 12;
 
-// TEST_F(FourierPadderTest, PadFilterTest) {
+	std::shared_ptr<FPType::OutputMatrix> extracted = padder->extractDenseOuput(paddedOutput);
 
-//     auto filter = std::make_shared<Eigen::Matrix<float, filterSize, filterSize>();
-//     filter->setZero();
-//     input->insert(2, 3) = 1;
-//     input->insert(4, 5) = 12;
-
-
-//     std::shared_ptr<Eigen::Matrix<float, paddedSize, paddedSize>> padded = padder.padFilter(filter);
-
-//     ASSERT_EQ(*padded(2, 3), 1);
-//     ASSERT_EQ(*padded(4, 5), 12);
-//     *padded(2, 3) = 0;
-//     *padded(4, 5) = 0;
-//     ASSERT_TRUE(padded->isZero(0));
-// }
-
-// TEST_F(FourierPadderTest, ExtractDenseOutputTest) {
-
-//     auto paddedOutput = std::make_shared<Eigen::Matrix<float, paddedSize, paddedSize>();
-//     filter->setZero();
-//     *filter(15, 19) = 1;
-//     *filter(21, 16) = 12;
-
-//     std::shared_ptr<Eigen::Matrix<float, inputSize, inputSize>> extracted = padder.extract(paddedOutput);
-
-//     ASSERT_EQ(*extracted(10, 14), 1);
-//     ASSERT_EQ(*extracted(16, 11), 12);
-//     *extracted(10, 14) = 0;
-//     *extracted(16, 11) = 0;
-//     ASSERT_TRUE(extracted->isZero(0));
-// }
+	ASSERT_EQ((*extracted)(10, 14), 1);
+	ASSERT_EQ((*extracted)(16, 11), 12);
+	(*extracted)(10, 14) = 0;
+	(*extracted)(16, 11) = 0;
+	ASSERT_TRUE(extracted->isZero(0));
+}
 
 // TEST_F(FourierPadderTest, ExtractSparseOutputTest) {
 //     FourierPadder padder(3, 3);
