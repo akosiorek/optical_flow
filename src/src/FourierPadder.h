@@ -1,6 +1,3 @@
-//
-// Created by dadrian on 5/14/2015.
-//
 #ifndef FOURIER_PADDER_H
 #define FOURIER_PADDER_H
 
@@ -54,6 +51,12 @@ public:
 
 	FourierPadder() {};
 
+	/**
+	 * @brief Zero-pads a dense input matrix to the next power of 2 (FilterSize::Value)
+	 * 
+	 * @param  data Dense input matrix
+	 * @return Zero-padded dense matrix
+	 */
 	std::shared_ptr<FourierMatrix> padData(std::shared_ptr<InputMatrixDense> data)
 	{
 		auto fm = std::make_shared<FourierMatrix>();
@@ -64,6 +67,13 @@ public:
 		return fm;
 	}
 
+	/**
+	 * @brief [brief description]
+	 * @details [long description]
+	 * 
+	 * @param  data Sparse input matrix
+	 * @return Zero-padded dense matrix
+	 */
 	std::shared_ptr<FourierMatrix> padData(std::shared_ptr<InputMatrixSparse> data)
 	{
 		auto fm = std::make_shared<FourierMatrix>();
@@ -82,6 +92,12 @@ public:
 		return fm;
 	}
 
+	/**
+	 * @brief Takes a dense matrix of FilterSize::value, and extracts a dense matrix of original data matrix size
+	 * 
+	 * @param fm Input matrix
+	 * @return Dense data matrix
+	 */
 	std::shared_ptr<OutputMatrixDense> extractDenseOutput(FourierMatrixPtr fm)
 	{
 		auto dout = std::make_shared<OutputMatrixDense>();
@@ -90,6 +106,12 @@ public:
 		return dout;
 	}
 
+	/**
+	 * @brief Takes a dense matrix of FilterSize::value, and extracts a sparse matrix of original data matrix size
+	 * 
+	 * @param fm Input matrix
+	 * @return Dense data matrix
+	 */
 	std::shared_ptr<OutputMatrixSparse> extractSparseOutput(FourierMatrixPtr fm)
 	{
 		auto sout = std::make_shared<OutputMatrixSparse>(dataSize,dataSize);
@@ -97,10 +119,6 @@ public:
 
 		return sout;
 	}
-
-private:
-
-
 };
 
 #endif // FOURIER_PADDER_H
