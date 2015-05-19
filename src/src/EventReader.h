@@ -43,6 +43,10 @@ public:
 	void startPublishing()
 	{
 		if(!openStream()) return;
+		{
+			std::cout << "stream could not be opened!" << std::endl;
+			return false;
+		}
 
         if (!eventPublisher_)
 		{
@@ -57,6 +61,7 @@ public:
 		{
 			running_ = false;
 			eventPublisher_->join();
+			stream_.reset(); //guess this should trigger the shutdown of the edvs library
 		}
 	}
 
@@ -68,7 +73,7 @@ private:
 	 */
 	bool openStream()
 	{
-		std::shared_ptr<Edvs::IEventStream> stream_ = Edvs::OpenEventStream(uri_);
+		stream_ = Edvs::OpenEventStream(uri_);
 		return stream_->is_open();
 	}
 
@@ -95,7 +100,7 @@ private:
 
 	std::shared_ptr<Edvs::IEventStream> stream_;
 	std::shared_ptr<std::thread> eventPublisher_;
-	bool running_;
+	volatile bool running_;
 	
 };
 
