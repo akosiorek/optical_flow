@@ -44,9 +44,9 @@ TEST_F(FourierPadderTest, GetPowerOfTwoTest)
 	ASSERT_EQ(Pow2RoundUp<1025>::value, 2048);
 }
 
-TEST_F(FourierPadderTest, PadInputTest)
+TEST_F(FourierPadderTest, PadInputSparseTest)
 {
-	auto input = std::make_shared<FPType::InputMatrix >
+	auto input = std::make_shared<FPType::InputMatrixSparse >
 					(FPType::FilterSize::value, FPType::FilterSize::value);
 	input->setZero();
 	input->insert(2, 3) = 1;
@@ -58,6 +58,34 @@ TEST_F(FourierPadderTest, PadInputTest)
 	ASSERT_EQ((*padded)(4, 5), 12);
 	(*padded)(2, 3) = 0;
 	(*padded)(4, 5) = 0;
+	ASSERT_TRUE(padded->isZero());
+}
+
+TEST_F(FourierPadderTest, PadInputDenseTest)
+{
+	auto input = std::make_shared<FPType::InputMatrixDense >();
+	input->setZero();
+	(*input)(15, 19) = 22;
+	(*input)(55, 12) = 3;
+	(*input)(3, 23) = 454;
+	(*input)(21, 17) = 34;
+	(*input)(66, 4) = 54;
+	(*input)(76, 1) = 12;
+
+	std::shared_ptr<FPType::FourierMatrix > padded = padder->padData(input);
+
+	ASSERT_EQ(22,	(*padded)(15, 19));
+	ASSERT_EQ(3,	(*padded)(55, 12));
+	ASSERT_EQ(454,	(*padded)(3, 23));
+	ASSERT_EQ(34,	(*padded)(21, 17));
+	ASSERT_EQ(54,	(*padded)(66, 4));
+	ASSERT_EQ(12,	(*padded)(76, 1));
+	(*padded)(15, 19) = 0;
+	(*padded)(55, 12) = 0;
+	(*padded)(3, 23) = 0;
+	(*padded)(21, 17) = 0;
+	(*padded)(66, 4) = 0;
+	(*padded)(76, 1) = 0;
 	ASSERT_TRUE(padded->isZero());
 }
 

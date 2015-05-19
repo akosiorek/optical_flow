@@ -16,13 +16,28 @@ struct Pow2RoundUp { enum{ value = Pow2RoundUp<((B == 16 ? (A-1) : A) | ((B == 1
 template<uint32_t A >
 struct Pow2RoundUp<A, 1> { enum{ value = ((A | (A >> 1)) + 1) }; };
 
+/**
+ * @brief Constexpr function to determine the max of two values at compile time
+ * 
+ * @param a First value
+ * @param b Second value
+ * 
+ * @return Returns the larger element by value
+ */
 template<typename T> constexpr
 T const& max(T const& a, T const& b)
 {
 	return a > b ? a : b;
 }
 
-// TODO evaluate if we really need to pad up to power of two
+/**
+ * @brief This class zero-pads matrices for efficient FFT.
+ * @details Matrix size typically needs to be a power of two to be efficiently FFT'ed.
+ * 			(Actually, e.g., prime numbers etc. might do it as well, but this is really just for now.)
+ * 
+ * @tparam int dataSize Size of data matrix
+ * @tparam int filterSize Size of filter
+ */
 template<unsigned int dataSize, unsigned int filterSize>
 class FourierPadder
 {
@@ -32,14 +47,24 @@ public:
 	using FilterSize = Pow2RoundUp<max(dataSize,filterSize)>;
 	using FourierMatrix = Eigen::Matrix<float, FilterSize::value, FilterSize::value>;
 	using FourierMatrixPtr = std::shared_ptr<FourierMatrix>;
-	using InputMatrix = Eigen::SparseMatrix<float>;
-	using InputMatrixPtr = std::shared_ptr<InputMatrix>;
+	using InputMatrixDense = Eigen::Matrix<float, dataSize, dataSize>;
+	using InputMatrixSparse = Eigen::SparseMatrix<float>;
 	using OutputMatrixDense = Eigen::Matrix<float, dataSize, dataSize>;
 	using OutputMatrixSparse = Eigen::SparseMatrix<float>;
 
 	FourierPadder() {};
 
-	std::shared_ptr<FourierMatrix> padData(std::shared_ptr<InputMatrix> data)
+	std::shared_ptr<FourierMatrix> padData(std::shared_ptr<InputMatrixDense> data)
+	{
+		auto fm = std::make_shared<FourierMatrix>();
+		fm->setZero();
+
+		fm->block(0,0,dataSize,dataSize) = *data;
+
+		return fm;
+	}
+
+	std::shared_ptr<FourierMatrix> padData(std::shared_ptr<InputMatrixSparse> data)
 	{
 		auto fm = std::make_shared<FourierMatrix>();
 		fm->setZero();
@@ -48,7 +73,7 @@ public:
 		// Unless we do a conversativeResize() afterwards
 		for (int k=0; k<data->outerSize(); ++k)
 		{
-			for (InputMatrix::InnerIterator it(*data,k); it; ++it)
+			for (InputMatrixSparse::InnerIterator it(*data,k); it; ++it)
 			{
 				(*fm)(it.row(),it.col()) = it.value();
 			}
