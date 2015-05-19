@@ -10,11 +10,7 @@
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
 
-template<uint32_t A, uint8_t B = 16>
-struct Pow2RoundDown { enum{ value = Pow2RoundDown<(A | (A >> B)), B/2>::value }; };
-template<uint32_t A>
-struct Pow2RoundDown<A, 1> { enum{ value = (A | (A >> 1)) - ((A | (A >> 1)) >> 1) }; };
-
+// Determines the next power of two at run time
 template<uint32_t A, uint8_t B = 16>
 struct Pow2RoundUp { enum{ value = Pow2RoundUp<((B == 16 ? (A-1) : A) | ((B == 16 ? (A-1) : A) >> B)), B/2>::value }; };
 template<uint32_t A >
@@ -48,7 +44,8 @@ public:
 		auto fm = std::make_shared<FourierMatrix>();
 		fm->setZero();
 
-		// TODO: Make this faster?!
+		// TODO: Make this faster?! Since the size changes we cant just use the constructor
+		// Unless we do a conversativeResize() afterwards
 		for (int k=0; k<data->outerSize(); ++k)
 		{
 			for (InputMatrix::InnerIterator it(*data,k); it; ++it)
@@ -60,12 +57,10 @@ public:
 		return fm;
 	}
 
-	std::shared_ptr<OutputMatrixDense> extractDenseOuput(FourierMatrixPtr fm)
+	std::shared_ptr<OutputMatrixDense> extractDenseOutput(FourierMatrixPtr fm)
 	{
 		auto dout = std::make_shared<OutputMatrixDense>();
-		dout->setZero();
-
-		// USE BLOCK ACCESS
+		*dout = fm->block(0,0,dataSize,dataSize);
 
 		return dout;
 	}
@@ -73,11 +68,7 @@ public:
 	std::shared_ptr<OutputMatrixSparse> extractSparseOutput(FourierMatrixPtr fm)
 	{
 		auto sout = std::make_shared<OutputMatrixSparse>(dataSize,dataSize);
-		sout->setZero();
-
-		// USE BLOCK ACCESS to get small dense
-		// then initialize sparse from dense? 
-		// TODO How fast is this? Can/Will this be a bottleneck?
+		*sout = fm->block(0,0,dataSize,dataSize).sparseView();
 
 		return sout;
 	}
