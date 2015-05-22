@@ -10,7 +10,7 @@ add_executable(test
     QuantizerTest.cpp
     SequentialBufferTest.cpp
     BlockingQueueTest.cpp
-    FourierPadderTest.cpp)
+    FourierPadderTest.cpp
     FilterTest.cpp
     FilterFactoryTest.cpp
 )

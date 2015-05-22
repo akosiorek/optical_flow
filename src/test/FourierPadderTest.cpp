@@ -16,7 +16,7 @@ public:
 	static const uint32_t filterSize = 15;
 
 	void SetUp() {
-		padder = make_unique<FourierPadder<inputSize, filterSize> >();
+		padder = std::make_unique<FourierPadder<inputSize, filterSize> >();
 	}
 
 	std::unique_ptr<FourierPadder<inputSize, filterSize> > padder;
