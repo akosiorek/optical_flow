@@ -19,7 +19,7 @@ public:
 
 	bool empty() const
 	{
-		std::unique_lock<std::mutex> lck (mtx_);		
+		std::unique_lock<std::mutex> lck (mtx_);
 		return queue_.empty();
 	}
 
@@ -37,7 +37,7 @@ public:
 
 	const T& front() const
 	{
-		std::unique_lock<std::mutex> lck (mtx_);		
+		std::unique_lock<std::mutex> lck (mtx_);
 		return queue_.front();
 	}
 
@@ -74,8 +74,8 @@ public:
 
 
 private:
-	std::mutex		mtx_;	
-	std::queue<T> 	queue_;
+	mutable std::mutex mtx_;
+	std::queue<T> queue_;
 };
 
 #endif //BLOCKING_QUEUE_H

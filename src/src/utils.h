@@ -18,7 +18,9 @@
 namespace std {
     template<class T, class... Ts>
     std::unique_ptr <T> make_unique(Ts... args) {
-        return std::unique_ptr<T>(new T(args...));
+
+        return std::unique_ptr<T>(new T(std::forward<Ts...>(args)...));
+
     }
 } // namespace std
 
