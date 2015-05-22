@@ -3,7 +3,10 @@
 //
 
 #include <glog/logging.h>
+
 #include "Quantizer.h"
+#include "EventSlice.h"
+
 
 Quantizer::Quantizer(int timeResolution)
     : initialized_(false), nextEventTime_(0), timeResolution_(timeResolution),

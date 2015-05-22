@@ -14,18 +14,7 @@
 #include "Event.h"
 #include "common.h"
 
-class EventSlice : public Eigen::SparseMatrix<int> {
-public:
-    EventSlice() : Eigen::SparseMatrix<int>(128, 128) {};
-
-    int& operator()(int x, int y) {
-        return this->coeffRef(y, x);
-    }
-
-    bool isZero() const {
-        return this->nonZeros() == 0 || this->squaredNorm() < 1e-8;
-    }
-};
+class EventSlice;
 
 class Quantizer {
 public:

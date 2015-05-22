@@ -9,7 +9,7 @@
 #include "gtest/gtest.h"
 #include "common.h"
 #include "Quantizer.h"
-
+#include "EventSlice.h"
 
 
 class QuantizerTest : public testing::Test {
