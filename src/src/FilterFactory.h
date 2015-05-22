@@ -12,7 +12,10 @@ class Filter;
 
 class FilterFactory {
 public:
+    typedef std::function<Eigen::MatrixXf(const Eigen::MatrixXf&)> FilterTransformT;
+public:
     FilterFactory(float t0, float tk, float tResolution, int xRange, int yRange);
+    void setFilterTransformer(FilterTransformT transform);
     std::shared_ptr<Filter> createFilter(int angle) const;
 
 private:
@@ -30,6 +33,9 @@ private:
     int yRange_;
     int xSize_;
     int ySize_;
+
+private:
+    FilterTransformT filterTransformer_;
  
     // filter parameters from paper
     float sigma;

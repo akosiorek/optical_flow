@@ -15,6 +15,7 @@ const float FilterFactory::PI_ = static_cast<float>(M_PI);
 
 FilterFactory::FilterFactory(float t0, float tk, float tResolution, int xRange, int yRange)
     : xRange_(xRange), yRange_(yRange),
+      filterTransformer_([](const Eigen::MatrixXf& filter) { return filter; }),
     // filters parameters
     sigma(25),
     s1(0.5),
@@ -25,7 +26,7 @@ FilterFactory::FilterFactory(float t0, float tk, float tResolution, int xRange, 
     sigma_bi2(1.5 * sigma_bi1),
     mu_mono(0.2 * (1 + mu_bi1 * sqrt(36 + 10 * log(s1 / s2)))),
     sigma_mono(mu_mono / 3),
-    fxy(sqrt(2) * 0.08, 0) {
+    fxy(sqrt(2) * 0.08, 0)  {
 
     if(t0 >= tk) {
         THROW_INVALID_ARG("t0 must be >= tk");
@@ -41,6 +42,10 @@ FilterFactory::FilterFactory(float t0, float tk, float tResolution, int xRange, 
     t0_ = t0 / tResolution;
     xSize_ = 2 * xRange_ + 1;
     ySize_ = 2 * yRange_ + 1;
+}
+
+void FilterFactory::setFilterTransformer(FilterTransformT transform) {
+    this->filterTransformer_ = transform;
 }
 
 std::shared_ptr <Filter> FilterFactory::createFilter(int angle) const {
@@ -62,7 +67,10 @@ std::shared_ptr <Filter> FilterFactory::createFilter(int angle) const {
 
     float currentTime = t0_ * tResolution_;
     for(int i = 0; i < timeSpan_; ++i) {
-        filters->push_back(spatialIm * timeMono(currentTime) + spatialRe * timeBi(currentTime));
+
+        filters->push_back(filterTransformer_(
+                spatialIm * timeMono(currentTime) + spatialRe * timeBi(currentTime)));
+
         currentTime += tResolution_;
     }
 
