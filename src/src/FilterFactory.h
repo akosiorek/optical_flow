@@ -6,17 +6,15 @@
 #define OPTICAL_FLOW_FILTERFACTORY_H
 
 #include "common.h"
-#include "../../../../../../usr/include/libio.h"
+#include "IFilterFactory.h"
 
-class Filter;
-
-class FilterFactory {
+class FilterFactory : public IFilterFactory {
 public:
     typedef std::function<Eigen::MatrixXf(const Eigen::MatrixXf&)> FilterTransformT;
 public:
     FilterFactory(float t0, float tk, float tResolution, int xRange, int yRange);
     void setFilterTransformer(FilterTransformT transform);
-    std::shared_ptr<Filter> createFilter(int angle) const;
+    std::shared_ptr<Filter> createFilter(int angle) const override;
 
 private:
     std::pair<float, float> rotate(int angle, const std::pair<float, float>& vec) const;

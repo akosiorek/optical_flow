@@ -13,6 +13,7 @@ add_executable(test
     FourierPadderTest.cpp
     FilterTest.cpp
     FilterFactoryTest.cpp
+    FilteringEngineTest.cpp
 )
 
 target_link_libraries(test gtest_main optical)
