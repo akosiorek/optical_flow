@@ -8,4 +8,4 @@ add_library(optical
         Quantizer.cpp
         Filter.cpp
         FilterFactory.cpp
-    )
+    IFourierTransformer.cpp)
