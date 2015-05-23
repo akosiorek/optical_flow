@@ -15,9 +15,8 @@
 #include "EventSlice.h"
 #include "FlowSlice.h"
 #include "FilteringEngine.h"
-#include "../src/IFilterFactory.h"
 
-struct FilterFactoryMock : IFilterFactory {
+struct FilterFactoryMock : public IFilterFactory {
     // create 1x1x1 filter with the only coefficient equal to angle
     virtual std::shared_ptr<Filter> createFilter(int angle) const override {
 
@@ -28,11 +27,22 @@ struct FilterFactoryMock : IFilterFactory {
     }
 };
 
+struct FourierTransformerMock : public IFourierTransformer {
+    virtual void forward(const Eigen::MatrixXf& src, Eigen::MatrixXcf& dst) const override {
+
+    }
+
+    virtual void backward(const Eigen::MatrixXcf& src, Eigen::MatrixXf& dst) const override {
+
+    }
+};
+
 class FilteringEngineTest : public testing::Test {
 public:
     typedef FilteringEngine<BlockingQueue> EngineT;
     typedef typename EngineT::EventQueueT EventQueueT;
     typedef typename EngineT::FlowQueueT FlowQueueT;
+    typedef typename EngineT::PadderT PadderT;
 
     FilteringEngineTest() :
             eventSliceQueue(new EventQueueT()),
@@ -47,7 +57,14 @@ public:
 TEST_F(FilteringEngineTest, InitializeTest) {
 
     auto factory = std::make_unique<FilterFactoryMock>();
-    engine = std::make_unique<EngineT>(std::move(factory));
+    auto padder = std::make_unique<PadderT>();
+    auto transformer = std::make_unique<FourierTransformerMock>();
+
+    engine = std::make_unique<EngineT>(std::move(factory), std::move(padder), std::move(transformer));
+    ASSERT_FALSE(engine->isInitialized());
+    ASSERT_FALSE(engine->hasInput());
+    ASSERT_FALSE(engine->hasOutput());
+
     engine->setInputBuffer(eventSliceQueue);
     engine->setOutputBuffer(flowSliceQueue);
     ASSERT_EQ(engine->timeSteps(), 0);
@@ -55,6 +72,7 @@ TEST_F(FilteringEngineTest, InitializeTest) {
     engine->addFilter(15);
     ASSERT_EQ(engine->timeSteps(), 1);
     ASSERT_FALSE(engine->isInitialized());
+    ASSERT_FALSE(engine->hasInput());
     ASSERT_FALSE(engine->hasOutput());
 
     auto slice = std::make_shared<EventSlice>();
