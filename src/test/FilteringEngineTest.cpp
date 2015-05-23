@@ -25,6 +25,8 @@ struct FilterFactoryMock : public IFilterFactory {
         filters->at(0)(0, 0) = angle;
         return std::make_shared<Filter>(angle, std::move(filters));
     }
+
+    virtual void setFilterTransformer(FilterTransformT transform) override {}
 };
 
 struct FourierTransformerMock : public IFourierTransformer {

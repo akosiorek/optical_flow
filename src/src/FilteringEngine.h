@@ -29,7 +29,18 @@ public:
             : factory_(std::move(factory)),
               padder_(std::move(padder)),
               transformer_(std::move(transformer)),
-              timeSteps_(0) {}
+              timeSteps_(0) {
+
+        //TODO wait for dynamic reference-argument-accepting FourierPadder
+//        factory-setFilterTransformer(
+//                [this](const Eigen::MatrixXf& filter) {
+//
+//                    auto nullDeleter = [](const Eigen::MatrixXf*) {};
+//
+//                    auto ptr = std::shared_ptr<Eigen::MatrixXf>(&filter, nullDeleter);
+//                    this->padder_->padData(ptr);
+//                });
+    }
 
     void setInputBuffer(std::shared_ptr<EventQueueT> buffer) {
         this->inputBuffer_ = buffer;
@@ -72,29 +83,29 @@ public:
 
     void filter(std::shared_ptr<EventSlice> slice) {
 
-//        bool wasInitialized = isInitialized();
-//        transformAndEnqueue(slice);
-//
-//        // may the magic happen
-//        if(wasInitialized) {
-//
-//            eventStream_.pop_front();
-//
-//            int sliceIndex = 0;
-//            auto eventIt = eventStream_.begin();
-//            for(; eventIt != eventStream_.end(); ++sliceIndex, ++eventIt) {
-//                const auto& eventSlice = **eventIt;
-//                for(int filterIndex = 0; filterIndex < filters_.size(); ++filterIndex) {
-//
-//                    // iterate over event slices and filters/filter slices transforming,
-//                    // multiplying, summing
-//                }
-//            }
-//            // reverse transform
-//            // weight by filter angles
-//            // sum up
-//            // put the result to the output queue
-//        }
+        bool wasInitialized = isInitialized();
+        transformAndEnqueue(slice);
+
+        // may the magic happen
+        if(wasInitialized) {
+
+            eventStream_.pop_front();
+
+            int sliceIndex = 0;
+            auto eventIt = eventStream_.begin();
+            for(; eventIt != eventStream_.end(); ++sliceIndex, ++eventIt) {
+                const auto& eventSlice = **eventIt;
+                for(int filterIndex = 0; filterIndex < filters_.size(); ++filterIndex) {
+
+                    // iterate over event slices and filters/filter slices transforming,
+                    // multiplying, summing
+                }
+            }
+            // reverse transform
+            // weight by filter angles
+            // sum up
+            // put the result to the output queue
+        }
     }
 
 private:
@@ -115,6 +126,8 @@ private:
 
     std::vector<std::shared_ptr<Filter>> filters_;
     std::vector<Eigen::MatrixXf> responseTemplates_;
+
+    // use deque instead of a queue for it's iterator
     std::deque<std::shared_ptr<PadderT::FourierMatrix>> eventStream_;
 };
 

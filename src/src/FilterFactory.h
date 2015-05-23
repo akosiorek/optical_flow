@@ -10,11 +10,9 @@
 
 class FilterFactory : public IFilterFactory {
 public:
-    typedef std::function<Eigen::MatrixXf(const Eigen::MatrixXf&)> FilterTransformT;
-public:
     FilterFactory(float t0, float tk, float tResolution, int xRange, int yRange);
-    void setFilterTransformer(FilterTransformT transform);
-    std::shared_ptr<Filter> createFilter(int angle) const override;
+    virtual void setFilterTransformer(FilterTransformT transform) override;
+    virtual std::shared_ptr<Filter> createFilter(int angle) const override;
 
 private:
     std::pair<float, float> rotate(int angle, const std::pair<float, float>& vec) const;

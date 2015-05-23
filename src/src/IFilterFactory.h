@@ -13,7 +13,11 @@ class Filter;
 
 class IFilterFactory {
 public:
+    typedef std::function<Eigen::MatrixXf(const Eigen::MatrixXf&)> FilterTransformT;
+
+public:
     virtual ~IFilterFactory() = default;
+    virtual void setFilterTransformer(FilterTransformT transform) = 0;
     virtual std::shared_ptr<Filter> createFilter(int angle) const = 0;
 };
 
