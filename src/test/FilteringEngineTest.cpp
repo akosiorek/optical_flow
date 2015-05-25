@@ -44,7 +44,6 @@ public:
     typedef FilteringEngine<BlockingQueue> EngineT;
     typedef typename EngineT::EventQueueT EventQueueT;
     typedef typename EngineT::FlowQueueT FlowQueueT;
-    typedef typename EngineT::PadderT PadderT;
 
     FilteringEngineTest() :
             eventSliceQueue(new EventQueueT()),
@@ -53,13 +52,16 @@ public:
     std::shared_ptr<EventQueueT> eventSliceQueue;
     std::shared_ptr<FlowQueueT> flowSliceQueue;
     std::unique_ptr<EngineT> engine;
+
+    int dataSize_ = 1;
+    int filterSize_ = 1;
 };
 
 
 TEST_F(FilteringEngineTest, InitializeTest) {
 
     auto factory = std::make_unique<FilterFactoryMock>();
-    auto padder = std::make_unique<PadderT>();
+    auto padder = std::make_unique<FourierPadder>(dataSize_, filterSize_);
     auto transformer = std::make_unique<FourierTransformerMock>();
 
     engine = std::make_unique<EngineT>(std::move(factory), std::move(padder), std::move(transformer));

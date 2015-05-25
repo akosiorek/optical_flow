@@ -7,29 +7,42 @@
 
 #include <memory>
 
+#include <boost/circular_buffer.hpp>
+
 #include "EventSlice.h"
 #include "FlowSlice.h"
 #include "IFilterFactory.h"
 #include "FourierPadder.h"
 #include "IFourierTransformer.h"
 
-
+/**
+ * @brief Computes optical flow.
+ *
+ * @param InputBufferT input buffer template type, will store incoming event slices.
+ * @param OutputBufferT output buffer template type, will store outgoing flow slices.
+ */
 template<template <class> class InputBufferT, template <class> class OutputBufferT = InputBufferT>
 class FilteringEngine {
 public:
-    typedef FourierPadder<128, 21> PadderT;
-
     typedef InputBufferT<std::shared_ptr<EventSlice>> EventQueueT;
     typedef OutputBufferT<std::shared_ptr<FlowSlice>> FlowQueueT;
 
+    /**
+     * @brief Creates the FilteringEngine
+     *
+     * @param factory Factory used to create filters.
+     * @param padder  Pre-configured fourier padder used for padding filters and event slices.
+     * @param transformer   Transforms filters and event slices into the Fourier domain.
+     */
     FilteringEngine(std::unique_ptr<IFilterFactory> factory,
-                    std::unique_ptr<PadderT> padder,
+                    std::unique_ptr<FourierPadder> padder,
                     std::unique_ptr<IFourierTransformer> transformer)
 
             : factory_(std::move(factory)),
               padder_(std::move(padder)),
               transformer_(std::move(transformer)),
-              timeSteps_(0) {
+              timeSteps_(0),
+              eventBuffer_(0) {
 
         //TODO wait for dynamic reference-argument-accepting FourierPadder
 //        factory-setFilterTransformer(
@@ -54,8 +67,7 @@ public:
     }
 
     bool isInitialized() {
-        LOG(ERROR) << " size = " << eventStream_.size();
-        return timeSteps_ != 0 && eventStream_.size() >= timeSteps_;
+        return timeSteps_ != 0 && eventBuffer_.size() >= timeSteps_;
     }
 
     bool hasInput() {
@@ -78,41 +90,45 @@ public:
             timeSteps_ = filter->numSlices();
             responseTemplates_.emplace_back(filter->xSize(), filter->ySize());
             responseTemplates_[responseTemplates_.size() - 1].setZero();
+
+            if(eventBuffer_.size() != timeSteps_) {
+                eventBuffer_.resize(timeSteps_);
+            }
         }
     };
 
     void filter(std::shared_ptr<EventSlice> slice) {
 
-        bool wasInitialized = isInitialized();
-        transformAndEnqueue(slice);
-
-        // may the magic happen
-        if(wasInitialized) {
-
-            eventStream_.pop_front();
-
-            int sliceIndex = 0;
-            auto eventIt = eventStream_.begin();
-            for(; eventIt != eventStream_.end(); ++sliceIndex, ++eventIt) {
-                const auto& eventSlice = **eventIt;
-                for(int filterIndex = 0; filterIndex < filters_.size(); ++filterIndex) {
-
-                    // iterate over event slices and filters/filter slices transforming,
-                    // multiplying, summing
-                }
-            }
-            // reverse transform
-            // weight by filter angles
-            // sum up
-            // put the result to the output queue
-        }
+//        bool wasInitialized = isInitialized();
+//        transformAndEnqueue(slice);
+//
+//        // may the magic happen
+//        if(wasInitialized) {
+//
+//            eventStream_.pop_front();
+//
+//            int sliceIndex = 0;
+//            auto eventIt = eventStream_.begin();
+//            for(; eventIt != eventStream_.end(); ++sliceIndex, ++eventIt) {
+//                const auto& eventSlice = **eventIt;
+//                for(int filterIndex = 0; filterIndex < filters_.size(); ++filterIndex) {
+//
+//                    // iterate over event slices and filters/filter slices transforming,
+//                    // multiplying, summing
+//                }
+//            }
+//            // reverse transform
+//            // weight by filter angles
+//            // sum up
+//            // put the result to the output queue
+//        }
     }
 
 private:
     void transformAndEnqueue(std::shared_ptr<EventSlice>& eventSlice) {
-        eventStream_.emplace_back();
+//        eventStream_.emplace_back();
 
-        auto padded = padder_->padData(eventSlice);
+        auto padded = padder_->padData(static_cast<const Eigen::SparseMatrix<float>&>(*eventSlice));
     }
 
 private:
@@ -120,15 +136,14 @@ private:
     std::shared_ptr<FlowQueueT> outputBuffer_;
 
     std::unique_ptr<IFilterFactory> factory_;
-    std::unique_ptr<PadderT> padder_;
+    std::unique_ptr<FourierPadder> padder_;
     std::unique_ptr<IFourierTransformer> transformer_;
     int timeSteps_;
 
     std::vector<std::shared_ptr<Filter>> filters_;
     std::vector<Eigen::MatrixXf> responseTemplates_;
 
-    // use deque instead of a queue for it's iterator
-    std::deque<std::shared_ptr<PadderT::FourierMatrix>> eventStream_;
+    boost::circular_buffer<FourierPadder::EBOFMatrix> eventBuffer_;
 };
 
 

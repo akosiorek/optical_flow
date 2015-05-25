@@ -27,23 +27,6 @@
 // }
 
 /**
- * @brief Rounds a 32 unsigned int to the closest power of two
- * 
- * @param v Input number
- * @return Power of two
- */
-uint32_t roundUpPow2(uint32_t v)
-{
-	v--;
-	v |= v >> 1;
-	v |= v >> 2;
-	v |= v >> 4;
-	v |= v >> 8;
-	v |= v >> 16;
-	return ++v;
-}
-
-/**
  * @brief This class zero-pads matrices for efficient FFT.
  * @details Matrix size typically needs to be a power of two to be efficiently FFT'ed.
  * 			(Actually, e.g., prime numbers etc. might do it as well, but this is really just for now.)
@@ -66,7 +49,7 @@ public:
 			fourierSizePadded_(roundUpPow2(dataSize+filterSize-1)) //linear conv+zeropadding
 	{
 	}
-
+-
 	/**
 	 * @brief Zero-pads a dense input matrix to the next power of 2
 	 * 
@@ -191,6 +174,24 @@ public:
 
 		tm = fm.block(0,0,fourierSize_, fourierSize_).sparseView();
 	}
+
+	/**
+ * @brief Rounds a 32 unsigned int to the closest power of two
+ *
+ * @param v Input number
+ * @return Power of two
+ */
+	static uint32_t roundUpPow2(uint32_t v)
+	{
+		v--;
+		v |= v >> 1;
+		v |= v >> 2;
+		v |= v >> 4;
+		v |= v >> 8;
+		v |= v >> 16;
+		return ++v;
+	}
+
 
 	// can be public as they are const
 	const unsigned int dataSize_;

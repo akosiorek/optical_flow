@@ -1,8 +1,7 @@
 #include "gtest/gtest.h"
 #include <Eigen/SparseCore>
 #include "common.h"
-#include "../src/FourierPadder.h"
-
+#include "FourierPadder.h"
 
 class FourierPadderTest : public testing::Test {
 public:
@@ -22,16 +21,16 @@ const uint32_t FourierPadderTest::filterSize;
 
 TEST_F(FourierPadderTest, GetPowerOfTwoTest)
 {
-	ASSERT_EQ(0,roundUpPow2(0));
-	ASSERT_EQ(1,roundUpPow2(1));
-	ASSERT_EQ(2,roundUpPow2(2));
-	ASSERT_EQ(4,roundUpPow2(3));
-	ASSERT_EQ(4,roundUpPow2(4));
-	ASSERT_EQ(8,roundUpPow2(5));
-	ASSERT_EQ(1024,roundUpPow2(823));
-	ASSERT_EQ(1024,roundUpPow2(1023));
-	ASSERT_EQ(1024,roundUpPow2(1024));
-	ASSERT_EQ(2048,roundUpPow2(1025));
+	ASSERT_EQ(0,FourierPadder::roundUpPow2(0));
+	ASSERT_EQ(1,FourierPadder::roundUpPow2(1));
+	ASSERT_EQ(2,FourierPadder::roundUpPow2(2));
+	ASSERT_EQ(4,FourierPadder::roundUpPow2(3));
+	ASSERT_EQ(4,FourierPadder::roundUpPow2(4));
+	ASSERT_EQ(8,FourierPadder::roundUpPow2(5));
+	ASSERT_EQ(1024,FourierPadder::roundUpPow2(823));
+	ASSERT_EQ(1024,FourierPadder::roundUpPow2(1023));
+	ASSERT_EQ(1024,FourierPadder::roundUpPow2(1024));
+	ASSERT_EQ(2048,FourierPadder::roundUpPow2(1025));
 }
 
 
