@@ -44,14 +44,11 @@ public:
               timeSteps_(0),
               eventBuffer_(0) {
 
-        //TODO wait for dynamic reference-argument-accepting FourierPadder
-//        factory-setFilterTransformer(
+//        //TODO wait for dynamic reference-argument-accepting FourierPadder
+//        factory->setFilterTransformer(
 //                [this](const Eigen::MatrixXf& filter) {
 //
-//                    auto nullDeleter = [](const Eigen::MatrixXf*) {};
-//
-//                    auto ptr = std::shared_ptr<Eigen::MatrixXf>(&filter, nullDeleter);
-//                    this->padder_->padData(ptr);
+//                    return this->padder_->padData(filter);
 //                });
     }
 
@@ -62,22 +59,39 @@ public:
         this->outputBuffer_ = buffer;
     }
 
+    /**
+     * Filter depth or the number of the filter slices.
+     */
     int timeSteps() {
         return timeSteps_;
     }
 
+    /**
+     * Checks whether it has at least one filter and received a sufficient
+     * number of events to start estimating flow
+     */
     bool isInitialized() {
         return timeSteps_ != 0 && eventBuffer_.size() >= timeSteps_;
     }
 
+    /*
+     * Checks if the input buffer is not empty.
+     */
     bool hasInput() {
         return inputBuffer_ && !inputBuffer_->empty();
     }
 
+    /**
+     * Checks if the output buffer is not empty.
+     */
     bool hasOutput() {
         return outputBuffer_ && !outputBuffer_->empty();
     }
 
+    /**
+     * Adds a filter with a specified angle.
+     * @param angle Filter angle in degrees.
+     */
     void addFilter(int angle) {
         auto it = std::find_if(std::begin(filters_), std::end(filters_),
         [angle](std::shared_ptr<Filter> filter) {
@@ -97,6 +111,10 @@ public:
         }
     };
 
+    /**
+     * Filter a single event slice
+     * @param slice An event slices to be filetered.
+     */
     void filter(std::shared_ptr<EventSlice> slice) {
 
 //        bool wasInitialized = isInitialized();
@@ -125,6 +143,9 @@ public:
     }
 
 private:
+    /**
+     * Transforms an event slice and enqueues it in the buffer.
+     */
     void transformAndEnqueue(std::shared_ptr<EventSlice>& eventSlice) {
 //        eventStream_.emplace_back();
 

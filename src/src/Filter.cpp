@@ -6,7 +6,7 @@
 
 
 Filter::Filter() : angle_(0), xSize_(0), ySize_(0), filters_(nullptr) {}
-Filter::Filter(float angle, std::unique_ptr<std::vector<Eigen::MatrixXf>> filters)
+Filter::Filter(float angle, std::unique_ptr<std::vector<FilterT>> filters)
         : angle_(angle), filters_(std::move(filters)) {
 
     if(filters_->size() == 0) {
@@ -16,11 +16,11 @@ Filter::Filter(float angle, std::unique_ptr<std::vector<Eigen::MatrixXf>> filter
     ySize_ = at(0).rows();
 }
 
-const Eigen::MatrixXf& Filter::at(int index) const {
+auto Filter::at(int index) const -> const FilterT& {
     return filters_->at(index);
 }
 
-const Eigen::MatrixXf& Filter::operator[](int index) const {
+auto Filter::operator[](int index) const -> const FilterT& {
     return at(index);
 }
 

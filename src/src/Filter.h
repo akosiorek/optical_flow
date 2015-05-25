@@ -10,28 +10,25 @@
 
 class Filter {
 public:
+    using FilterT = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+
     Filter();
-    Filter(float angle, std::unique_ptr<std::vector<Eigen::MatrixXf>> filters);
+    Filter(float angle, std::unique_ptr<std::vector<FilterT>> filters);
 
-    const Eigen::MatrixXf& at(int index) const;
-
-    const Eigen::MatrixXf& operator[](int index) const;
+    const FilterT& at(int index) const;
+    const FilterT& operator[](int index) const;
 
     float angle() const;
-
     int numSlices() const;
-
     bool empty() const;
-
     int xSize() const;
-
     int ySize() const;
 
 private:
     float angle_;
     int xSize_;
     int ySize_;
-    std::unique_ptr<std::vector<Eigen::MatrixXf>> filters_;
+    std::unique_ptr<std::vector<FilterT>> filters_;
 };
 
 

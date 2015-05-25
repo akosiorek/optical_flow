@@ -15,7 +15,7 @@ const float FilterFactory::PI_ = static_cast<float>(M_PI);
 
 FilterFactory::FilterFactory(float t0, float tk, float tResolution, int xRange, int yRange)
     : xRange_(xRange), yRange_(yRange),
-      filterTransformer_([](const Eigen::MatrixXf& filter) { return filter; }),
+      filterTransformer_([](const FilterT& filter) { return filter; }),
     // filters parameters
     sigma(25),
     s1(0.5),
@@ -49,7 +49,7 @@ void FilterFactory::setFilterTransformer(FilterTransformT transform) {
 }
 
 std::shared_ptr <Filter> FilterFactory::createFilter(int angle) const {
-    auto filters = std::make_unique<std::vector<Eigen::MatrixXf>>();
+    auto filters = std::make_unique<std::vector<FilterT>>();
     filters->reserve(timeSpan_);
 
     float fx, fy; // frequencies;

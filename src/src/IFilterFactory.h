@@ -9,11 +9,12 @@
 #include <complex>
 #include <Eigen/Core>
 
-class Filter;
+#include "Filter.h"
 
 class IFilterFactory {
 public:
-    typedef std::function<Eigen::MatrixXf(const Eigen::MatrixXf&)> FilterTransformT;
+    using FilterT = Filter::FilterT;
+    using FilterTransformT = std::function<FilterT(const FilterT&)>;
 
 public:
     virtual ~IFilterFactory() = default;

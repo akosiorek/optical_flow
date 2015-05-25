@@ -20,7 +20,7 @@ struct FilterFactoryMock : public IFilterFactory {
     // create 1x1x1 filter with the only coefficient equal to angle
     virtual std::shared_ptr<Filter> createFilter(int angle) const override {
 
-        auto filters = std::make_unique<std::vector<Eigen::MatrixXf>>();
+        auto filters = std::make_unique<std::vector<FilterT>>();
         filters->emplace_back(1, 1);
         filters->at(0)(0, 0) = angle;
         return std::make_shared<Filter>(angle, std::move(filters));

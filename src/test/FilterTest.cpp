@@ -13,11 +13,13 @@
 #include "Filter.h"
 
 class FilterTest : public testing::Test {
-
+public:
+    using FilterT = Filter::FilterT;
+private:
     void SetUp(){
 //        filterDefault=make_unique<Filter>();
         filterDefault=Filter();
-        filterSlices=std::make_unique<std::vector<Eigen::MatrixXf>>(3);
+        filterSlices=std::make_unique<std::vector<FilterT>>(3);
         filterSlices->at(0)=Eigen::MatrixXf::Random(3,3);
         filterSlices->at(1)=Eigen::MatrixXf::Random(3,3);
         filterSlices->at(2)=Eigen::MatrixXf::Random(3,3);
@@ -28,7 +30,7 @@ class FilterTest : public testing::Test {
 public:
     Filter filterDefault;
     Filter filter;
-    std::unique_ptr<std::vector<Eigen::MatrixXf>> filterSlices;
+    std::unique_ptr<std::vector<FilterT>> filterSlices;
 
 };
 
