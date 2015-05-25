@@ -8,27 +8,26 @@
 #include "Edvs/EventStream.hpp"
 
 class Buffer
-{
-public:
-	Buffer() {}
-	~Buffer() {}
-};
+#include "utils.h"
 
 /**
  * @brief Provide easy access to a stream of event
  * @details [long description]
  * @return [description]
  */
+template<typename BufferType>
 class EventReader
 {
 public:
+	typedef BufferType EventBuffer;
+
 	EventReader() : bufferSet_(false), uri_(std::string("")), running_(false) {}
 	~EventReader() {}
 
 	void setURI(const std::string& uri) { uri_ = uri; }
 	std::string getURI() const { return uri_; }
-
-	void setBuffer(std::shared_ptr<Buffer> buffer)
+	
+	void setBuffer(std::shared_ptr<BufferType> buffer)
 	{
 		buffer_ = buffer;
 		bufferSet_ = true;
@@ -37,10 +36,10 @@ public:
 	bool isBufferSet() { return bufferSet_; }
 
 	/**
-	 * @brief Opens stream and pushes events to Buffer
+	 * @brief Opens stream and start event polling thread
 	 * @details [long description]
 	 */
-	void startPublishing()
+	bool startPublishing()
 	{
 		if(!openStream()) return;
 		{
@@ -51,8 +50,10 @@ public:
         if (!eventPublisher_)
 		{
 			running_ = true;
-			eventPublisher_ = std::make_shared<std::thread>(&EventReader::pollEventStream, this);
+			eventPublisher_ = make_unique<std::thread>(&EventReader::pollEventStream, this);
         }
+
+        return true;
 	}
 
 	void stopPublishing()
@@ -77,6 +78,9 @@ private:
 		return stream_->is_open();
 	}
 
+	/**
+	 * @brief Polls for new events and pushes them to buffer
+	 */
 	void pollEventStream()
 	{
 	    // capture events (run until end of file or Ctrl+C)
@@ -84,10 +88,12 @@ private:
 		{
 			// read events from stream
 			auto events = stream_->read();
-			// display message
 			if(!events.empty())
 			{
-				// TODO PUSH TO BUFFER
+				for(auto event : events)
+				{
+					buffer_->push(event);
+				}
 			}
 		}
 	}
@@ -99,7 +105,7 @@ private:
 	std::string uri_;
 
 	std::shared_ptr<Edvs::IEventStream> stream_;
-	std::shared_ptr<std::thread> eventPublisher_;
+	std::unique_ptr<std::thread> eventPublisher_;
 	volatile bool running_;
 	
 };
