@@ -7,12 +7,12 @@
 
 #include <deque>
 #include <vector>
-#include <memory>
 
 #include <Eigen/Dense>
 #include <Eigen/SparseCore>
 
 #include "Event.h"
+#include "common.h"
 
 class EventSlice : public Eigen::SparseMatrix<int> {
 public:

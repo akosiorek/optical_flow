@@ -5,13 +5,10 @@
  *      Author: Adam Kosiorek
  */
 
-#include <memory>
-#include <glog/logging.h>
+
 #include "gtest/gtest.h"
-
-#include "utils.h"
-
-#include "../src/BlockingQueue.h"
+#include "common.h"
+#include "BlockingQueue.h"
 
 
 class BlockingQueueTest : public testing::Test {

@@ -5,7 +5,7 @@
 #ifndef OPTICAL_FLOW_FILTERFACTORY_H
 #define OPTICAL_FLOW_FILTERFACTORY_H
 
-#include <memory>
+#include "common.h"
 #include "../../../../../../usr/include/libio.h"
 
 class Filter;

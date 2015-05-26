@@ -5,19 +5,16 @@
  *      Author: Adam Kosiorek
  */
 
-#include <memory>
-#include <glog/logging.h>
+
 #include "gtest/gtest.h"
-
-#include "utils.h"
-
+#include "common.h"
 #include "Quantizer.h"
-#include "../src/Quantizer.h"
+
 
 
 class QuantizerTest : public testing::Test {
 
-    void SetUp() {
+    void SetUp() {\
         quantizer = std::make_unique<Quantizer>(2);
     }
 

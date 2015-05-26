@@ -1,10 +1,9 @@
 #ifndef FOURIER_PADDER_H
 #define FOURIER_PADDER_H
 
-#include <memory>
+#include "common.h"
 #include <stdint.h>
 
-#include <Eigen/Core>
 #include <Eigen/SparseCore>
 
 // // Determines the next power of two at run time

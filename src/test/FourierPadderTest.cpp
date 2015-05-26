@@ -1,12 +1,6 @@
 #include "gtest/gtest.h"
-
-#include <memory>
-
 #include <Eigen/SparseCore>
-#include <Eigen/Core>
-
-#include "utils.h"
-
+#include "common.h"
 #include "../src/FourierPadder.h"
 
 

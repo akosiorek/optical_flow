@@ -6,12 +6,7 @@
 #define OPTICAL_FLOW_FILTER_H
 
 #include <vector>
-#include <memory>
-#include <Eigen/Core>
-
-#include <glog/logging.h>
-
-#include "utils.h"
+#include "common.h"
 
 class Filter {
 public:
