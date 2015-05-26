@@ -7,24 +7,41 @@
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
 
-// Determines the next power of two at run time
-template<uint32_t A, uint8_t B = 16>
-struct Pow2RoundUp { enum{ value = Pow2RoundUp<((B == 16 ? (A-1) : A) | ((B == 16 ? (A-1) : A) >> B)), B/2>::value }; };
-template<uint32_t A >
-struct Pow2RoundUp<A, 1> { enum{ value = ((A | (A >> 1)) + 1) }; };
+// // Determines the next power of two at run time
+// template<uint32_t A, uint8_t B = 16>
+// struct Pow2RoundUp { enum{ value = Pow2RoundUp<((B == 16 ? (A-1) : A) | ((B == 16 ? (A-1) : A) >> B)), B/2>::value }; };
+// template<uint32_t A >
+// struct Pow2RoundUp<A, 1> { enum{ value = ((A | (A >> 1)) + 1) }; };
+
+// /**
+//  * @brief Constexpr function to determine the max of two values at compile time
+//  * 
+//  * @param a First value
+//  * @param b Second value
+//  * 
+//  * @return Returns the larger element by value
+//  */
+// template<typename T> constexpr
+// T const& max(T const& a, T const& b)
+// {
+// 	return a > b ? a : b;
+// }
 
 /**
- * @brief Constexpr function to determine the max of two values at compile time
+ * @brief Rounds a 32 unsigned int to the closest power of two
  * 
- * @param a First value
- * @param b Second value
- * 
- * @return Returns the larger element by value
+ * @param v Input number
+ * @return Power of two
  */
-template<typename T> constexpr
-T const& max(T const& a, T const& b)
+uint32_t roundUpPow2(uint32_t v)
 {
-	return a > b ? a : b;
+	v--;
+	v |= v >> 1;
+	v |= v >> 2;
+	v |= v >> 4;
+	v |= v >> 8;
+	v |= v >> 16;
+	return ++v;
 }
 
 /**
@@ -35,55 +52,55 @@ T const& max(T const& a, T const& b)
  * @tparam int dataSize Size of data matrix
  * @tparam int filterSize Size of filter
  */
-template<unsigned int dataSize, unsigned int filterSize>
 class FourierPadder
 {
 public:
 	using Ptr = std::shared_ptr<FourierPadder>;
 
-	using FilterSize = Pow2RoundUp<max(dataSize,filterSize)>;
-	using FourierMatrix = Eigen::Matrix<float, FilterSize::value, FilterSize::value>;
-	using FourierMatrixPtr = std::shared_ptr<FourierMatrix>;
-	using InputMatrixDense = Eigen::Matrix<float, dataSize, dataSize>;
-	using InputMatrixSparse = Eigen::SparseMatrix<float>;
-	using OutputMatrixDense = Eigen::Matrix<float, dataSize, dataSize>;
-	using OutputMatrixSparse = Eigen::SparseMatrix<float>;
+	using EBOFMatrix = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+	// using EBOFMatrixSparse = Eigen::SparseMatrix<float, Eigen::RowMajor>;
 
-	FourierPadder() {};
+	FourierPadder(unsigned int dataSize, unsigned int filterSize) 
+		: 	dataSize_(dataSize), 
+			filterSize_(filterSize),
+			fourierSize_(roundUpPow2(std::max(dataSize,filterSize)))
+	{
+	};
 
 	/**
-	 * @brief Zero-pads a dense input matrix to the next power of 2 (FilterSize::Value)
+	 * @brief Zero-pads a dense input matrix to the next power of 2
 	 * 
 	 * @param  data Dense input matrix
 	 * @return Zero-padded dense matrix
 	 */
-	std::shared_ptr<FourierMatrix> padData(std::shared_ptr<InputMatrixDense> data)
+	std::shared_ptr<EBOFMatrix> padData(const EBOFMatrix& tm)
 	{
-		auto fm = std::make_shared<FourierMatrix>();
+		auto fm = std::make_shared<EBOFMatrix>(fourierSize_,fourierSize_);
 		fm->setZero();
 
-		fm->block(0,0,dataSize,dataSize) = *data;
+		fm->block(0,0,dataSize_,dataSize_) = tm;
 
 		return fm;
 	}
 
+	// TODO: Is this one needed, the dense method also works for sparse matrices. Speed difference?!?!?
 	/**
-	 * @brief [brief description]
+	 * @brief Zero-pads a sparse input matrix to the next power of 2
 	 * @details [long description]
 	 * 
 	 * @param  data Sparse input matrix
 	 * @return Zero-padded dense matrix
 	 */
-	std::shared_ptr<FourierMatrix> padData(std::shared_ptr<InputMatrixSparse> data)
+	std::shared_ptr<EBOFMatrix> padData(const Eigen::SparseMatrix<float>& tm)
 	{
-		auto fm = std::make_shared<FourierMatrix>();
+		auto fm = std::make_shared<EBOFMatrix>(fourierSize_,fourierSize_);
 		fm->setZero();
 
 		// TODO: Make this faster?! Since the size changes we cant just use the constructor
 		// Unless we do a conversativeResize() afterwards
-		for (int k=0; k<data->outerSize(); ++k)
+		for (int k=0; k<tm.outerSize(); ++k)
 		{
-			for (InputMatrixSparse::InnerIterator it(*data,k); it; ++it)
+			for (Eigen::SparseMatrix<float>::InnerIterator it(tm,k); it; ++it)
 			{
 				(*fm)(it.row(),it.col()) = it.value();
 			}
@@ -98,12 +115,12 @@ public:
 	 * @param fm Input matrix
 	 * @return Dense data matrix
 	 */
-	std::shared_ptr<OutputMatrixDense> extractDenseOutput(FourierMatrixPtr fm)
+	std::shared_ptr<EBOFMatrix> extractDenseOutput(const EBOFMatrix& fm)
 	{
-		auto dout = std::make_shared<OutputMatrixDense>();
-		*dout = fm->block(0,0,dataSize,dataSize);
+		auto tm = std::make_shared<EBOFMatrix>(dataSize_,dataSize_);
+		*tm = fm.block(0,0,dataSize_,dataSize_);
 
-		return dout;
+		return tm;
 	}
 
 	/**
@@ -112,13 +129,18 @@ public:
 	 * @param fm Input matrix
 	 * @return Dense data matrix
 	 */
-	std::shared_ptr<OutputMatrixSparse> extractSparseOutput(FourierMatrixPtr fm)
+	std::shared_ptr<Eigen::SparseMatrix<float> > extractSparseOutput(const EBOFMatrix& fm)
 	{
-		auto sout = std::make_shared<OutputMatrixSparse>(dataSize,dataSize);
-		*sout = fm->block(0,0,dataSize,dataSize).sparseView();
+		auto tm = std::make_shared<Eigen::SparseMatrix<float> >(dataSize_,dataSize_);
+		*tm = fm.block(0,0,dataSize_,dataSize_).sparseView();
 
-		return sout;
+		return tm;
 	}
+
+	// can be public as they are const
+	const unsigned int dataSize_;
+	const unsigned int filterSize_;
+	const unsigned int fourierSize_;
 };
 
 #endif // FOURIER_PADDER_H

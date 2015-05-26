@@ -6,7 +6,6 @@ target_link_libraries(exe ${GLOG_LIBRARIES})
 
 add_library(optical
         Quantizer.cpp
-    	FourierPadder.h
         Filter.cpp
         FilterFactory.cpp
     )
