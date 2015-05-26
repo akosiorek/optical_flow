@@ -6,21 +6,27 @@
 #define NAME_UTILS_H
 
 #include <memory>
+#include <cmath>
 #include <glog/logging.h>
+
+
 
 #define THROW_INVALID_ARG(msg) \
     LOG(ERROR) << msg; \
     throw std::invalid_argument(msg)
 
 
+template<class OutT = float, class InT>
+OutT deg2rad(InT angle) {
+    return static_cast<OutT>((M_PI * angle) / 180);
+}
+
 
 // add to std to be symmetric with make_shared
 namespace std {
     template<class T, class... Ts>
     std::unique_ptr <T> make_unique(Ts... args) {
-
         return std::unique_ptr<T>(new T(std::forward<Ts>(args)...));
-
     }
 } // namespace std
 

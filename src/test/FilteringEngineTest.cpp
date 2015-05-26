@@ -17,16 +17,25 @@
 #include "FilteringEngine.h"
 
 struct FilterFactoryMock : public IFilterFactory {
+
+    FilterFactoryMock(int filterSize) : filterSize_(filterSize) {}
+
     // create 1x1x1 filter with the only coefficient equal to angle
     virtual std::shared_ptr<Filter> createFilter(int angle) const override {
 
         auto filters = std::make_unique<std::vector<FilterT>>();
-        filters->emplace_back(1, 1);
+
+        filters->emplace_back(filterTransformer_(FilterT(filterSize_, filterSize_)));
         filters->at(0)(0, 0) = angle;
         return std::make_shared<Filter>(angle, std::move(filters));
     }
 
-    virtual void setFilterTransformer(FilterTransformT transform) override {}
+    virtual void setFilterTransformer(FilterTransformT transform) override {
+        filterTransformer_ = transform;
+    }
+
+    int filterSize_;
+    FilterTransformT filterTransformer_;
 };
 
 struct FourierTransformerMock : public IFourierTransformer {
@@ -49,125 +58,118 @@ public:
             eventSliceQueue(new EventQueueT()),
             flowSliceQueue(new FlowQueueT()) {}
 
+    void SetUp() {
+        auto factory = std::make_unique<FilterFactoryMock>(filterSize_);
+        auto padder = std::make_unique<FourierPadder>(dataSize_, filterSize_);
+        auto transformer = std::make_unique<FourierTransformerMock>();
+        engine = std::make_unique<EngineT>(std::move(factory), std::move(padder), std::move(transformer));
+    }
+
     std::shared_ptr<EventQueueT> eventSliceQueue;
     std::shared_ptr<FlowQueueT> flowSliceQueue;
     std::unique_ptr<EngineT> engine;
 
-    int dataSize_ = 1;
-    int filterSize_ = 1;
+    int dataSize_ = 2;
+
+    //TODO change to 1 when fixed fourier padder arrives
+    int filterSize_ = 2;
 };
 
 
-TEST_F(FilteringEngineTest, InitializeTest) {
+TEST_F(FilteringEngineTest, ConstructorPostconditionsTest) {
 
-    auto factory = std::make_unique<FilterFactoryMock>();
-    auto padder = std::make_unique<FourierPadder>(dataSize_, filterSize_);
-    auto transformer = std::make_unique<FourierTransformerMock>();
-
-    engine = std::make_unique<EngineT>(std::move(factory), std::move(padder), std::move(transformer));
     ASSERT_FALSE(engine->isInitialized());
     ASSERT_FALSE(engine->hasInput());
     ASSERT_FALSE(engine->hasOutput());
+    ASSERT_EQ(engine->timeSteps(), 0);
+    ASSERT_EQ(engine->numFilters(), 0);
+}
+
+TEST_F(FilteringEngineTest, HasInputOutputTest) {
 
     engine->setInputBuffer(eventSliceQueue);
     engine->setOutputBuffer(flowSliceQueue);
-    ASSERT_EQ(engine->timeSteps(), 0);
-
-    engine->addFilter(15);
-    ASSERT_EQ(engine->timeSteps(), 1);
-    ASSERT_FALSE(engine->isInitialized());
     ASSERT_FALSE(engine->hasInput());
     ASSERT_FALSE(engine->hasOutput());
 
-    auto slice = std::make_shared<EventSlice>();
-    engine->filter(slice);
-    ASSERT_TRUE(engine->isInitialized());
+    eventSliceQueue->push(std::make_shared<EventSlice>());
+    ASSERT_TRUE(engine->hasInput());
     ASSERT_FALSE(engine->hasOutput());
 
-    auto slice2 = std::make_shared<EventSlice>();
-    engine->filter(slice2);
+    flowSliceQueue->push(std::make_shared<FlowSlice>());
+    ASSERT_TRUE(engine->hasInput());
     ASSERT_TRUE(engine->hasOutput());
 }
 
-//TEST_F(FilteringEngineTest, DirectFilterTest) {
-//
-//    std::vector<float> expectedResult = {1, 2, 3};
-//    std::string filterURI = "../data/directFilterTest.mat";
-//
-//    auto slice = std::make_shared<EventSlice>();
-//    std::vector<Eigen::Triplet<int>> triplets = {{1, 1, 1}, {2, 3, 4}};
-//    slice->setFromTriplets(tripletrs.begin(), triplets.end());
-//
-//    engine.loadFilters(filterURI);
-//    auto flow = engine.filter(slice);
-//
-//    ASSERT_EQ(flow->size(), expectedResult.size());
-//    for(int i = 0; i < expectedResult.size(); ++i) {
-//        ASSERT_EQ(flow->at(i), expectedResult[i]) << "Failed at i = " << i;
-//    };
-//}
-//
-//TEST_F(FilteringEngineTest, SingleEventSliceInInputBufferTest) {
-//
-//    std::vector<float> expectedResult = {1, 2, 3};
-//    std::string filterURI = "../data/directFilterTest.mat";
-//
-//    EventSlice slice;
-//    std::vector<Eigen::Triplet<int>> triplets = {{1, 1, 1}, {2, 3, 4}};
-//    slice.setFromTriplets(tripletrs.begin(), triplets.end());
-//
-//    engine.loadFilter(filterURI);
-//
-//    ASSET_TRUE(eventSliceQueue.empty());
-//    ASSERT_TRUE(flowSliceQueue.empty());
-//
-//    eventSliceQueue.push(slice);
-//    engine.process();
-//
-//    ASSET_TRUE(eventSliceQueue.empty());
-//    ASSERT_EQ(flowSliceQueue.size(), 1);
-//
-//    auto flow = flowSliceQueue.front();
-//
-//    ASSERT_EQ(flow.size(), expectedResult.size());
-//    for(int i = 0; i < expectedResult.size(); ++i) {
-//        ASSERT_EQ(flow[i], expectedResult[i]) << "Failed at i = " << i;
-//    };
-//}
-//
-//TEST_F(FilteringEngineTest, ManyEventSlicesInInputBufferTest) {
-//
-//    std::vector<float> expectedResult = {1, 2, 3};
-//    std::string filterURI = "../data/directFilterTest.mat";
-//
-//    EventSlice slice;
-//    std::vector<Eigen::Triplet<int>> triplets = {{1, 1, 1}, {2, 3, 4}};
-//    slice.setFromTriplets(tripletrs.begin(), triplets.end());
-//
-//    engine.loadFilter(filterURI);
-//
-//    ASSET_TRUE(eventSliceQueue.empty());
-//    ASSERT_TRUE(flowSliceQueue.empty());
-//
-//    eventSliceQueue.push(slice);
-//    eventSliceQueue.push(slice);
-//    eventSliceQueue.push(slice);
-//
-//    engine.process();
-//
-//    ASSET_TRUE(eventSliceQueue.empty());
-//    ASSERT_EQ(flowSliceQueue.size(), 3);
-//
-//    while(!flowSliceQueue.empty()) {
-//        auto flow = flowSliceQueue.front();
-//        flowSliceQueue.pop();
-//
-//        ASSERT_EQ(flow.size(), expectedResult.size());
-//        for (int i = 0; i < expectedResult.size(); ++i) {
-//            ASSERT_EQ(flow[i], expectedResult[i]) << "Failed at i = " << i;
-//        };
-//    }
-//}
+TEST_F(FilteringEngineTest, AddFilterTest) {
+
+    engine->addFilter(15);
+    ASSERT_EQ(engine->numFilters(), 1);
+    ASSERT_EQ(engine->timeSteps(), 1);
+
+    //add the same filter
+    engine->addFilter(15);
+    ASSERT_EQ(engine->numFilters(), 1);
+
+    //add another filter
+    engine->addFilter(45);
+    ASSERT_EQ(engine->numFilters(), 2);
+}
+
+TEST_F(FilteringEngineTest, IntializeAndProduceOutputTest) {
+    engine->setOutputBuffer(flowSliceQueue);
+    engine->addFilter(15);
+    ASSERT_FALSE(engine->isInitialized());
+
+    auto slice = std::make_shared<EventSlice>(dataSize_, dataSize_);
+    engine->filter(slice);
+    ASSERT_TRUE(engine->isInitialized());
+    ASSERT_TRUE(engine->hasOutput());
+}
+
+TEST_F(FilteringEngineTest, ConsumeInputTest) {
+    engine->setInputBuffer(eventSliceQueue);
+    engine->setOutputBuffer(flowSliceQueue);
+    engine->addFilter(15);
+    ASSERT_FALSE(engine->isInitialized());
+
+    auto slice = std::make_shared<EventSlice>(dataSize_, dataSize_);
+    eventSliceQueue->push(slice);
+    ASSERT_TRUE(engine->hasInput());
+    engine->process();
+    ASSERT_FALSE(engine->hasInput());
+    ASSERT_TRUE(engine->isInitialized());
+    ASSERT_TRUE(engine->hasOutput());
+}
+
+
+// TODO won't work after fourier transform get in place
+TEST_F(FilteringEngineTest, FiltertTest) {
+    int angle = 15;
+    engine->setOutputBuffer(flowSliceQueue);
+    engine->addFilter(angle);
+    auto slice = std::make_shared<EventSlice>(dataSize_, dataSize_);
+    slice->at(0, 0) = 1;
+    slice->at(0, 1) = 2;
+    slice->at(1, 0) = 3;
+    slice->at(1, 1) = 4;
+    engine->filter(slice);
+
+    auto filtered = *flowSliceQueue->front();
+    Eigen::MatrixXf expectedX(dataSize_, dataSize_);
+    expectedX.setZero();
+    expectedX(0, 0) = std::cos(deg2rad(angle)) * angle;
+    Eigen::MatrixXf expectedY(dataSize_, dataSize_);
+    expectedY.setZero();
+    expectedY(0, 0) = -std::sin(deg2rad(angle)) * angle;
+
+//    LOG(ERROR) << expectedX;
+//    LOG(ERROR) << expectedY;
+//    LOG(ERROR) << filtered.xv_;
+//    LOG(ERROR) << filtered.yv_;
+    ASSERT_TRUE(expectedX.isApprox(filtered.xv_));
+    ASSERT_TRUE(expectedY.isApprox(filtered.yv_));
+}
 
 
 

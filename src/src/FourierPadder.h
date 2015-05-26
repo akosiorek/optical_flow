@@ -111,6 +111,24 @@ public:
 		fm.block(0,0,filterSize_,filterSize_) = tm;
 	}
 
+    EBOFMatrix padDataNoPtr(const EBOFMatrix& tm)
+    {
+        EBOFMatrix fm(fourierSize_, fourierSize_);
+        fm.setZero();
+        fm.block(0,0,dataSize_,dataSize_) = tm;
+        return fm;
+    }
+
+    void padDataInPlace(const EBOFMatrix& tm, EBOFMatrix& fm)
+    {
+        if(fm.rows() != fourierSize_ || fm.cols() != fourierSize_) {
+            fm = EBOFMatrix(fourierSize_, fourierSize_);
+        }
+        fm.setZero();
+
+        fm.block(0,0,dataSize_,dataSize_) = tm;
+    }
+
 	// TODO: Is this one needed, the dense method also works for sparse matrices. Speed difference?!?!?
 	/**
 	 * @brief Zero-pads a sparse input matrix to the next power of 2

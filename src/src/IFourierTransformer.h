@@ -12,7 +12,6 @@
  */
 class IFourierTransformer {
 public:
-
     /**
      * @brief Performs forward 2D Fourier transform
      * Takes dst as an argument to allow memory reuse

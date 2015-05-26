@@ -53,7 +53,7 @@ public:
 		return queue_.back();
 	}
 
-	//NOT TESTED
+	//NOT TESTEDz
 	void emplace(T&& val)
 	{
 		std::unique_lock<std::mutex> lck (mtx_);		

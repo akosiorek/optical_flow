@@ -10,7 +10,7 @@
 #include "Filter.h"
 #include "FilterFactory.h"
 
-// static fields
+//static
 const float FilterFactory::PI_ = static_cast<float>(M_PI);
 
 FilterFactory::FilterFactory(float t0, float tk, float tResolution, int xRange, int yRange)
@@ -55,8 +55,8 @@ std::shared_ptr <Filter> FilterFactory::createFilter(int angle) const {
     float fx, fy; // frequencies;
     std::tie(fx, fy) = rotate(angle, fxy);
 
-    Eigen::MatrixXf spatialRe(xSize_, ySize_);
-    Eigen::MatrixXf spatialIm(xSize_, ySize_);
+    FilterT spatialRe(xSize_, ySize_);
+    FilterT spatialIm(xSize_, ySize_);
     for(int x = 0; x < xSize_; ++x) {
         for(int y = 0; y < ySize_; ++y) {
             auto v = spatial(x - xRange_, y - yRange_, fx, fy);
@@ -78,7 +78,7 @@ std::shared_ptr <Filter> FilterFactory::createFilter(int angle) const {
 }
 
 std::pair<float, float> FilterFactory::rotate(int angle, const std::pair<float, float> &vec) const {
-    float rad = (PI_ * angle) / 180;
+    float rad = deg2rad(angle);
     float x = std::cos(rad) * vec.first - std::sin(rad) * vec.second;
     float y = std::sin(rad) * vec.first + std::cos(rad) * vec.second;
     return std::make_pair(x, y);

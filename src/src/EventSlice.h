@@ -7,11 +7,16 @@
 
 #include <Eigen/SparseCore>
 
-class EventSlice : public Eigen::SparseMatrix<int> {
+class EventSlice : public Eigen::SparseMatrix<float> {
 public:
-    EventSlice() : Eigen::SparseMatrix<int>(128, 128) {};
+    EventSlice(int xSize, int ySize) : Eigen::SparseMatrix<float>(ySize, xSize) {};
+    EventSlice() : EventSlice(128, 128) {};
 
-    int& operator()(int x, int y) {
+    float& operator()(int x, int y) {
+        return this->at(x, y);
+    }
+
+    float& at(int x, int y) {
         return this->coeffRef(y, x);
     }
 
