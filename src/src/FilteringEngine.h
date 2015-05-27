@@ -48,7 +48,8 @@ public:
         factory_->setFilterTransformer(
                 [this](const Filter::FilterT& filter) {
 
-                    Filter::FilterT padded(*this->padder_->padData(filter));
+                    Filter::FilterT padded;
+                    this->padder_->padData(filter, padded);
                     //TODO fourier transform
                     return padded;
                 });
@@ -78,6 +79,8 @@ public:
                 while(eventBuffer_.size() != eventBuffer_.capacity()) {
                     eventBuffer_.push_back(Filter::FilterT(filter->xSize(), filter->ySize()));
                 }
+
+                extractedDataBuffer_.resize(filter->xSize(), filter->ySize());
             }
         }
     };
@@ -117,11 +120,10 @@ public:
             for(int filterIndex = 0; filterIndex < filters_.size(); ++filterIndex) {
 
                 float rad = deg2rad(filters_[filterIndex]->angle());
-                auto extracted = padder_->extractDenseOutput(responseBuffer_[filterIndex]);
-                flowSlice->xv_ += std::cos(rad) * *extracted;
-                flowSlice->yv_ -= std::sin(rad) * *extracted;
+                padder_->extractDenseOutput(responseBuffer_[filterIndex], extractedDataBuffer_);
+                flowSlice->xv_ += std::cos(rad) * extractedDataBuffer_;
+                flowSlice->yv_ -= std::sin(rad) * extractedDataBuffer_;
             }
-
             outputBuffer_->push(flowSlice);
         }
     }
@@ -180,6 +182,7 @@ public:
 private:
     int timeSteps_;
     size_t receivedEventSlices_;
+    Filter::FilterT extractedDataBuffer_;
     std::shared_ptr<EventQueueT> inputBuffer_;
     std::shared_ptr<FlowQueueT> outputBuffer_;
     std::unique_ptr<IFilterFactory> factory_;

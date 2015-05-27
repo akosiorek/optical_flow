@@ -49,7 +49,7 @@ public:
 			fourierSizePadded_(roundUpPow2(dataSize+filterSize-1)) //linear conv+zeropadding
 	{
 	}
--
+
 	/**
 	 * @brief Zero-pads a dense input matrix to the next power of 2
 	 * 
