@@ -57,14 +57,15 @@ public:
 	using Ptr = std::shared_ptr<FourierPadder>;
 
 	using EBOFMatrix = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-	// using EBOFMatrixSparse = Eigen::SparseMatrix<float, Eigen::RowMajor>;
+	using EBOFMatrixSparse = Eigen::SparseMatrix<float, Eigen::RowMajor>;
 
 	FourierPadder(unsigned int dataSize, unsigned int filterSize) 
 		: 	dataSize_(dataSize), 
 			filterSize_(filterSize),
-			fourierSize_(roundUpPow2(std::max(dataSize,filterSize)))
+			fourierSize_(dataSize+filterSize-1),
+			fourierSizePadded_(roundUpPow2(dataSize+filterSize-1)) //linear conv+zeropadding
 	{
-	};
+	}
 
 	/**
 	 * @brief Zero-pads a dense input matrix to the next power of 2
@@ -72,14 +73,59 @@ public:
 	 * @param  data Dense input matrix
 	 * @return Zero-padded dense matrix
 	 */
-	std::shared_ptr<EBOFMatrix> padData(const EBOFMatrix& tm)
+	void padData(const EBOFMatrix& tm, EBOFMatrix& fm)
 	{
-		auto fm = std::make_shared<EBOFMatrix>(fourierSize_,fourierSize_);
-		fm->setZero();
+		if(fm.cols()!=fourierSizePadded_ || fm.rows()!=fourierSizePadded_)
+		{
+			fm.resize(fourierSizePadded_, fourierSizePadded_);
+		}
 
-		fm->block(0,0,dataSize_,dataSize_) = tm;
+		fm.setZero();
 
-		return fm;
+		fm.block(0,0,dataSize_,dataSize_) = tm; // could use template later on
+	}
+
+	/**
+	 * @brief Zero-pads a sparse input matrix to the next power of 2
+	 * @details [long description]
+	 * 
+	 * @param  data Sparse input matrix
+	 * @return Zero-padded dense matrix
+	 */
+	void padData(const EBOFMatrixSparse& tm, EBOFMatrix& fm)
+	{
+		if(fm.cols()!=fourierSizePadded_ || fm.rows()!=fourierSizePadded_)
+		{
+			fm.resize(fourierSizePadded_, fourierSizePadded_);
+		}
+
+		fm.setZero();
+
+		for (int k=0; k<tm.outerSize(); ++k)
+		{
+			for (EBOFMatrixSparse::InnerIterator it(tm,k); it; ++it)
+			{
+				fm(it.row(),it.col()) = it.value();
+			}
+		}
+	}
+
+		/**
+	 * @brief Zero-pads a dense input matrix to the next power of 2
+	 * 
+	 * @param  data Dense input matrix
+	 * @return Zero-padded dense matrix
+	 */
+	void padFilter(const EBOFMatrix& tm, EBOFMatrix& fm)
+	{
+		if(fm.cols()!=fourierSizePadded_ || fm.rows()!=fourierSizePadded_)
+		{
+			fm.resize(fourierSizePadded_, fourierSizePadded_);
+		}
+
+		fm.setZero();
+
+		fm.block(0,0,filterSize_,filterSize_) = tm;
 	}
 
 	// TODO: Is this one needed, the dense method also works for sparse matrices. Speed difference?!?!?
@@ -90,22 +136,24 @@ public:
 	 * @param  data Sparse input matrix
 	 * @return Zero-padded dense matrix
 	 */
-	std::shared_ptr<EBOFMatrix> padData(const Eigen::SparseMatrix<float>& tm)
+	void padFilter(const EBOFMatrixSparse& tm, EBOFMatrix& fm)
 	{
-		auto fm = std::make_shared<EBOFMatrix>(fourierSize_,fourierSize_);
-		fm->setZero();
+		if(fm.cols()!=fourierSizePadded_ || fm.rows()!=fourierSizePadded_)
+		{
+			fm.resize(fourierSizePadded_, fourierSizePadded_);
+		}
+
+		fm.setZero();
 
 		// TODO: Make this faster?! Since the size changes we cant just use the constructor
 		// Unless we do a conversativeResize() afterwards
 		for (int k=0; k<tm.outerSize(); ++k)
 		{
-			for (Eigen::SparseMatrix<float>::InnerIterator it(tm,k); it; ++it)
+			for (EBOFMatrixSparse::InnerIterator it(tm,k); it; ++it)
 			{
-				(*fm)(it.row(),it.col()) = it.value();
+				fm(it.row(),it.col()) = it.value();
 			}
 		}
-
-		return fm;
 	}
 
 	/**
@@ -114,12 +162,16 @@ public:
 	 * @param fm Input matrix
 	 * @return Dense data matrix
 	 */
-	std::shared_ptr<EBOFMatrix> extractDenseOutput(const EBOFMatrix& fm)
+	void extractDenseOutput(const EBOFMatrix& fm, EBOFMatrix& tm)
 	{
-		auto tm = std::make_shared<EBOFMatrix>(dataSize_,dataSize_);
-		*tm = fm.block(0,0,dataSize_,dataSize_);
+		if(tm.cols()!=fourierSize_ || tm.rows()!=fourierSize_)
+		{
+			tm.resize(fourierSize_, fourierSize_);
+		}
 
-		return tm;
+		tm.setZero();
+
+		tm = fm.block(0,0,fourierSize_,fourierSize_);
 	}
 
 	/**
@@ -128,18 +180,23 @@ public:
 	 * @param fm Input matrix
 	 * @return Dense data matrix
 	 */
-	std::shared_ptr<Eigen::SparseMatrix<float> > extractSparseOutput(const EBOFMatrix& fm)
+	void extractSparseOutput(const EBOFMatrix& fm, EBOFMatrixSparse& tm)
 	{
-		auto tm = std::make_shared<Eigen::SparseMatrix<float> >(dataSize_,dataSize_);
-		*tm = fm.block(0,0,dataSize_,dataSize_).sparseView();
+		if(tm.cols()!=fourierSize_ || tm.rows()!=fourierSize_)
+		{
+			tm.resize(fourierSize_, fourierSize_);
+		}
 
-		return tm;
+		tm.setZero();
+
+		tm = fm.block(0,0,fourierSize_, fourierSize_).sparseView();
 	}
 
 	// can be public as they are const
 	const unsigned int dataSize_;
 	const unsigned int filterSize_;
 	const unsigned int fourierSize_;
+	const unsigned int fourierSizePadded_;
 };
 
 #endif // FOURIER_PADDER_H
