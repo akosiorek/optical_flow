@@ -25,8 +25,10 @@ struct FilterFactoryMock : public IFilterFactory {
 
         auto filters = std::make_unique<std::vector<FilterT>>();
 
-        filters->emplace_back(filterTransformer_(FilterT(filterSize_, filterSize_)));
-        filters->at(0)(0, 0) = angle;
+        MatrixT mat(filterSize_, filterSize_);
+        mat.setConstant(angle);
+//        mat(0, 0) = angle;
+        filters->emplace_back(filterTransformer_(mat));
         return std::make_shared<Filter>(angle, std::move(filters));
     }
 
@@ -41,10 +43,11 @@ struct FilterFactoryMock : public IFilterFactory {
 struct FourierTransformerMock : public IFourierTransformer {
     virtual void forward(const RealMatrix& src, ComplexMatrix& dst) const override {
 
+        dst = src.cast<ComplexMatrix::Scalar>();
     }
 
     virtual void backward(const ComplexMatrix& src, RealMatrix& dst) const override {
-
+        dst = src.real();
     }
 };
 
@@ -143,8 +146,7 @@ TEST_F(FilteringEngineTest, ConsumeInputTest) {
 }
 
 
-// TODO won't work after fourier transform get in place
-TEST_F(FilteringEngineTest, FiltertTest) {
+TEST_F(FilteringEngineTest, BasicFilteringTest) {
     int angle = 15;
     engine->setOutputBuffer(flowSliceQueue);
     engine->addFilter(angle);
@@ -158,10 +160,10 @@ TEST_F(FilteringEngineTest, FiltertTest) {
     auto filtered = *flowSliceQueue->front();
     Eigen::MatrixXf expectedX(dataSize_, dataSize_);
     expectedX.setZero();
-    expectedX(0, 0) = std::cos(deg2rad(angle)) * angle;
+    expectedX(1, 1) = std::cos(deg2rad(angle)) * angle * 4;
     Eigen::MatrixXf expectedY(dataSize_, dataSize_);
     expectedY.setZero();
-    expectedY(0, 0) = -std::sin(deg2rad(angle)) * angle;
+    expectedY(1, 1) = -std::sin(deg2rad(angle)) * angle * 4;
 
 //    LOG(ERROR) << expectedX;
 //    LOG(ERROR) << expectedY;
@@ -170,6 +172,8 @@ TEST_F(FilteringEngineTest, FiltertTest) {
     ASSERT_TRUE(expectedX.isApprox(filtered.xv_));
     ASSERT_TRUE(expectedY.isApprox(filtered.yv_));
 }
+
+
 
 
 

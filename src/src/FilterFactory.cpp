@@ -15,7 +15,7 @@ const float FilterFactory::PI_ = static_cast<float>(M_PI);
 
 FilterFactory::FilterFactory(float t0, float tk, float tResolution, int xRange, int yRange)
     : xRange_(xRange), yRange_(yRange),
-      filterTransformer_([](const FilterT& filter) { return filter; }),
+      filterTransformer_([](const MatrixT& filter) { return filter.cast<ComplexMatrix::Scalar>(); }),
     // filters parameters
     sigma(25),
     s1(0.5),
@@ -55,8 +55,8 @@ std::shared_ptr <Filter> FilterFactory::createFilter(int angle) const {
     float fx, fy; // frequencies;
     std::tie(fx, fy) = rotate(angle, fxy);
 
-    FilterT spatialRe(xSize_, ySize_);
-    FilterT spatialIm(xSize_, ySize_);
+    MatrixT spatialRe(xSize_, ySize_);
+    MatrixT spatialIm(xSize_, ySize_);
     for(int x = 0; x < xSize_; ++x) {
         for(int y = 0; y < ySize_; ++y) {
             auto v = spatial(x - xRange_, y - yRange_, fx, fy);

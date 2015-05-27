@@ -24,8 +24,8 @@
 template<template <class> class InputBufferT, template <class> class OutputBufferT = InputBufferT>
 class FilteringEngine {
 public:
-    typedef InputBufferT<std::shared_ptr<EventSlice>> EventQueueT;
-    typedef OutputBufferT<std::shared_ptr<FlowSlice>> FlowQueueT;
+    using EventQueueT = InputBufferT<std::shared_ptr<EventSlice>>;
+    using FlowQueueT = OutputBufferT<std::shared_ptr<FlowSlice>>;
 
     /**
      * @brief Creates the FilteringEngine
@@ -46,12 +46,13 @@ public:
               eventBuffer_(0) {
 
         factory_->setFilterTransformer(
-                [this](const Filter::FilterT& filter) {
+                [this](const RealMatrix& filter) {
 
-                    Filter::FilterT padded;
+                    RealMatrix padded;
                     this->padder_->padData(filter, padded);
-                    //TODO fourier transform
-                    return padded;
+                    ComplexMatrix transformed;
+                    this->transformer_->forward(padded, transformed);
+                    return transformed;
                 });
     }
 
@@ -77,7 +78,7 @@ public:
             if(eventBuffer_.size() != timeSteps_) {
                 eventBuffer_.set_capacity(timeSteps_);
                 while(eventBuffer_.size() != eventBuffer_.capacity()) {
-                    eventBuffer_.push_back(Filter::FilterT(filter->xSize(), filter->ySize()));
+                    eventBuffer_.push_back(ComplexMatrix(filter->xSize(), filter->ySize()));
                 }
 
                 extractedDataBuffer_.resize(filter->xSize(), filter->ySize());
@@ -93,8 +94,8 @@ public:
 
         eventBuffer_.rotate(eventBuffer_.end() - 1);
         ++receivedEventSlices_;
-        padder_->padDataInPlace(*slice, eventBuffer_[0]);
-        //TODO add fourier transform
+        padder_->padDataInPlace(*slice, paddedDataBuffer_);
+        transformer_->forward(paddedDataBuffer_, eventBuffer_[0]);
 
         // may the magic happen
         if(isInitialized()) {
@@ -114,13 +115,13 @@ public:
                     responseBuffer_[filterIndex] += eventSlice.cwiseProduct(filterSlice);
                 }
             }
-            //TODO reverse transform
 
             auto flowSlice = std::make_shared<FlowSlice>(slice->rows(), slice->cols());
             for(int filterIndex = 0; filterIndex < filters_.size(); ++filterIndex) {
 
                 float rad = deg2rad(filters_[filterIndex]->angle());
-                padder_->extractDenseOutput(responseBuffer_[filterIndex], extractedDataBuffer_);
+                transformer_->backward(responseBuffer_[filterIndex], inversedDataBuffer_);
+                padder_->extractDenseOutput(inversedDataBuffer_, extractedDataBuffer_);
                 flowSlice->xv_ += std::cos(rad) * extractedDataBuffer_;
                 flowSlice->yv_ -= std::sin(rad) * extractedDataBuffer_;
             }
@@ -182,15 +183,17 @@ public:
 private:
     int timeSteps_;
     size_t receivedEventSlices_;
-    Filter::FilterT extractedDataBuffer_;
+    RealMatrix paddedDataBuffer_;
+    RealMatrix extractedDataBuffer_;
+    RealMatrix inversedDataBuffer_;
     std::shared_ptr<EventQueueT> inputBuffer_;
     std::shared_ptr<FlowQueueT> outputBuffer_;
     std::unique_ptr<IFilterFactory> factory_;
     std::unique_ptr<FourierPadder> padder_;
     std::unique_ptr<IFourierTransformer> transformer_;
     std::vector<std::shared_ptr<Filter>> filters_;
-    std::vector<Filter::FilterT> responseBuffer_;
-    boost::circular_buffer<Filter::FilterT> eventBuffer_;
+    std::vector<ComplexMatrix> responseBuffer_;
+    boost::circular_buffer<ComplexMatrix> eventBuffer_;
 };
 
 

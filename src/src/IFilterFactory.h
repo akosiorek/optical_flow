@@ -5,16 +5,14 @@
 #ifndef OPTICAL_FLOW_IFILTERFACTORY_H
 #define OPTICAL_FLOW_IFILTERFACTORY_H
 
-#include <memory>
-#include <complex>
-#include <Eigen/Core>
-
+#include "common.h"
 #include "Filter.h"
 
 class IFilterFactory {
 public:
+    using MatrixT = Filter::MatrixT;
     using FilterT = Filter::FilterT;
-    using FilterTransformT = std::function<FilterT(const FilterT&)>;
+    using FilterTransformT = std::function<FilterT(const MatrixT&)>;
 
 public:
     virtual ~IFilterFactory() = default;

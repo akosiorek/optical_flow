@@ -10,7 +10,8 @@
 
 class Filter {
 public:
-    using FilterT = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+    using MatrixT = RealMatrix;
+    using FilterT = ComplexMatrix;
 
     Filter();
     Filter(float angle, std::unique_ptr<std::vector<FilterT>> filters);

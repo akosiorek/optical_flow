@@ -14,6 +14,8 @@
 
 class FilterFactoryTest : public testing::Test {
 public:
+    using MatrixT = FilterFactory::MatrixT;
+    using FilterT = FilterFactory::FilterT;
     int size(int radius) {
         return 2 * radius + 1;
     }
@@ -70,7 +72,7 @@ TEST_F(FilterFactoryTest, SmallFilterTest) {
     auto filterSlice = filter->at(0);
 
     // prepare values we expect the filter to have
-    decltype(filterSlice) expectedFilter(this->size(xRadius), this->size(yRadius));
+    MatrixT expectedFilter(this->size(xRadius), this->size(yRadius));
     expectedFilter << 0.043689713870756, 0.041171961916116, 0.020679854734440, -0.013160985223100, -0.047270790019091,
             -0.067110772224775, -0.065325844480389, -0.045639528855475, -0.019404156399499, 0.041171961916116,
             0.022028244995357, -0.014933211980382, -0.057133404440230, -0.086401621554250, -0.089587435336400,
@@ -93,9 +95,10 @@ TEST_F(FilterFactoryTest, SmallFilterTest) {
 
     for (int x = 0; x < this->size(xRadius); ++x) {
         for (int y = 0; y < this->size(yRadius); ++y) {
-            ASSERT_NEAR(filterSlice(x, y), expectedFilter(x, y), tolerance) << "x = " << x << ", y = " << y;
+            ASSERT_NEAR(filterSlice.real()(x, y), expectedFilter(x, y), tolerance) << "x = " << x << ", y = " << y;
         }
     }
+    ASSERT_TRUE(filterSlice.imag().isZero(0));
 }
 
 TEST_F(FilterFactoryTest, TransformedFilterTest) {
@@ -108,13 +111,14 @@ TEST_F(FilterFactoryTest, TransformedFilterTest) {
     int yRadius = 1;
     FilterFactory factory(t0, tk, timeResolution, xRadius, yRadius);
 
-    auto transformFun = [](const Eigen::MatrixXf& filter) -> Eigen::MatrixXf {
-        return filter / filter.maxCoeff();
+    auto transformFun = [](const MatrixT& filter) -> FilterT {
+        return filter.cast<FilterT::Scalar>() / filter.maxCoeff();
     };
     factory.setFilterTransformer(transformFun);
 
     auto filterbank = factory.createFilter(angle);
     auto filter = filterbank->at(0);
-    ASSERT_NEAR(filter.maxCoeff(), 1, this->tolerance);
+    ASSERT_NEAR(filter.real().maxCoeff(), 1, this->tolerance);
+    ASSERT_TRUE(filter.imag().isZero(0));
 }
 

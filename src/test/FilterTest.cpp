@@ -20,9 +20,9 @@ private:
 //        filterDefault=make_unique<Filter>();
         filterDefault=Filter();
         filterSlices=std::make_unique<std::vector<FilterT>>(3);
-        filterSlices->at(0)=Eigen::MatrixXf::Random(3,3);
-        filterSlices->at(1)=Eigen::MatrixXf::Random(3,3);
-        filterSlices->at(2)=Eigen::MatrixXf::Random(3,3);
+        filterSlices->at(0)=FilterT::Random(3,3);
+        filterSlices->at(1)=FilterT::Random(3,3);
+        filterSlices->at(2)=FilterT::Random(3,3);
 
 
     }
