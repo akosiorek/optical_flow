@@ -160,15 +160,15 @@ TEST_F(FilteringEngineTest, BasicFilteringTest) {
     auto filtered = *flowSliceQueue->front();
     Eigen::MatrixXf expectedX(dataSize_, dataSize_);
     expectedX.setZero();
-    expectedX(1, 1) = std::cos(deg2rad(angle)) * angle * 4;
+    expectedX(0, 0) = std::cos(deg2rad(angle)) * angle * 4;
     Eigen::MatrixXf expectedY(dataSize_, dataSize_);
     expectedY.setZero();
-    expectedY(1, 1) = -std::sin(deg2rad(angle)) * angle * 4;
+    expectedY(0, 0) = -std::sin(deg2rad(angle)) * angle * 4;
 
-//    LOG(ERROR) << expectedX;
-//    LOG(ERROR) << expectedY;
-//    LOG(ERROR) << filtered.xv_;
-//    LOG(ERROR) << filtered.yv_;
+    LOG(ERROR) << expectedX;
+    LOG(ERROR) << expectedY;
+    LOG(ERROR) << filtered.xv_;
+    LOG(ERROR) << filtered.yv_;
     ASSERT_TRUE(expectedX.isApprox(filtered.xv_));
     ASSERT_TRUE(expectedY.isApprox(filtered.yv_));
 }

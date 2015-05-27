@@ -94,7 +94,7 @@ public:
 
         eventBuffer_.rotate(eventBuffer_.end() - 1);
         ++receivedEventSlices_;
-        padder_->padDataInPlace(*slice, paddedDataBuffer_);
+        padder_->padData(*slice, paddedDataBuffer_);
         transformer_->forward(paddedDataBuffer_, eventBuffer_[0]);
 
         // may the magic happen

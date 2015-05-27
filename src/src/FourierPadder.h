@@ -164,7 +164,7 @@ public:
 	 */
 	void extractSparseOutput(const RealMatrix& fm, SparseMatrix& tm)
 	{
-		if(tm.cols()!=dataSize_ || tm.rows()!=dataSize_)
+		if(tm.cols() != dataSize_ || tm.rows() != dataSize_)
 		{
 			tm.resize(dataSize_, dataSize_);
 		}
@@ -193,7 +193,7 @@ public:
 
 
 	// can be public as they are const
-	const unsigned int dataSize_;
+	const int dataSize_;
 	const unsigned int filterSize_;
 	const unsigned int border_;
 	const unsigned int fourierSizePadded_;
