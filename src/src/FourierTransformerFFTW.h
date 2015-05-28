@@ -35,12 +35,21 @@ public:
      */
     virtual void backward(const ComplexMatrix& src, RealMatrix& dst) const override;
 
-    const int rows_;
-    const int cols_;
-    const int colsHS_;
+    const int rows_;    /*!< Expected rows of real and complex data */
+    const int cols_;    /*!< Expected columns of real data only */
+    const int colsHS_;  /*!< The number of columns require/present in the complex spectrum */
 
 private:
 
+    /**
+     * @brief Casts std::complex<float> pointer to fftwf_complex*
+     * @details FFTW expects pointer to complex data to be fftwf_complex, for complex float data.
+     *          Additionally, it requires pointers to pointing to non const data. This function will
+     *          cast the pointer and removes const'ness.
+     * 
+     * @param p std::complex<float> data pointer
+     * @return fftwf_complex* pointer
+     */
     inline 
     fftwf_complex* fftw_cast(const std::complex<float> * p) const
     { 
@@ -48,8 +57,8 @@ private:
     }
 
 
-    fftwf_plan fwd_plan_;
-    fftwf_plan bwd_plan_;
+    fftwf_plan fwd_plan_;   /*!< Reusable plan for forward transformation */
+    fftwf_plan bwd_plan_;   /*!< Reusable plan for backward transformation */
 };
 
 #endif //FOURIER_TRANSFORMER_FFTW_H

@@ -48,7 +48,6 @@ void FourierTransformerFFTW::forward(const RealMatrix& src, ComplexMatrix& dst) 
 	}
 
 	/* Compute forward DFT */
-	//TODO: cast away constness (while we dont write there, this is dangerous)
 	fftwf_execute_dft_r2c(fwd_plan_, const_cast<float*>(src.data()), fftw_cast(dst.data()));
 }
 
@@ -72,6 +71,5 @@ void FourierTransformerFFTW::backward(const ComplexMatrix& src, RealMatrix& dst)
 	}
 
 	/* Compute forward DFT */
-	//TODO: cast away constness (while we dont write there, this is dangerous)
 	fftwf_execute_dft_c2r(bwd_plan_, fftw_cast(src.data()), dst.data());
 }
