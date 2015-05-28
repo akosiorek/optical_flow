@@ -44,7 +44,7 @@ public:
 	FourierPadder(unsigned int dataSize, unsigned int filterSize) 
 		: 	dataSize_(dataSize), 
 			filterSize_(filterSize),
-			border_(static_cast<unsigned int>(floor(filterSize_/2))+1),
+			border_(static_cast<unsigned int>(floor(filterSize_/2))), // no +1 because of 0-index
 			fourierSizePadded_(roundUpPow2(dataSize+filterSize-1)) //linear conv+zeropadding
 	{
 	}
