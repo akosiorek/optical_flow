@@ -128,12 +128,12 @@ TEST_F(FourierPadderTest, ExtractDenseOutputTest)
 {
 	auto paddedOutput = RealMatrix(padder->fourierSizePadded_, padder->fourierSizePadded_);
 	paddedOutput.setZero();
-	paddedOutput(15, 19) = 22;
-	paddedOutput(55, 12) = 3;
-	paddedOutput(3, 23) = 454;
-	paddedOutput(21, 17) = 34;
-	paddedOutput(66, 4) = 54;
-	paddedOutput(76, 1) = 12;
+	paddedOutput(padder->border_+15,padder->border_+ 19) = 22;
+	paddedOutput(padder->border_+55,padder->border_+ 12) = 3;
+	paddedOutput(padder->border_+3, padder->border_+23) = 454;
+	paddedOutput(padder->border_+21,padder->border_+ 17) = 34;
+	paddedOutput(padder->border_+66,padder->border_+ 4) = 54;
+	paddedOutput(padder->border_+76,padder->border_+ 1) = 12;
 
 	RealMatrix extracted;
 	padder->extractDenseOutput(paddedOutput, extracted);
@@ -162,12 +162,12 @@ TEST_F(FourierPadderTest, ExtractSparseOutputTest)
 {
 	auto paddedOutput = RealMatrix(padder->fourierSizePadded_,padder->fourierSizePadded_);
 	paddedOutput.setZero();
-	paddedOutput(15, 19) = 22;
-	paddedOutput(55, 12) = 3;
-	paddedOutput(3, 23) = 454;
-	paddedOutput(21, 17) = 34;
-	paddedOutput(66, 4) = 54;
-	paddedOutput(76, 1) = 12;
+	paddedOutput(padder->border_+15,padder->border_+ 19) = 22;
+	paddedOutput(padder->border_+55,padder->border_+ 12) = 3;
+	paddedOutput(padder->border_+3, padder->border_+23) = 454;
+	paddedOutput(padder->border_+21,padder->border_+ 17) = 34;
+	paddedOutput(padder->border_+66,padder->border_+ 4) = 54;
+	paddedOutput(padder->border_+76,padder->border_+ 1) = 12;
 
 	SparseMatrix extracted;
 	padder->extractSparseOutput(paddedOutput, extracted);
