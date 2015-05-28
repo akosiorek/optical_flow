@@ -13,9 +13,9 @@ add_executable(test
     FourierPadderTest.cpp
     FilterTest.cpp
     FilterFactoryTest.cpp
-    FilteringEngineTest.cpp
+    # FilteringEngineTest.cpp
     FourierTransformerTest.cpp
     )
 
-target_link_libraries(test gtest_main optical)
+target_link_libraries(test gtest_main optical fftw3f)
 add_custom_command(TARGET test POST_BUILD COMMAND test)

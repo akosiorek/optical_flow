@@ -19,6 +19,11 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS}
 )
+
+find_package(FFTW REQUIRED)
+include_directories(${FFTW_INCLUDES}
+)
+
 #-------------------
 # Edvstools Build
 #-------------------
