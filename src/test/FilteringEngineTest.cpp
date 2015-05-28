@@ -39,11 +39,11 @@ struct FilterFactoryMock : public IFilterFactory {
 };
 
 struct FourierTransformerMock : public IFourierTransformer {
-    virtual void forward(const Eigen::MatrixXf& src, Eigen::MatrixXcf& dst) const override {
+    virtual void forward(const RealMatrix& src, ComplexMatrix& dst) const override {
 
     }
 
-    virtual void backward(const Eigen::MatrixXcf& src, Eigen::MatrixXf& dst) const override {
+    virtual void backward(const ComplexMatrix& src, RealMatrix& dst) const override {
 
     }
 };

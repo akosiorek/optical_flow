@@ -13,7 +13,7 @@ add_executable(test
     FourierPadderTest.cpp
     FilterTest.cpp
     FilterFactoryTest.cpp
-    # FilteringEngineTest.cpp
+    FilteringEngineTest.cpp
     FourierTransformerTest.cpp
     )
 
