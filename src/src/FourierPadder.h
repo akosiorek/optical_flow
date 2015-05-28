@@ -1,11 +1,13 @@
 #ifndef FOURIER_PADDER_H
 #define FOURIER_PADDER_H
 
-#include "common.h"
 #include <stdint.h>
 
+#include <Eigen/Core>
 #include <Eigen/SparseCore>
 
+#include "common.h"
+#include "types.h"
 // // Determines the next power of two at run time
 // template<uint32_t A, uint8_t B = 16>
 // struct Pow2RoundUp { enum{ value = Pow2RoundUp<((B == 16 ? (A-1) : A) | ((B == 16 ? (A-1) : A) >> B)), B/2>::value }; };
@@ -39,13 +41,10 @@ class FourierPadder
 public:
 	using Ptr = std::shared_ptr<FourierPadder>;
 
-	using EBOFMatrix = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-	using EBOFMatrixSparse = Eigen::SparseMatrix<float, Eigen::RowMajor>;
-
 	FourierPadder(unsigned int dataSize, unsigned int filterSize) 
 		: 	dataSize_(dataSize), 
 			filterSize_(filterSize),
-			fourierSize_(dataSize+filterSize-1),
+			border_(dataSize+filterSize-1),
 			fourierSizePadded_(roundUpPow2(dataSize+filterSize-1)) //linear conv+zeropadding
 	{
 	}
@@ -56,7 +55,7 @@ public:
 	 * @param  data Dense input matrix
 	 * @return Zero-padded dense matrix
 	 */
-	void padData(const EBOFMatrix& tm, EBOFMatrix& fm)
+	void padData(const RealMatrix& tm, RealMatrix& fm)
 	{
 		if(fm.cols()!=fourierSizePadded_ || fm.rows()!=fourierSizePadded_)
 		{
@@ -75,7 +74,7 @@ public:
 	 * @param  data Sparse input matrix
 	 * @return Zero-padded dense matrix
 	 */
-	void padData(const EBOFMatrixSparse& tm, EBOFMatrix& fm)
+	void padData(const SparseMatrix& tm, RealMatrix& fm)
 	{
 		if(fm.cols()!=fourierSizePadded_ || fm.rows()!=fourierSizePadded_)
 		{
@@ -86,7 +85,7 @@ public:
 
 		for (int k=0; k<tm.outerSize(); ++k)
 		{
-			for (EBOFMatrixSparse::InnerIterator it(tm,k); it; ++it)
+			for (SparseMatrix::InnerIterator it(tm,k); it; ++it)
 			{
 				fm(it.row(),it.col()) = it.value();
 			}
@@ -99,7 +98,7 @@ public:
 	 * @param  data Dense input matrix
 	 * @return Zero-padded dense matrix
 	 */
-	void padFilter(const EBOFMatrix& tm, EBOFMatrix& fm)
+	void padFilter(const RealMatrix& tm, RealMatrix& fm)
 	{
 		if(fm.cols()!=fourierSizePadded_ || fm.rows()!=fourierSizePadded_)
 		{
@@ -111,24 +110,6 @@ public:
 		fm.block(0,0,filterSize_,filterSize_) = tm;
 	}
 
-    EBOFMatrix padDataNoPtr(const EBOFMatrix& tm)
-    {
-        EBOFMatrix fm(fourierSize_, fourierSize_);
-        fm.setZero();
-        fm.block(0,0,dataSize_,dataSize_) = tm;
-        return fm;
-    }
-
-    void padDataInPlace(const EBOFMatrix& tm, EBOFMatrix& fm)
-    {
-        if(fm.rows() != fourierSize_ || fm.cols() != fourierSize_) {
-            fm = EBOFMatrix(fourierSize_, fourierSize_);
-        }
-        fm.setZero();
-
-        fm.block(0,0,dataSize_,dataSize_) = tm;
-    }
-
 	// TODO: Is this one needed, the dense method also works for sparse matrices. Speed difference?!?!?
 	/**
 	 * @brief Zero-pads a sparse input matrix to the next power of 2
@@ -137,7 +118,7 @@ public:
 	 * @param  data Sparse input matrix
 	 * @return Zero-padded dense matrix
 	 */
-	void padFilter(const EBOFMatrixSparse& tm, EBOFMatrix& fm)
+	void padFilter(const SparseMatrix& tm, RealMatrix& fm)
 	{
 		if(fm.cols()!=fourierSizePadded_ || fm.rows()!=fourierSizePadded_)
 		{
@@ -150,7 +131,7 @@ public:
 		// Unless we do a conversativeResize() afterwards
 		for (int k=0; k<tm.outerSize(); ++k)
 		{
-			for (EBOFMatrixSparse::InnerIterator it(tm,k); it; ++it)
+			for (SparseMatrix::InnerIterator it(tm,k); it; ++it)
 			{
 				fm(it.row(),it.col()) = it.value();
 			}
@@ -163,16 +144,16 @@ public:
 	 * @param fm Input matrix
 	 * @return Dense data matrix
 	 */
-	void extractDenseOutput(const EBOFMatrix& fm, EBOFMatrix& tm)
+	void extractDenseOutput(const RealMatrix& fm, RealMatrix& tm)
 	{
-		if(tm.cols()!=fourierSize_ || tm.rows()!=fourierSize_)
+		if(tm.cols()!=dataSize_ || tm.rows()!=dataSize_)
 		{
-			tm.resize(fourierSize_, fourierSize_);
+			tm.resize(dataSize_, dataSize_);
 		}
 
 		tm.setZero();
 
-		tm = fm.block(0,0,fourierSize_,fourierSize_);
+		tm = fm.block(border_,border_,dataSize_,dataSize_);
 	}
 
 	/**
@@ -181,16 +162,16 @@ public:
 	 * @param fm Input matrix
 	 * @return Dense data matrix
 	 */
-	void extractSparseOutput(const EBOFMatrix& fm, EBOFMatrixSparse& tm)
+	void extractSparseOutput(const RealMatrix& fm, SparseMatrix& tm)
 	{
-		if(tm.cols()!=fourierSize_ || tm.rows()!=fourierSize_)
+		if(tm.cols()!=dataSize_ || tm.rows()!=dataSize_)
 		{
-			tm.resize(fourierSize_, fourierSize_);
+			tm.resize(dataSize_, dataSize_);
 		}
 
 		tm.setZero();
 
-		tm = fm.block(0,0,fourierSize_, fourierSize_).sparseView();
+		tm = fm.block(border_,border_,dataSize_, dataSize_).sparseView();
 	}
 
 	/**
@@ -214,7 +195,7 @@ public:
 	// can be public as they are const
 	const unsigned int dataSize_;
 	const unsigned int filterSize_;
-	const unsigned int fourierSize_;
+	const unsigned int border_;
 	const unsigned int fourierSizePadded_;
 };
 

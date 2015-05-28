@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 #include <Eigen/SparseCore>
 #include "common.h"
+#include "types.h"
 #include "FourierPadder.h"
 
 class FourierPadderTest : public testing::Test {
@@ -36,10 +37,10 @@ TEST_F(FourierPadderTest, GetPowerOfTwoTest)
 
 TEST_F(FourierPadderTest, PaddingDenseMemoryTest)
 {
-	auto input = FourierPadder::EBOFMatrix(FourierPadderTest::inputSize, FourierPadderTest::inputSize);
+	auto input = RealMatrix(FourierPadderTest::inputSize, FourierPadderTest::inputSize);
 	input.setZero();
 
-	FourierPadder::EBOFMatrix padded;
+	RealMatrix padded;
 	ASSERT_EQ(0, padded.rows());
 	ASSERT_EQ(0, padded.cols());
 
@@ -54,7 +55,7 @@ TEST_F(FourierPadderTest, PaddingDenseMemoryTest)
 
 TEST_F(FourierPadderTest, PadInputDenseTest)
 {
-	auto input = FourierPadder::EBOFMatrix(FourierPadderTest::inputSize, FourierPadderTest::inputSize);
+	auto input = RealMatrix(FourierPadderTest::inputSize, FourierPadderTest::inputSize);
 	input.setZero();
 	input(15, 19) = 22;
 	input(55, 12) = 3;
@@ -63,7 +64,7 @@ TEST_F(FourierPadderTest, PadInputDenseTest)
 	input(66, 4) = 54;
 	input(76, 1) = 12;
 
-	FourierPadder::EBOFMatrix padded;
+	RealMatrix padded;
 	padder->padData(input, padded);
 
 	// Check Size
@@ -90,7 +91,7 @@ TEST_F(FourierPadderTest, PadInputDenseTest)
 TEST_F(FourierPadderTest, PadInputSparseTest)
 {
 	// This also tests implicility the correct conversion between row/colmajor
-	auto input = FourierPadder::EBOFMatrixSparse(inputSize, inputSize);
+	auto input = SparseMatrix(inputSize, inputSize);
 	input.insert(15, 19) = 22;
 	input.insert(55, 12) = 3;
 	input.insert(3, 23) = 454;
@@ -98,7 +99,7 @@ TEST_F(FourierPadderTest, PadInputSparseTest)
 	input.insert(66, 4) = 54;
 	input.insert(76, 1) = 12;
 
-	FourierPadder::EBOFMatrix padded;
+	RealMatrix padded;
 	padder->padData(input, padded);
 
 	// Check Size
@@ -125,7 +126,7 @@ TEST_F(FourierPadderTest, PadInputSparseTest)
 
 TEST_F(FourierPadderTest, ExtractDenseOutputTest)
 {
-	auto paddedOutput = FourierPadder::EBOFMatrix(padder->fourierSizePadded_, padder->fourierSizePadded_);
+	auto paddedOutput = RealMatrix(padder->fourierSizePadded_, padder->fourierSizePadded_);
 	paddedOutput.setZero();
 	paddedOutput(15, 19) = 22;
 	paddedOutput(55, 12) = 3;
@@ -134,12 +135,12 @@ TEST_F(FourierPadderTest, ExtractDenseOutputTest)
 	paddedOutput(66, 4) = 54;
 	paddedOutput(76, 1) = 12;
 
-	FourierPadder::EBOFMatrix extracted;
+	RealMatrix extracted;
 	padder->extractDenseOutput(paddedOutput, extracted);
 
 	// Check size of returned matrix
-	ASSERT_EQ(padder->fourierSize_,extracted.rows());
-	ASSERT_EQ(padder->fourierSize_,extracted.cols());
+	ASSERT_EQ(padder->dataSize_,extracted.rows());
+	ASSERT_EQ(padder->dataSize_,extracted.cols());
 
 	// Check Values
 	ASSERT_EQ(22,	extracted(15, 19));
@@ -159,7 +160,7 @@ TEST_F(FourierPadderTest, ExtractDenseOutputTest)
 
 TEST_F(FourierPadderTest, ExtractSparseOutputTest) 
 {
-	auto paddedOutput = FourierPadder::EBOFMatrix(padder->fourierSizePadded_,padder->fourierSizePadded_);
+	auto paddedOutput = RealMatrix(padder->fourierSizePadded_,padder->fourierSizePadded_);
 	paddedOutput.setZero();
 	paddedOutput(15, 19) = 22;
 	paddedOutput(55, 12) = 3;
@@ -168,12 +169,12 @@ TEST_F(FourierPadderTest, ExtractSparseOutputTest)
 	paddedOutput(66, 4) = 54;
 	paddedOutput(76, 1) = 12;
 
-	FourierPadder::EBOFMatrixSparse extracted;
+	SparseMatrix extracted;
 	padder->extractSparseOutput(paddedOutput, extracted);
 
 	// Check size of returned matrix
-	ASSERT_EQ(padder->fourierSize_, extracted.rows());
-	ASSERT_EQ(padder->fourierSize_, extracted.cols());
+	ASSERT_EQ(padder->dataSize_, extracted.rows());
+	ASSERT_EQ(padder->dataSize_, extracted.cols());
 	// Verfiy Sparsity
 	ASSERT_EQ(6, extracted.nonZeros());  
 
