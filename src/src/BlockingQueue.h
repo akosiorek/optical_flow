@@ -3,6 +3,7 @@
 
 #include <queue>
 #include <mutex>
+#include <thread>
 
 /**
  * @brief A very basic thread-safe wrapper for the stl queue (c.f. std::queue)
@@ -13,62 +14,62 @@ template<typename T>
 class BlockingQueue
 {
 public:
-	typedef  std::shared_ptr<BlockingQueue>  Ptr;
+	typedef std::shared_ptr<BlockingQueue>  Ptr;
 
 	BlockingQueue() {}
 
 	bool empty() const
 	{
-		std::unique_lock<std::mutex> lck (mtx_);
+		std::lock_guard<std::mutex> lck (mtx_);
 		return queue_.empty();
 	}
 
 	size_t size()
 	{
-		std::unique_lock<std::mutex> lck (mtx_);
+		std::lock_guard<std::mutex> lck (mtx_);
 		return queue_.size();
 	}	
 
 	T& front()
 	{
-		std::unique_lock<std::mutex> lck (mtx_);		
+		std::lock_guard<std::mutex> lck (mtx_);		
 		return queue_.front();
 	}
 
 	const T& front() const
 	{
-		std::unique_lock<std::mutex> lck (mtx_);
+		std::lock_guard<std::mutex> lck (mtx_);
 		return queue_.front();
 	}
 
 	T& back()
 	{
-		std::unique_lock<std::mutex> lck (mtx_);		
+		std::lock_guard<std::mutex> lck (mtx_);		
 		return queue_.back();
 	}
 
 	const T& back() const
 	{
-		std::unique_lock<std::mutex> lck (mtx_);		
+		std::lock_guard<std::mutex> lck (mtx_);		
 		return queue_.back();
 	}
 
 	//NOT TESTEDz
 	void emplace(T&& val)
 	{
-		std::unique_lock<std::mutex> lck (mtx_);		
+		std::lock_guard<std::mutex> lck (mtx_);		
 		return queue_.emplace(val);
 	}
 
 	void push(const T& val)
 	{
-		std::unique_lock<std::mutex> lck (mtx_);
+		std::lock_guard<std::mutex> lck (mtx_);
 		queue_.push(val);
 	}
 
 	void pop()
 	{
-		std::unique_lock<std::mutex> lck (mtx_);		
+		std::lock_guard<std::mutex> lck (mtx_);		
 		return queue_.pop();
 	}
 
