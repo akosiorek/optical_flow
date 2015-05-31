@@ -11,8 +11,10 @@
 #include <Eigen/Dense>
 #include <Eigen/SparseCore>
 
-#include "Event.h"
+#include "Edvs/Event.hpp"
+
 #include "common.h"
+#include "types.h"
 
 class EventSlice;
 
@@ -21,7 +23,7 @@ public:
 
     Quantizer(int timeResolution);
 
-    void quantize(const std::vector<Event>& events);
+    void quantize(const std::vector<Edvs::Event>& events);
     bool isEmpty();
     EventSlice getEventSlice();
     std::shared_ptr<std::deque<EventSlice>> getEventSlices();
@@ -32,7 +34,7 @@ public:
         return timeResolution_;
     }
 
-    Event::TimeT getCurrentTimeStep() const {
+    EventTime getCurrentTimeStep() const {
         return nextEventTime_;
     }
 
@@ -41,7 +43,7 @@ private:
 
 private:
     bool initialized_;
-    Event::TimeT nextEventTime_;
+    EventTime nextEventTime_;
     unsigned int timeResolution_;
     std::shared_ptr<std::deque<EventSlice>> eventSlices_;
     std::vector<Eigen::Triplet<int>> currentEvents_;

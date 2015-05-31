@@ -14,25 +14,25 @@ Quantizer::Quantizer(int timeResolution)
     currentEvents_.reserve(100);
 };
 
-void Quantizer::quantize(const std::vector<Event> &events) {
+void Quantizer::quantize(const std::vector<Edvs::Event> &events) {
 
     if(events.empty()) {
         return;
     }
 
     if(!initialized_) {
-        nextEventTime_ = events[0].time_ + timeResolution_;
+        nextEventTime_ = events[0].t + timeResolution_;
         initialized_ = true;
     }
 
     for(const auto& event : events) {
-        while(event.time_ >= nextEventTime_) {
+        while(event.t >= nextEventTime_) {
             advanceTimeStep();
         }
-        currentEvents_.emplace_back(event.x_, event.y_, event.parity_);
+        currentEvents_.emplace_back(event.x, event.y, (event.parity!=0) ? 1 : -1);
     }
 
-    if(events[events.size() - 1].time_ == nextEventTime_ - 1) {
+    if(events[events.size() - 1].t == nextEventTime_ - 1) {
         advanceTimeStep();
     }
 }

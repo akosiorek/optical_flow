@@ -15,6 +15,8 @@ using ComplexMatrix	= Eigen::Matrix<std::complex<float>,
 									Eigen::Dynamic, 
 									Eigen::RowMajor>;
 
-using SparseMatrix	= Eigen::SparseMatrix<float,Eigen::RowMajor>;									
+using SparseMatrix	= Eigen::SparseMatrix<float,Eigen::RowMajor>;	
+
+using EventTime = uint64_t;								
 
 #endif // EBOF_TYPEDEF_H

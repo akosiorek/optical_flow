@@ -14,7 +14,7 @@
 
 class QuantizerTest : public testing::Test {
 
-    void SetUp() {\
+    void SetUp() {
         quantizer = std::make_unique<Quantizer>(2);
     }
 
@@ -31,7 +31,7 @@ TEST_F(QuantizerTest, ConstructorTest) {
 TEST_F(QuantizerTest, NoEventTest) {
 
     ASSERT_TRUE(quantizer->isEmpty());
-    quantizer->quantize(std::vector<Event>());
+    quantizer->quantize(std::vector<Edvs::Event>());
     ASSERT_TRUE(quantizer->isEmpty());
     ASSERT_TRUE(quantizer->getEventSlice().isZero());
 }
@@ -41,14 +41,15 @@ TEST_F(QuantizerTest, SingleEventTest) {
     // if time resolution > 1 there's not event slice with a single event.
     // Another event, with a time + timeResolution, would have to be passed
     // to generate an event slice.
-    std::vector<Event> events = {{1, 1, 1, 1}};
+    std::vector<Edvs::Event> events = {{1, 1, 1, 1, 0}};
+
     quantizer->quantize(events);
     ASSERT_TRUE(quantizer->isEmpty());
 
     auto eventSlice = quantizer->getEventSlice();
     ASSERT_TRUE(eventSlice.isZero());
 
-    events = {{1, 2, 3, 4}};
+    events = {{4, 1, 2, 0, 0}};
     quantizer->quantize(events);
     ASSERT_FALSE(quantizer->isEmpty());
     eventSlice = quantizer->getEventSlice();
@@ -57,20 +58,24 @@ TEST_F(QuantizerTest, SingleEventTest) {
 
 TEST_F(QuantizerTest, QuantizeTest) {
     
-    std::vector<Event> events = {{1, 1, 1, 1}, {2, 2, 2, 2}, {3, 3, 3, 3}, {5, 5, 5, 5}};
+    std::vector<Edvs::Event> events = {{1, 1, 1, 1, 0}, 
+                                       {2, 2, 2, 0, 0}, 
+                                       {3, 3, 3, 0, 0}, 
+                                       {5, 5, 5, 1, 0}};
+                       
     quantizer->quantize(events);
     ASSERT_FALSE(quantizer->isEmpty());
 
     auto event = quantizer->getEventSlice();
     ASSERT_FALSE(quantizer->isEmpty());
     ASSERT_EQ(event(1, 1), 1);
-    ASSERT_EQ(event(2, 2), 2);
+    ASSERT_EQ(event(2, 2), -1);
     ASSERT_EQ(event(127, 127), 0);
 
     event = quantizer->getEventSlice();
     ASSERT_TRUE(quantizer->isEmpty());
     ASSERT_EQ(event(1, 1), 0);
-    ASSERT_EQ(event(3, 3), 3);
+    ASSERT_EQ(event(3, 3), -1);
 
     ASSERT_TRUE(quantizer->getEventSlice().isZero());
 }
@@ -78,18 +83,18 @@ TEST_F(QuantizerTest, QuantizeTest) {
 TEST_F(QuantizerTest, QuantizeGetMultipleEventsTest) {
 
     quantizer = std::make_unique<Quantizer>(3);
-    std::vector<Event> events = {
-            // x, y, time, parity
-            {1, 1, 1, 1},
-            {2, 2, 2, -1},
-            {3, 3, 3, 1},
-            {4, 4, 4, -1},
-            {5, 5, 5, 1},
-            {6, 6, 9, -1},
-            {7, 7, 10, 1},
-            {7, 7, 11, 1},
-            {9, 9, 12, 1},
-            {10, 10, 15, -1}
+    std::vector<Edvs::Event> events = {
+            // x, y, time, parity, id
+            {1, 1, 1, 1, 0},
+            {2, 2, 2, 0, 0},
+            {3, 3, 3, 1, 0},
+            {4, 4, 4, 0, 0},
+            {5, 5, 5, 1, 0},
+            {9, 6, 6, 0, 0},
+            {10, 7, 7, 1, 0},
+            {11, 7, 7, 1, 0},
+            {12, 9, 9, 1, 0},
+            {15, 10, 10, 0, 0}
     };
 
     std::vector<std::vector<int>> expectedEntries = {
@@ -127,10 +132,10 @@ TEST_F(QuantizerTest, QuantizeGetMultipleEventsTest) {
 
 TEST_F(QuantizerTest, LongPauseBetweenEventsTest) {
 
-    std::vector<Event> events = {
-            {1, 1, 1, 1},
-            {1, 1, 100, 1},
-            {1, 1, 200, 1}
+    std::vector<Edvs::Event> events = {
+            {1, 1, 1, 1, 0},
+            {100, 1, 1, 1, 0},
+            {200, 1, 1, 1, 0}
     };
 
     quantizer->quantize(events);
