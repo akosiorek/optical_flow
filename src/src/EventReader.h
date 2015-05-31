@@ -3,11 +3,10 @@
 
 #include <string>
 #include <thread>
+#include <atomic>
 
-#include "Edvs/event.h"
 #include "Edvs/EventStream.hpp"
 
-class Buffer
 #include "utils.h"
 
 /**
@@ -19,7 +18,6 @@ template<typename BufferType>
 class EventReader
 {
 public:
-	typedef BufferType EventBuffer;
 
 	EventReader() : bufferSet_(false), uri_(std::string("")), running_(false) {}
 	~EventReader() {}
@@ -41,19 +39,16 @@ public:
 	 */
 	bool startPublishing()
 	{
-		if(!openStream()) return;
+		if(!openStream())
 		{
 			std::cout << "stream could not be opened!" << std::endl;
 			return false;
 		}
 
-        if (!eventPublisher_)
-		{
-			running_ = true;
-			eventPublisher_ = make_unique<std::thread>(&EventReader::pollEventStream, this);
-        }
+		eventPublisher_ = std::make_unique<std::thread>(&EventReader::pollEventStream, this);
 
-        return true;
+		if(eventPublisher_ != nullptr) return running_ = true, running_;
+		else return false;
 	}
 
 	void stopPublishing()
@@ -100,13 +95,13 @@ private:
 
 
 	bool bufferSet_;
-	std::shared_ptr<Buffer> buffer_;
+	std::shared_ptr<BufferType> buffer_;
 
 	std::string uri_;
 
 	std::shared_ptr<Edvs::IEventStream> stream_;
 	std::unique_ptr<std::thread> eventPublisher_;
-	volatile bool running_;
+	std::atomic_bool running_;
 	
 };
 
