@@ -158,7 +158,7 @@ TEST_F(FourierPadderTest, ExtractDenseOutputTest)
 	ASSERT_TRUE(extracted.isZero());
 }
 
-TEST_F(FourierPadderTest, ExtractSparseOutputTest) 
+TEST_F(FourierPadderTest, ExtractSparseOutputTest)
 {
 	auto paddedOutput = RealMatrix(padder->fourierSizePadded_,padder->fourierSizePadded_);
 	paddedOutput.setZero();
@@ -176,7 +176,7 @@ TEST_F(FourierPadderTest, ExtractSparseOutputTest)
 	ASSERT_EQ(padder->dataSize_, extracted.rows());
 	ASSERT_EQ(padder->dataSize_, extracted.cols());
 	// Verfiy Sparsity
-	ASSERT_EQ(6, extracted.nonZeros());  
+	ASSERT_EQ(6, extracted.nonZeros());
 
 	// Check output for correctness
 	ASSERT_EQ(22,	extracted.coeffRef(15, 19));

@@ -118,7 +118,7 @@ TEST_F(FourierTransformerTest, FwdBwdFilterTest)
 	padder.padFilter(rmFilter,rmFilterPadded);
 
 	ComplexMatrix	cmData(ftfftw->rows_,ftfftw->cols_/2+1);
-	ComplexMatrix	cmFilter(ftfftw->rows_,ftfftw->cols_/2+1);	
+	ComplexMatrix	cmFilter(ftfftw->rows_,ftfftw->cols_/2+1);
 	cmData.setZero(); 	cmFilter.setZero();
 
 	ftfftw->forward(rmDataPadded,cmData);

@@ -24,10 +24,12 @@ int main(int argc, char** argv)
     desc.add_options()
         ("help", "produce help message")
         ("filename,f", po::value<std::string>(&fn_input), "filename for event file / URI")
-        ("loglevel,l", po::value<int>(&FLAGS_minloglevel)->default_value(FLAGS_minloglevel),
+        ("loglevel", po::value<int>(&FLAGS_minloglevel)->default_value(FLAGS_minloglevel),
                         "loglevel: INFO, WARNING, ERROR, and FATAL are 0, 1, 2, and 3")
-        ("logdir,t", po::value<std::string>(&FLAGS_log_dir)->default_value(FLAGS_log_dir),
+        ("logdir", po::value<std::string>(&FLAGS_log_dir)->default_value(FLAGS_log_dir),
                         "Location where log files will be saved")
+        ("logtostderr", po::value<bool>(&FLAGS_logtostderr)->default_value(FLAGS_logtostderr),
+                        "Log to stderr")
     ;
     po::variables_map vm;
     po::store(po::command_line_parser(argc, argv).options(desc).run(), vm);
@@ -52,8 +54,17 @@ int main(int argc, char** argv)
 
     float t0 = 0;
     float tk = 0.7;
-    float timeResolution = timeSliceDuration * 1e-6f;
+    float timeResolution = timeSliceDuration * 1e-5f;
     int spatialRange = (filterSize - 1) / 2;
+
+    LOG(INFO) << "Parameters Setup:";
+    LOG(INFO) << "t0: " << t0;
+    LOG(INFO) << "t1: " << t0;
+    LOG(INFO) << "timeResolution: " << timeResolution;
+    LOG(INFO) << "spatialRange: " << spatialRange;
+
+    LOG(INFO) << "timeSpan_ " << (tk - t0) / timeResolution;
+    LOG(INFO) << "t0_ conv " << t0 / timeResolution;
 
     std::vector<int> filterAngles = {0, 45, 90, 135};
 
@@ -70,6 +81,7 @@ int main(int argc, char** argv)
     // Startup
     EventReader<QueueT<Event>> eventReader;
     eventReader.setOutputBuffer(eventQueue);
+    eventReader.setURI(fn_input);
 
     Quantizer<QueueT> quantizer(timeSliceDuration);
     quantizer.setInputBuffer(eventQueue);
@@ -84,9 +96,9 @@ int main(int argc, char** argv)
 
     engine.setInputBuffer(eventSliceQueue);
     engine.setOutputBuffer(flowSliceQueue);
-    // for(auto angle : filterAngles) {
-    //     engine.addFilter(angle);
-    // }
+    for(auto angle : filterAngles) {
+        engine.addFilter(angle);
+    }
 
     //TODO implement FlowSink
     // FlowSink<QueueT> sink;
@@ -96,14 +108,18 @@ int main(int argc, char** argv)
     LOG(INFO) << "Initialization completed";
     LOG(INFO) << "Processing...";
 
-
-    // eventReader.startPublishing();
-    // // TODO handle keyboard interrupts
-    // while(true) {
-    //     quantizer.process();
-    //     engine.process();
-    //     // sink.process();
-    // }
+    if(eventReader.startPublishing())
+    {
+        // TODO handle keyboard interrupts
+        while(true) {
+            quantizer.process();
+            LOG(INFO) << "EventSlices in Queue: " << eventSliceQueue->size();
+            engine.process();
+            LOG(INFO) << "EventSlices in Queue: " << eventSliceQueue->size();
+            LOG(INFO) << "FlowSlices in Queue: " << flowSliceQueue->size();
+            // sink.process();
+        }
+    }
 
 	return 0;
 }

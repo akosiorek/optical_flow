@@ -102,7 +102,6 @@ private:
 	std::shared_ptr<Edvs::IEventStream> stream_;
 	std::unique_ptr<std::thread> eventPublisher_;
 	std::atomic_bool running_;
-	
 };
 
 #endif //EVENT_READER_H

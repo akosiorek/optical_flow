@@ -69,16 +69,20 @@ public:
         if(it == filters_.end()) {
             auto filter = factory_->createFilter(angle);
 
-
+            LOG(INFO) << "Creating filter with angle " << angle << " ...";
             filters_.push_back(filter);
             timeSteps_ = filter->numSlices();
             responseBuffer_.emplace_back(filter->xSize(), filter->ySize());
 
             // intialize buffer by allocating memory for all event slices to be kept
             if(eventBuffer_.size() != timeSteps_) {
+            LOG(INFO) << "timeSteps_ " << timeSteps_ << " eventBuffer_.size() " <<  eventBuffer_.size() << " ...";
                 eventBuffer_.set_capacity(timeSteps_);
+            LOG(INFO) << " Now : timeSteps_ " << timeSteps_ << " eventBuffer_.size() " <<  eventBuffer_.size() << " ...";
+             google::FlushLogFiles(google::GLOG_ERROR);
                 while(eventBuffer_.size() != eventBuffer_.capacity()) {
                     eventBuffer_.push_back(ComplexMatrix(filter->xSize(), filter->ySize()));
+                    LOG(INFO) << "timeSteps_ " << timeSteps_ << " eventBuffer_.size() " <<  eventBuffer_.size() << " ...";
                 }
 
                 extractedDataBuffer_.resize(filter->xSize(), filter->ySize());
