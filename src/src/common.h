@@ -11,11 +11,11 @@
 #include "types.h"
 #include "utils.h"
 
-
-class Event;
 class Filter;
 class FilterFactory;
 class FourierPadder;
+
+template <template<typename>typename BufferType>
 class Quantizer;
 
 #endif //OPTICAL_FLOW_COMMON_H
