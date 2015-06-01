@@ -11,7 +11,7 @@ class EventSlice : public SparseMatrix {
 public:
     using Ptr = std::shared_ptr<EventSlice>;
 
-    EventSlice(int xSize, int ySize) : SparseMatrix(ySize, xSize) {};
+    EventSlice(int xSize, int ySize) : SparseMatrix(xSize, ySize) {};
     EventSlice() : EventSlice(128, 128) {};
 
     float& operator()(int x, int y) {

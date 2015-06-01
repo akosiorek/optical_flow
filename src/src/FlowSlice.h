@@ -6,6 +6,7 @@
 #define OPTICAL_FLOW_FLOWSLICE_H
 
 #include <Eigen/Core>
+#include "types.h"
 
 class FlowSlice {
 public:
@@ -18,8 +19,8 @@ public:
 
     FlowSlice() : FlowSlice(128, 128) {}
 
-    Eigen::MatrixXf xv_;
-    Eigen::MatrixXf yv_;
+    RealMatrix xv_;
+    RealMatrix yv_;
 };
 
 #endif //OPTICAL_FLOW_FLOWSLICE_H
