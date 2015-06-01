@@ -127,7 +127,7 @@ TEST_F(QuantizerTest, QuantizeGetMultipleEventsTest) {
             eventSlices->pop();
             last_slice=slice;
         }
-        ASSERT_EQ(eventSlices->front()(x, y), parity) << "slice = " << slice << ", x = " << x << ", y = " << y;
+        ASSERT_EQ((*eventSlices->front())(x, y), parity) << "slice = " << slice << ", x = " << x << ", y = " << y;
     }
 }
 
@@ -144,11 +144,11 @@ TEST_F(QuantizerTest, LongPauseBetweenEventsTest) {
     auto slices = quantizer->getEventSlices();
     ASSERT_TRUE(quantizer->isEmpty());
     ASSERT_EQ(slices->size(), 100);
-    std::vector<EventSlice> nonZero;
+    std::vector<std::shared_ptr<EventSlice>> nonZero;
 
     while(!slices->empty())
     {
-        if(!slices->front().isZero()) nonZero.push_back(slices->front());
+        if(!(*slices->front()).isZero()) nonZero.push_back(slices->front());
         slices->pop();
     }
 
@@ -158,8 +158,8 @@ TEST_F(QuantizerTest, LongPauseBetweenEventsTest) {
     // slices->erase(slices->begin());
 
     for(auto& e : nonZero) {
-        ASSERT_EQ(e(1, 1), 1);
-        e(1, 1) = 0;
-        ASSERT_TRUE(e.isZero());
+        ASSERT_EQ((*e)(1, 1), 1);
+        (*e)(1, 1) = 0;
+        ASSERT_TRUE(e->isZero());
     }
 }

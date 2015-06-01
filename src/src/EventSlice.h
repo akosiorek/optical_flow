@@ -9,6 +9,8 @@
 
 class EventSlice : public SparseMatrix {
 public:
+    using Ptr = std::shared_ptr<EventSlice>;
+
     EventSlice(int xSize, int ySize) : SparseMatrix(ySize, xSize) {};
     EventSlice() : EventSlice(128, 128) {};
 

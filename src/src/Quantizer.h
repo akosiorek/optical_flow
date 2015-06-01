@@ -21,14 +21,36 @@ template < template<typename> typename BufferType>
 class Quantizer {
 public:
 
+    using EventQueueT = BufferType<Event>;
+    using EventSliceQueueT = BufferType<EventSlice::Ptr>;;
+
     Quantizer(int timeResolution)
-    :   initialized_(false), 
-        nextEventTime_(0), 
+    :   initialized_(false),
+        nextEventTime_(0),
         timeResolution_(timeResolution),
-        eventSlices_(new BufferType<EventSlice>()) 
+        inputBuffer_(new EventQueueT()),
+        outputBuffer_(new EventSliceQueueT())
     {
         currentEvents_.reserve(100);
     };
+
+    void process()
+    {
+        std::vector<Event> events;
+        while(hasInput())
+        {
+            events.push_back(inputBuffer_->front());
+            inputBuffer_->pop();
+        }
+        quantize(events);
+    }
+
+    /*
+     * Checks if the input buffer is not empty.
+     */
+    bool hasInput() {
+        return inputBuffer_ && !inputBuffer_->empty();
+    }
 
     void quantize(const std::vector<Edvs::Event>& events)
     {
@@ -55,28 +77,35 @@ public:
 
     bool isEmpty()
     {
-        return eventSlices_->empty();
+        return outputBuffer_->empty();
     }
 
 
     EventSlice getEventSlice()
     {
-        if(eventSlices_->empty()) {
+        if(outputBuffer_->empty()) {
             return EventSlice();
         }
 
-        auto slice = eventSlices_->front();
-        eventSlices_->pop();
-        return slice;
+        auto slice = outputBuffer_->front();
+        outputBuffer_->pop();
+        return *slice;
     }
 
-    std::shared_ptr<BufferType<EventSlice>> getEventSlices()
+    std::shared_ptr<EventSliceQueueT> getEventSlices()
     {
-        auto oldSlices = eventSlices_;
-        eventSlices_.reset(new BufferType<EventSlice>());
+        auto oldSlices = outputBuffer_;
+        outputBuffer_.reset(new EventSliceQueueT());
         return oldSlices;
     }
 
+    void setInputBuffer(std::shared_ptr<EventQueueT> buffer) {
+        this->inputBuffer_ = buffer;
+    }
+
+    void setOutputBuffer(std::shared_ptr<EventSliceQueueT> buffer) {
+        this->outputBuffer_ = buffer;
+    }
 
 //  === Getters     ===========================================================
     unsigned int getTimeResolution() const {
@@ -91,12 +120,12 @@ private:
     void advanceTimeStep()
     {
         if(!currentEvents_.empty()) {
-            EventSlice slice;
-            slice.setFromTriplets(currentEvents_.begin(), currentEvents_.end());
+            EventSlice::Ptr slice(new EventSlice);
+            slice->setFromTriplets(currentEvents_.begin(), currentEvents_.end());
             currentEvents_.clear();
-            eventSlices_->push(slice);
+            outputBuffer_->push(slice);
         } else {
-            eventSlices_->emplace(EventSlice());
+            outputBuffer_->emplace(std::make_shared<EventSlice>());
         }
 
         nextEventTime_ += timeResolution_;
@@ -106,7 +135,8 @@ private:
     bool initialized_;
     EventTime nextEventTime_;
     unsigned int timeResolution_;
-    std::shared_ptr<BufferType<EventSlice>> eventSlices_;
+    std::shared_ptr<EventQueueT> inputBuffer_;
+    std::shared_ptr<EventSliceQueueT> outputBuffer_;
     std::vector<Eigen::Triplet<int>> currentEvents_;
 };
 
