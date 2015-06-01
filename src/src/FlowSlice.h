@@ -9,6 +9,8 @@
 
 class FlowSlice {
 public:
+	using Ptr = std::shared_ptr<FlowSlice>;
+
     FlowSlice(int xSize, int ySize) : xv_(xSize, ySize), yv_(xSize, ySize) {
         xv_.setZero();
         yv_.setZero();

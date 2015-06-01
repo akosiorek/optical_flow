@@ -9,4 +9,11 @@ add_library(optical
 	)
 
 add_executable(exe main.cpp)
-target_link_libraries(exe optical ${GLOG_LIBRARIES} ${Boost_LIBRARIES} fftw3f ${EDVSTOOLS_LIB})
+target_link_libraries(exe
+	optical
+	${GLOG_LIBRARIES}
+	${Boost_LIBRARIES}
+	fftw3f
+	${EDVSTOOLS_LIB}
+	pthread
+)

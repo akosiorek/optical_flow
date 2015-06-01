@@ -1,10 +1,10 @@
-
 #include "common.h"
+#include "types.h"
 #include "BlockingQueue.h"
-//#include "EventReader.h"
-#include "Quantizer.h";
-#include "FilterFactory.h
-#include "FourierPadder.h
+#include "EventReader.h"
+#include "Quantizer.h"
+#include "FilterFactory.h"
+#include "FourierPadder.h"
 #include "FourierTransformerFFTW.h"
 #include "FilteringEngine.h"
 
@@ -35,24 +35,23 @@ int main(int argc, char** argv) {
 
     // Buffers
     auto eventQueue = std::make_shared<QueueT<Event>>();
-    auto eventSliceQueue = std::make_shared<QueueT<EventSlice>>();
-    auto flowSliceQueue = std::make_shared<QueueT<FlowSlice>>();
+    auto eventSliceQueue = std::make_shared<QueueT<EventSlice::Ptr>>();
+    auto flowSliceQueue = std::make_shared<QueueT<FlowSlice::Ptr>>();
 
     // Startup
-    //TODO merge EventReader
-//    EventReader<QueueT> eventReader;
-//    eventReader.setOutputBuffer(eventQueue);
+    EventReader<QueueT<Event>> eventReader;
+    eventReader.setOutputBuffer(eventQueue);
 
-    //TODO implement methods
     Quantizer<QueueT> quantizer(timeSliceDuration);
-//    quantizer.setInputBuffer(eventQueue);
-//    quantizer.setOutputBuffer(eventSliceQueue);
+    quantizer.setInputBuffer(eventQueue);
+    quantizer.setOutputBuffer(eventSliceQueue);
 
     auto factory = std::make_unique<FilterFactory>(t0, tk, timeResolution, spatialRange, spatialRange);
     auto padder = std::make_unique<FourierPadder>(dataSize, filterSize);
-    auto transformer = std::make_unique<FourierTransformerFFTW>();
+    auto transformer = std::make_unique<FourierTransformerFFTW>(padder->fourierSizePadded_,
+                                                                padder->fourierSizePadded_);
 
-    FilteringEngine engine(std::move(factory), std::move(padder), std::move(transformer));
+    FilteringEngine<QueueT, QueueT> engine(std::move(factory), std::move(padder), std::move(transformer));
 
     engine.setInputBuffer(eventSliceQueue);
     engine.setOutputBuffer(flowSliceQueue);
@@ -61,19 +60,19 @@ int main(int argc, char** argv) {
     }
 
     //TODO implement FlowSink
-//    FlowSink<QueueT> sink;
-//    sink.setInputBuffer(flowSliceQueue);
+    // FlowSink<QueueT> sink;
+    // sink.setInputBuffer(flowSliceQueue);
 
     LOG(INFO) << "Initialization completed";
     LOG(INFO) << "Processing...";
 
 
-//    eventReader.startPolling();
+    eventReader.startPublishing();
     // TODO handle keyboard interrupts
     while(true) {
-//        quantizer.process();
+        quantizer.process();
         engine.process();
-//        sink.process();
+        // sink.process();
     }
 
 	return 0;
