@@ -16,7 +16,6 @@ using QueueT = BlockingQueue<T>;
 int main(int argc, char** argv)
 {
     std::string fn_input;
-    int logLevel;
 
 // BOOST  Program Options
     namespace po = boost::program_options;
@@ -25,8 +24,10 @@ int main(int argc, char** argv)
     desc.add_options()
         ("help", "produce help message")
         ("filename,f", po::value<std::string>(&fn_input), "filename for event file / URI")
-        ("loglevel,l", po::value<int>(&logLevel)->default_value(0),
+        ("loglevel,l", po::value<int>(&FLAGS_minloglevel)->default_value(FLAGS_minloglevel),
                         "loglevel: INFO, WARNING, ERROR, and FATAL are 0, 1, 2, and 3")
+        ("logdir,t", po::value<std::string>(&FLAGS_log_dir)->default_value(FLAGS_log_dir),
+                        "Location where log files will be saved")
     ;
     po::variables_map vm;
     po::store(po::command_line_parser(argc, argv).options(desc).run(), vm);
@@ -37,7 +38,7 @@ int main(int argc, char** argv)
         return 1;
     }
 
-// Setting up Loggin Systems
+// Setting up Logging Systems
     google::InitGoogleLogging(argv[0]);
 
 // Start Setup
@@ -83,9 +84,9 @@ int main(int argc, char** argv)
 
     engine.setInputBuffer(eventSliceQueue);
     engine.setOutputBuffer(flowSliceQueue);
-    for(auto angle : filterAngles) {
-        engine.addFilter(angle);
-    }
+    // for(auto angle : filterAngles) {
+    //     engine.addFilter(angle);
+    // }
 
     //TODO implement FlowSink
     // FlowSink<QueueT> sink;
@@ -96,13 +97,13 @@ int main(int argc, char** argv)
     LOG(INFO) << "Processing...";
 
 
-    eventReader.startPublishing();
-    // TODO handle keyboard interrupts
-    while(true) {
-        quantizer.process();
-        engine.process();
-        // sink.process();
-    }
+    // eventReader.startPublishing();
+    // // TODO handle keyboard interrupts
+    // while(true) {
+    //     quantizer.process();
+    //     engine.process();
+    //     // sink.process();
+    // }
 
 	return 0;
 }

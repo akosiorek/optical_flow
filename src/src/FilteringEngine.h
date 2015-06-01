@@ -50,7 +50,7 @@ public:
 
                     RealMatrix padded;
                     this->padder_->padFilter(filter, padded);
-                    ComplexMatrix transformed;
+                    ComplexMatrix transformed(padded.rows(),padded.cols()/2 + 1);
                     this->transformer_->forward(padded, transformed);
                     return transformed;
                 });
