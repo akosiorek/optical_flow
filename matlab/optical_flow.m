@@ -45,10 +45,11 @@ function optical_flow()
         % and in Y direction
         opticalFlowY = opticalFlowY - sin(angle / 180 * pi) * responses;
     end
-    save('flow.mat', 'opticalFlowX', 'opticalFlowY')
+    save('flow.mat', 'opticalFlowX', 'opticalFlowY','quantized')
     
     
-    make_movie(opticalFlowX, 'flow_x.avi');      
+%     make_movie(opticalFlowX, 'flow_x.avi');  
+%     make_movie2('flow_quivers.avi');
 end
 
 
@@ -134,3 +135,20 @@ function make_movie(data, name)
     movie2avi(F, name, 'compression', 'none');
     close(figureHandle);    
 end
+
+% function make_movie2(name)
+%     
+%     figureHandle = figure('units','normalized','outerposition',[0 0 1 1]);
+%     loops = 294;
+%     F(loops) = struct('cdata',[],'colormap',[]);
+%     for i = 1:loops
+%         visualization(i)
+%             xlim([-5 130]);
+%     ylim([-5 130]);
+% %         view([0 90]);
+%         drawnow
+%         F(i) = getframe(gcf);
+%     end
+%     movie2avi(F, name, 'compression', 'none');
+%     close(figureHandle);    
+% end
