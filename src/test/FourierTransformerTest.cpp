@@ -34,9 +34,9 @@ TEST_F(FourierTransformerTest, ForwardTestMatrixSizes)
 	ComplexMatrix 	outT(ftfftw->rows_,ftfftw->colsHS_),
 				  	outF(3,3);
 
-	ASSERT_THROW(ftfftw->forward(inT,outF), std::invalid_argument);
+	// ASSERT_THROW(ftfftw->forward(inT,outF), std::invalid_argument);
 	ASSERT_THROW(ftfftw->forward(inF,outT), std::invalid_argument);
-	ASSERT_THROW(ftfftw->forward(inF,outF), std::invalid_argument);
+	// ASSERT_THROW(ftfftw->forward(inF,outF), std::invalid_argument);
 	ASSERT_NO_THROW(ftfftw->forward(inT,outT));
 }
 
@@ -47,9 +47,9 @@ TEST_F(FourierTransformerTest, BackwardTestMatrixSizes)
 	RealMatrix 	outT(ftfftw->rows_,ftfftw->rows_),
 				outF(7,9);
 
-	ASSERT_THROW(ftfftw->backward(inT,outF), std::invalid_argument);
+	// ASSERT_THROW(ftfftw->backward(inT,outF), std::invalid_argument);
 	ASSERT_THROW(ftfftw->backward(inF,outT), std::invalid_argument);
-	ASSERT_THROW(ftfftw->backward(inF,outF), std::invalid_argument);
+	// ASSERT_THROW(ftfftw->backward(inF,outF), std::invalid_argument);
 	ASSERT_NO_THROW(ftfftw->backward(inT,outT));
 }
 

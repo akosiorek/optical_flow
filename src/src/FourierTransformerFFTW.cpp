@@ -42,9 +42,14 @@ void FourierTransformerFFTW::forward(const RealMatrix& src, ComplexMatrix& dst) 
 	{
 		THROW_INVALID_ARG("Size of input matrix did not match the configuration");
 	}
+	// if(dst.rows()!=rows_ || dst.cols()!=colsHS_)
+	// {
+	// 	THROW_INVALID_ARG("Size of output matrix did not match the configuration");
+	// }
+	//Lets do a resize instead....TODO: should this behavior stay?
 	if(dst.rows()!=rows_ || dst.cols()!=colsHS_)
 	{
-		THROW_INVALID_ARG("Size of output matrix did not match the configuration");
+		dst.resize(rows_, colsHS_);
 	}
 
 	/* Compute forward DFT */
@@ -65,10 +70,17 @@ void FourierTransformerFFTW::backward(const ComplexMatrix& src, RealMatrix& dst)
 	{
 		THROW_INVALID_ARG("Size of input matrix did not match the configuration");
 	}
+	// if(dst.rows()!=rows_ || dst.cols()!=cols_)
+	// {
+	// 	THROW_INVALID_ARG("Size of output matrix did not match the configuration");		
+	// }
+
+	//Lets do a resize instead....TODO: should this behavior stay?
 	if(dst.rows()!=rows_ || dst.cols()!=cols_)
 	{
-		THROW_INVALID_ARG("Size of output matrix did not match the configuration");		
+		dst.resize(rows_, cols_);
 	}
+
 
 	/* Compute forward DFT */
 	fftwf_execute_dft_c2r(bwd_plan_, fftw_cast(src.data()), dst.data());
