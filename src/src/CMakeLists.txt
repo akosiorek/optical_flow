@@ -16,4 +16,5 @@ target_link_libraries(exe
 	fftw3f
 	${EDVSTOOLS_LIB}
 	pthread
+	boost_program_options
 )

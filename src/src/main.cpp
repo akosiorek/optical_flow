@@ -1,3 +1,5 @@
+#include <boost/program_options.hpp>
+
 #include "common.h"
 #include "types.h"
 #include "BlockingQueue.h"
@@ -11,8 +13,34 @@
 template<class T>
 using QueueT = BlockingQueue<T>;
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
+    std::string fn_input;
+    int logLevel;
+
+// BOOST  Program Options
+    namespace po = boost::program_options;
+    // Declare the supported options.
+    po::options_description desc("Allowed options");
+    desc.add_options()
+        ("help", "produce help message")
+        ("filename,f", po::value<std::string>(&fn_input), "filename for event file / URI")
+        ("loglevel,l", po::value<int>(&logLevel)->default_value(0),
+                        "loglevel: INFO, WARNING, ERROR, and FATAL are 0, 1, 2, and 3")
+    ;
+    po::variables_map vm;
+    po::store(po::command_line_parser(argc, argv).options(desc).run(), vm);
+    po::notify(vm);
+
+    if(vm.count("help") || !vm.count("filename")) {
+        std::cout << desc << std::endl;
+        return 1;
+    }
+
+// Setting up Loggin Systems
     google::InitGoogleLogging(argv[0]);
+
+// Start Setup
     LOG(INFO) << "Event Based Optical Flow";
     LOG(INFO) << "Initializing...";
 
@@ -63,6 +91,7 @@ int main(int argc, char** argv) {
     // FlowSink<QueueT> sink;
     // sink.setInputBuffer(flowSliceQueue);
 
+// Start Processing
     LOG(INFO) << "Initialization completed";
     LOG(INFO) << "Processing...";
 
