@@ -49,7 +49,7 @@ public:
                 [this](const RealMatrix& filter) {
 
                     RealMatrix padded;
-                    this->padder_->padData(filter, padded);
+                    this->padder_->padFilter(filter, padded);
                     ComplexMatrix transformed;
                     this->transformer_->forward(padded, transformed);
                     return transformed;
