@@ -48,7 +48,7 @@ int main(int argc, char** argv)
     LOG(INFO) << "Initializing...";
 
     //  Configuration params
-    int timeSliceDuration = 100;
+    int timeSliceDuration = 10000;
     int filterSize = 21;
     int dataSize = 128;
 

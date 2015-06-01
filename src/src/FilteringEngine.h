@@ -69,10 +69,10 @@ public:
         if(it == filters_.end()) {
             auto filter = factory_->createFilter(angle);
 
-            LOG(INFO) << "Creating filter with angle " << angle << " ...";
             filters_.push_back(filter);
             timeSteps_ = filter->numSlices();
-            responseBuffer_.emplace_back(filter->xSize(), filter->ySize());
+            responseBuffer_.emplace_back(filter->ySize(), filter->xSize());
+            LOG(INFO) << "Creating filter with angle " << angle << " xSize " <<  filter->xSize() <<  " ySize " << filter->ySize();
 
             // intialize buffer by allocating memory for all event slices to be kept
             if(eventBuffer_.size() != timeSteps_) {
@@ -112,7 +112,6 @@ public:
             // iterate over eventSlices and filterSlices
             for(int sliceIndex = 0; sliceIndex < timeSteps_; ++sliceIndex) {
                 const auto& eventSlice = eventBuffer_[sliceIndex];
-
                 // iterate over filters
                 for(int filterIndex = 0; filterIndex < filters_.size(); ++filterIndex) {
                     const auto& filterSlice = filters_[filterIndex]->at(sliceIndex);
