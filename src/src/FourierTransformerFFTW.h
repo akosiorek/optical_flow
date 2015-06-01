@@ -14,7 +14,7 @@ class FourierTransformerFFTW : public IFourierTransformer
 {
 public:
 
-    FourierTransformerFFTW(int rows, int cols);
+    FourierTransformerFFTW(const int rows, const int cols);
     ~FourierTransformerFFTW();
 
     /**

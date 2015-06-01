@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "FourierTransformerFFTW.h"
 
-FourierTransformerFFTW::FourierTransformerFFTW(int rows, int cols)
+FourierTransformerFFTW::FourierTransformerFFTW(const int rows, const int cols)
 	: 	rows_(rows),
 		cols_(cols),
 		colsHS_(cols/2 + 1)
