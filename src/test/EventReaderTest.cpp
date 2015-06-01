@@ -35,7 +35,7 @@ TEST_F(EventReaderTest, SetGetURITest)
 TEST_F(EventReaderTest, SetBufferTest)
 {
     ASSERT_EQ(event_reader->isBufferSet(), false);
-    event_reader->setBuffer(std::make_shared<BlockingQueue<Edvs::Event>>());
+    event_reader->setOutputBuffer(std::make_shared<BlockingQueue<Edvs::Event>>());
     ASSERT_EQ(event_reader->isBufferSet(), true);
 }
 

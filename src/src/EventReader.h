@@ -25,7 +25,7 @@ public:
 	void setURI(const std::string& uri) { uri_ = uri; }
 	std::string getURI() const { return uri_; }
 	
-	void setBuffer(std::shared_ptr<BufferType> buffer)
+	void setOutputBuffer(std::shared_ptr<BufferType> buffer)
 	{
 		buffer_ = buffer;
 		bufferSet_ = true;
