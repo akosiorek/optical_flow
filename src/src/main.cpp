@@ -56,7 +56,7 @@ int main(int argc, char** argv)
 
     float t0 = 0;
     float tk = 0.7;
-    float timeResolution = timeSliceDuration * 1e-5f;
+    float timeResolution = timeSliceDuration * 1e-6f;
     int spatialRange = (filterSize - 1) / 2;
 
     LOG(INFO) << "Parameters Setup:";
