@@ -1,4 +1,5 @@
 #include <boost/program_options.hpp>
+#include <boost/timer/timer.hpp>
 
 #include "common.h"
 #include "types.h"
@@ -45,6 +46,7 @@ int main(int argc, char** argv)
 
 // Start Setup
     LOG(INFO) << "Event Based Optical Flow";
+    LOG(INFO) << "Using " << Eigen::nbThreads() << " threads for Eigen.";
     LOG(INFO) << "Initializing...";
 
     //  Configuration params
@@ -108,18 +110,32 @@ int main(int argc, char** argv)
     LOG(INFO) << "Initialization completed";
     LOG(INFO) << "Processing...";
 
+    int lastFlowStatus = 0;
+    int counter = 0;
+    boost::timer::auto_cpu_timer t;
     if(eventReader.startPublishing())
     {
         // TODO handle keyboard interrupts
-        while(true) {
+        while(true)
+        {
             quantizer.process();
-            LOG(INFO) << "EventSlices in Queue: " << eventSliceQueue->size();
             engine.process();
-            LOG(INFO) << "EventSlices in Queue: " << eventSliceQueue->size();
-            LOG(INFO) << "FlowSlices in Queue: " << flowSliceQueue->size();
             // sink.process();
+
+            // Get out of this loop once there is no change in FlowSlices anymore!
+            if((lastFlowStatus == flowSliceQueue->size()) && lastFlowStatus > 0)
+            {
+                if(counter > 5000) break;
+                else ++counter;
+            }
+
+            lastFlowStatus = flowSliceQueue->size();
         }
     }
+
+    LOG(INFO) << "Processing finished. Completed " << flowSliceQueue->size() << " FlowSlices!";
+    //shutdown?
+    eventReader.stopPublishing();
 
 	return 0;
 }

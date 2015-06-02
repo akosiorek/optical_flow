@@ -17,4 +17,6 @@ target_link_libraries(exe
 	${EDVSTOOLS_LIB}
 	pthread
 	boost_program_options
+	boost_system
+	boost_timer
 )
