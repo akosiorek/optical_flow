@@ -15,7 +15,7 @@ class Filter;
 class FilterFactory;
 class FourierPadder;
 
-template <template<typename>typename BufferType>
+template <template<typename>class BufferType>
 class Quantizer;
 
 #endif //OPTICAL_FLOW_COMMON_H

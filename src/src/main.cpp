@@ -110,7 +110,7 @@ int main(int argc, char** argv)
     LOG(INFO) << "Initialization completed";
     LOG(INFO) << "Processing...";
 
-    int lastFlowStatus = 0;
+    std::size_t lastFlowStatus = 0;
     int counter = 0;
     boost::timer::auto_cpu_timer t;
     if(eventReader.startPublishing())

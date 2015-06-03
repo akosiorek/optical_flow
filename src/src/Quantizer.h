@@ -17,7 +17,7 @@
 #include "types.h"
 #include "EventSlice.h"
 
-template < template<typename> typename BufferType>
+template < template<typename> class BufferType>
 class Quantizer {
 public:
 
