@@ -48,8 +48,8 @@ public:
 			filterCols_(filterSize),
 			borderTop_(static_cast<uint32_t>(floor(filterRows_/2))),
 			borderLeft_(static_cast<uint32_t>(floor(filterCols_/2))),
-			fourierSizeRows_(roundUpPow2(dataRows_+filterRows_-1)),
-			fourierSizeCols_(roundUpPow2(dataCols_+filterCols_-1)) //linear conv+zeropadding
+			fourierSizeRows_((dataRows_+filterRows_-1)),
+			fourierSizeCols_((dataCols_+filterCols_-1)) //linear conv+zeropadding
 	{
 	}
 
@@ -61,8 +61,8 @@ public:
 			filterCols_(filterCols),
 			borderTop_(static_cast<uint32_t>(floor(filterRows_/2))),
 			borderLeft_(static_cast<uint32_t>(floor(filterCols_/2))),
-			fourierSizeRows_(roundUpPow2(dataRows_+filterRows_-1)),
-			fourierSizeCols_(roundUpPow2(dataCols_+filterCols_-1)) //linear conv+zeropadding
+			fourierSizeRows_((dataRows_+filterRows_-1)),
+			fourierSizeCols_((dataCols_+filterCols_-1)) //linear conv+zeropadding
 	{
 	}
 

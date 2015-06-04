@@ -100,7 +100,7 @@ TEST_F(FourierTransformerTest, ForwardBackwardScaling)
 
 TEST_F(FourierTransformerTest, FwdBwdFilterTest)
 {
-	RealMatrix	rmData(5,5), rmFilter(3,3);
+	RealMatrix	rmData(5,5), rmFilter(4,4); // MAGIC NUMBERS WHICH END UP AT 8x8
 
 	rmData << 	17, 24, 1, 8, 15,
 			23, 5, 7, 14, 16,
@@ -108,12 +108,13 @@ TEST_F(FourierTransformerTest, FwdBwdFilterTest)
 			10, 12, 19, 21, 3,
 			11, 18, 25, 2, 9;
 
-	rmFilter << 8,	1,	6,
-				3,	5,	7,
-				4,	9,	2;
+	rmFilter << 16,	2,	3, 13,
+				5,	11,	10, 8,
+				9,	7,	6, 12,
+				4,  14, 15, 1;
 
 	RealMatrix		rmDataPadded, rmFilterPadded;
-	FourierPadder padder(5, 3);
+	FourierPadder padder(5, 4);
 	padder.padData(rmData,rmDataPadded);
 	padder.padFilter(rmFilter,rmFilterPadded);
 
@@ -131,11 +132,11 @@ TEST_F(FourierTransformerTest, FwdBwdFilterTest)
 	padder.extractDenseOutput(rmDataPadded,rmData);
 
 	RealMatrix expectedResult(5,5);
-	expectedResult << 	220, 441, 346, 276, 231,
-						431, 595, 410, 575, 471,
-						371, 440, 555, 620, 551,
-						301, 585, 600, 765, 421,
-						247, 446, 536, 451, 128;
+	expectedResult << 	831, 1224, 1338,  810,  784,
+						1360, 1779, 1366, 1473, 1159,
+						1422, 1400, 1847, 1615,  877,
+						944, 1423, 1462, 1315,  726,
+						811,  973, 1064,  751,  144;
 
 	std::cout << rmData << std::endl;
 	ASSERT_EQ(true,rmData.isApprox(expectedResult,0.000001));
