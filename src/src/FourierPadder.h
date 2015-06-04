@@ -1,7 +1,7 @@
 #ifndef FOURIER_PADDER_H
 #define FOURIER_PADDER_H
 
-#include <stdint.h>
+#include <cstdint>
 
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
@@ -16,10 +16,10 @@
 
 // /**
 //  * @brief Constexpr function to determine the max of two values at compile time
-//  * 
+//  *
 //  * @param a First value
 //  * @param b Second value
-//  * 
+//  *
 //  * @return Returns the larger element by value
 //  */
 // template<typename T> constexpr
@@ -32,7 +32,7 @@
  * @brief This class zero-pads matrices for efficient FFT.
  * @details Matrix size typically needs to be a power of two to be efficiently FFT'ed.
  * 			(Actually, e.g., prime numbers etc. might do it as well, but this is really just for now.)
- * 
+ *
  * @tparam int dataSize Size of data matrix
  * @tparam int filterSize Size of filter
  */
@@ -41,44 +41,61 @@ class FourierPadder
 public:
 	using Ptr = std::shared_ptr<FourierPadder>;
 
-	FourierPadder(unsigned int dataSize, unsigned int filterSize) 
-		: 	dataSize_(dataSize), 
-			filterSize_(filterSize),
-			border_(static_cast<unsigned int>(floor(filterSize_/2))), // no +1 because of 0-index
-			fourierSizePadded_(roundUpPow2(dataSize+filterSize-1)) //linear conv+zeropadding
+	FourierPadder(uint32_t dataSize, uint32_t filterSize)
+		: 	dataRows_(dataSize),
+			dataCols_(dataSize),
+			filterRows_(filterSize),
+			filterCols_(filterSize),
+			borderTop_(static_cast<uint32_t>(floor(filterRows_/2))),
+			borderLeft_(static_cast<uint32_t>(floor(filterCols_/2))),
+			fourierSizeRows_(roundUpPow2(dataRows_+filterRows_-1)),
+			fourierSizeCols_(roundUpPow2(dataCols_+filterCols_-1)) //linear conv+zeropadding
+	{
+	}
+
+	FourierPadder(uint32_t dataRows, uint32_t dataCols,
+				  uint32_t filterRows, uint32_t filterCols)
+		: 	dataRows_(dataRows),
+			dataCols_(dataCols),
+			filterRows_(filterRows),
+			filterCols_(filterCols),
+			borderTop_(static_cast<uint32_t>(floor(filterRows_/2))),
+			borderLeft_(static_cast<uint32_t>(floor(filterCols_/2))),
+			fourierSizeRows_(roundUpPow2(dataRows_+filterRows_-1)),
+			fourierSizeCols_(roundUpPow2(dataCols_+filterCols_-1)) //linear conv+zeropadding
 	{
 	}
 
 	/**
 	 * @brief Zero-pads a dense input matrix to the next power of 2
-	 * 
+	 *
 	 * @param  data Dense input matrix
 	 * @return Zero-padded dense matrix
 	 */
 	void padData(const RealMatrix& tm, RealMatrix& fm)
 	{
-		if(fm.cols()!=fourierSizePadded_ || fm.rows()!=fourierSizePadded_)
+		if(fm.rows()!=fourierSizeRows_ || fm.cols()!=fourierSizeCols_)
 		{
-			fm.resize(fourierSizePadded_, fourierSizePadded_);
+			fm.resize(fourierSizeRows_, fourierSizeCols_);
 		}
 
 		fm.setZero();
 
-		fm.block(0,0,dataSize_,dataSize_) = tm; // could use template later on
+		fm.block(0,0,dataRows_,dataCols_) = tm;
 	}
 
 	/**
 	 * @brief Zero-pads a sparse input matrix to the next power of 2
 	 * @details [long description]
-	 * 
+	 *
 	 * @param  data Sparse input matrix
 	 * @return Zero-padded dense matrix
 	 */
 	void padData(const SparseMatrix& tm, RealMatrix& fm)
 	{
-		if(fm.cols()!=fourierSizePadded_ || fm.rows()!=fourierSizePadded_)
+		if(fm.rows()!=fourierSizeRows_ || fm.cols()!=fourierSizeCols_)
 		{
-			fm.resize(fourierSizePadded_, fourierSizePadded_);
+			fm.resize(fourierSizeRows_, fourierSizeCols_);
 		}
 
 		fm.setZero();
@@ -94,20 +111,20 @@ public:
 
 		/**
 	 * @brief Zero-pads a dense input matrix to the next power of 2
-	 * 
+	 *
 	 * @param  data Dense input matrix
 	 * @return Zero-padded dense matrix
 	 */
 	void padFilter(const RealMatrix& tm, RealMatrix& fm)
 	{
-		if(fm.cols()!=fourierSizePadded_ || fm.rows()!=fourierSizePadded_)
+		if(fm.rows()!=fourierSizeRows_ || fm.cols()!=fourierSizeCols_)
 		{
-			fm.resize(fourierSizePadded_, fourierSizePadded_);
+			fm.resize(fourierSizeRows_, fourierSizeCols_);
 		}
 
 		fm.setZero();
 
-		fm.block(0,0,filterSize_,filterSize_) = tm;
+		fm.block(0,0,filterRows_,filterCols_) = tm;
 	}
 
 	// TODO: Is this one needed, the dense method also works for sparse matrices. Speed difference?!?!?
@@ -120,9 +137,9 @@ public:
 	 */
 	void padFilter(const SparseMatrix& tm, RealMatrix& fm)
 	{
-		if(fm.cols()!=fourierSizePadded_ || fm.rows()!=fourierSizePadded_)
+		if(fm.rows()!=fourierSizeRows_ || fm.cols()!=fourierSizeCols_)
 		{
-			fm.resize(fourierSizePadded_, fourierSizePadded_);
+			fm.resize(fourierSizeRows_, fourierSizeCols_);
 		}
 
 		fm.setZero();
@@ -146,14 +163,14 @@ public:
 	 */
 	void extractDenseOutput(const RealMatrix& fm, RealMatrix& tm)
 	{
-		if(tm.cols()!=dataSize_ || tm.rows()!=dataSize_)
+		if(tm.rows()!=dataRows_ || tm.cols()!=dataCols_)
 		{
-			tm.resize(dataSize_, dataSize_);
+			tm.resize(dataRows_, dataCols_);
 		}
 
 		tm.setZero();
 
-		tm = fm.block(border_,border_,dataSize_,dataSize_);
+		tm = fm.block(borderTop_,borderLeft_,dataRows_,dataCols_);
 	}
 
 	/**
@@ -164,18 +181,18 @@ public:
 	 */
 	void extractSparseOutput(const RealMatrix& fm, SparseMatrix& tm)
 	{
-		if(tm.cols() != dataSize_ || tm.rows() != dataSize_)
+		if(tm.rows()!=dataRows_ || tm.cols()!=dataCols_)
 		{
-			tm.resize(dataSize_, dataSize_);
+			tm.resize(dataRows_, dataCols_);
 		}
 
 		tm.setZero();
 
-		tm = fm.block(border_,border_,dataSize_, dataSize_).sparseView();
+		tm = fm.block(borderTop_,borderLeft_,dataRows_,dataCols_).sparseView();
 	}
 
 	/**
- * @brief Rounds a 32 unsigned int to the closest power of two
+ * @brief Rounds a 32 uint32_t to the closest power of two
  *
  * @param v Input number
  * @return Power of two
@@ -191,12 +208,15 @@ public:
 		return ++v;
 	}
 
-
 	// can be public as they are const
-	const int dataSize_;
-	const unsigned int filterSize_;
-	const unsigned int border_;
-	const unsigned int fourierSizePadded_;
+	const uint32_t dataRows_;
+	const uint32_t dataCols_;
+	const uint32_t filterRows_;
+	const uint32_t filterCols_;
+	const uint32_t borderTop_;
+	const uint32_t borderLeft_;
+	const uint32_t fourierSizeRows_;
+	const uint32_t fourierSizeCols_;
 };
 
 #endif // FOURIER_PADDER_H

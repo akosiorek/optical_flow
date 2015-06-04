@@ -91,8 +91,8 @@ int main(int argc, char** argv)
 
     auto factory = std::make_unique<FilterFactory>(t0, tk, timeResolution, spatialRange, spatialRange);
     auto padder = std::make_unique<FourierPadder>(dataSize, filterSize);
-    auto transformer = std::make_unique<FourierTransformerFFTW>(padder->fourierSizePadded_,
-                                                                padder->fourierSizePadded_);
+    auto transformer = std::make_unique<FourierTransformerFFTW>(padder->fourierSizeRows_,
+                                                                padder->fourierSizeCols_);
 
     FilteringEngine<QueueT, QueueT> engine(std::move(factory), std::move(padder), std::move(transformer));
 

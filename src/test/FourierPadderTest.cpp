@@ -6,19 +6,24 @@
 
 class FourierPadderTest : public testing::Test {
 public:
-	static const uint32_t inputSize = 96;
-	static const uint32_t filterSize = 15;
+	static const uint32_t inputSizeRows = 96;
+	static const uint32_t inputSizeCols = 82;
+	static const uint32_t filterSizeRows = 15;
+	static const uint32_t filterSizeCols = 41;
 
 	void SetUp() {
-		padder = std::make_unique<FourierPadder>(inputSize, filterSize);
+		padder = std::make_unique<FourierPadder>(inputSizeRows, inputSizeCols,
+												 filterSizeRows, filterSizeCols);
 	}
 
 	std::unique_ptr<FourierPadder> padder;
 };
 
 // Fuck you C++ standard
-const uint32_t FourierPadderTest::inputSize;
-const uint32_t FourierPadderTest::filterSize;
+const uint32_t FourierPadderTest::inputSizeRows;
+const uint32_t FourierPadderTest::inputSizeCols;
+const uint32_t FourierPadderTest::filterSizeRows;
+const uint32_t FourierPadderTest::filterSizeCols;
 
 TEST_F(FourierPadderTest, GetPowerOfTwoTest)
 {
@@ -37,7 +42,7 @@ TEST_F(FourierPadderTest, GetPowerOfTwoTest)
 
 TEST_F(FourierPadderTest, PaddingDenseMemoryTest)
 {
-	auto input = RealMatrix(FourierPadderTest::inputSize, FourierPadderTest::inputSize);
+	auto input = RealMatrix(FourierPadderTest::inputSizeRows, FourierPadderTest::inputSizeCols);
 	input.setZero();
 
 	RealMatrix padded;
@@ -45,17 +50,17 @@ TEST_F(FourierPadderTest, PaddingDenseMemoryTest)
 	ASSERT_EQ(0, padded.cols());
 
 	// Check Size
-	int fs = padder->fourierSizePadded_;
+	int fsR = padder->fourierSizeRows_;
+	int fsC = padder->fourierSizeCols_;
 	padder->padData(input, padded);
 
-	ASSERT_EQ(fs, padded.rows());
-	ASSERT_EQ(fs, padded.cols());
-
+	ASSERT_EQ(fsR, padded.rows());
+	ASSERT_EQ(fsC, padded.cols());
 }
 
 TEST_F(FourierPadderTest, PadInputDenseTest)
 {
-	auto input = RealMatrix(FourierPadderTest::inputSize, FourierPadderTest::inputSize);
+	auto input = RealMatrix(FourierPadderTest::inputSizeRows, FourierPadderTest::inputSizeCols);
 	input.setZero();
 	input(15, 19) = 22;
 	input(55, 12) = 3;
@@ -67,10 +72,10 @@ TEST_F(FourierPadderTest, PadInputDenseTest)
 	RealMatrix padded;
 	padder->padData(input, padded);
 
-	// Check Size
-	int fs = padder->fourierSizePadded_;
-	ASSERT_EQ(fs, padded.rows());
-	ASSERT_EQ(fs, padded.cols());
+	int fsR = padder->fourierSizeRows_;
+	int fsC = padder->fourierSizeCols_;
+	ASSERT_EQ(fsR, padded.rows());
+	ASSERT_EQ(fsC, padded.cols());
 
 	// Check Values
 	ASSERT_EQ(22,	padded(15, 19));
@@ -91,7 +96,7 @@ TEST_F(FourierPadderTest, PadInputDenseTest)
 TEST_F(FourierPadderTest, PadInputSparseTest)
 {
 	// This also tests implicility the correct conversion between row/colmajor
-	auto input = SparseMatrix(inputSize, inputSize);
+	auto input = SparseMatrix(FourierPadderTest::inputSizeRows, FourierPadderTest::inputSizeCols);
 	input.insert(15, 19) = 22;
 	input.insert(55, 12) = 3;
 	input.insert(3, 23) = 454;
@@ -102,10 +107,10 @@ TEST_F(FourierPadderTest, PadInputSparseTest)
 	RealMatrix padded;
 	padder->padData(input, padded);
 
-	// Check Size
-	int fs = padder->fourierSizePadded_;
-	ASSERT_EQ(fs, padded.rows());
-	ASSERT_EQ(fs, padded.cols());
+	int fsR = padder->fourierSizeRows_;
+	int fsC = padder->fourierSizeCols_;
+	ASSERT_EQ(fsR, padded.rows());
+	ASSERT_EQ(fsC, padded.cols());
 
 	// Check Values
 	ASSERT_EQ(22,	padded(15, 19));
@@ -126,21 +131,21 @@ TEST_F(FourierPadderTest, PadInputSparseTest)
 
 TEST_F(FourierPadderTest, ExtractDenseOutputTest)
 {
-	auto paddedOutput = RealMatrix(padder->fourierSizePadded_, padder->fourierSizePadded_);
+	auto paddedOutput = RealMatrix(padder->fourierSizeRows_, padder->fourierSizeCols_);
 	paddedOutput.setZero();
-	paddedOutput(padder->border_+15,padder->border_+ 19) = 22;
-	paddedOutput(padder->border_+55,padder->border_+ 12) = 3;
-	paddedOutput(padder->border_+3, padder->border_+23) = 454;
-	paddedOutput(padder->border_+21,padder->border_+ 17) = 34;
-	paddedOutput(padder->border_+66,padder->border_+ 4) = 54;
-	paddedOutput(padder->border_+76,padder->border_+ 1) = 12;
+	paddedOutput(padder->borderTop_+15,padder->borderLeft_+ 19) = 22;
+	paddedOutput(padder->borderTop_+55,padder->borderLeft_+ 12) = 3;
+	paddedOutput(padder->borderTop_+3, padder->borderLeft_+23) = 454;
+	paddedOutput(padder->borderTop_+21,padder->borderLeft_+ 17) = 34;
+	paddedOutput(padder->borderTop_+66,padder->borderLeft_+ 4) = 54;
+	paddedOutput(padder->borderTop_+76,padder->borderLeft_+ 1) = 12;
 
 	RealMatrix extracted;
 	padder->extractDenseOutput(paddedOutput, extracted);
 
 	// Check size of returned matrix
-	ASSERT_EQ(padder->dataSize_,extracted.rows());
-	ASSERT_EQ(padder->dataSize_,extracted.cols());
+	ASSERT_EQ(padder->dataRows_,extracted.rows());
+	ASSERT_EQ(padder->dataCols_,extracted.cols());
 
 	// Check Values
 	ASSERT_EQ(22,	extracted(15, 19));
@@ -160,21 +165,21 @@ TEST_F(FourierPadderTest, ExtractDenseOutputTest)
 
 TEST_F(FourierPadderTest, ExtractSparseOutputTest)
 {
-	auto paddedOutput = RealMatrix(padder->fourierSizePadded_,padder->fourierSizePadded_);
+	auto paddedOutput = RealMatrix(padder->fourierSizeRows_, padder->fourierSizeCols_);
 	paddedOutput.setZero();
-	paddedOutput(padder->border_+15,padder->border_+ 19) = 22;
-	paddedOutput(padder->border_+55,padder->border_+ 12) = 3;
-	paddedOutput(padder->border_+3, padder->border_+23) = 454;
-	paddedOutput(padder->border_+21,padder->border_+ 17) = 34;
-	paddedOutput(padder->border_+66,padder->border_+ 4) = 54;
-	paddedOutput(padder->border_+76,padder->border_+ 1) = 12;
+	paddedOutput(padder->borderTop_+15,padder->borderLeft_+ 19) = 22;
+	paddedOutput(padder->borderTop_+55,padder->borderLeft_+ 12) = 3;
+	paddedOutput(padder->borderTop_+3, padder->borderLeft_+23) = 454;
+	paddedOutput(padder->borderTop_+21,padder->borderLeft_+ 17) = 34;
+	paddedOutput(padder->borderTop_+66,padder->borderLeft_+ 4) = 54;
+	paddedOutput(padder->borderTop_+76,padder->borderLeft_+ 1) = 12;
 
 	SparseMatrix extracted;
 	padder->extractSparseOutput(paddedOutput, extracted);
 
 	// Check size of returned matrix
-	ASSERT_EQ(padder->dataSize_, extracted.rows());
-	ASSERT_EQ(padder->dataSize_, extracted.cols());
+	ASSERT_EQ(padder->dataRows_, extracted.rows());
+	ASSERT_EQ(padder->dataCols_, extracted.cols());
 	// Verfiy Sparsity
 	ASSERT_EQ(6, extracted.nonZeros());
 
