@@ -31,11 +31,14 @@ public:
         inputBuffer_(new EventQueueT()),
         outputBuffer_(new EventSliceQueueT())
     {
+        LOG_FUN_START;
         currentEvents_.reserve(100);
+        LOG_FUN_END;
     };
 
     void process()
     {
+        LOG_FUN_START;
         std::vector<Event> events;
         while(hasInput())
         {
@@ -43,6 +46,7 @@ public:
             inputBuffer_->pop();
         }
         quantize(events);
+        LOG_FUN_END;
     }
 
     /*
@@ -54,6 +58,7 @@ public:
 
     void quantize(const std::vector<Edvs::Event>& events)
     {
+        LOG_FUN_START;
         if(events.empty()) {
             return;
         }
@@ -73,52 +78,63 @@ public:
         if(events[events.size() - 1].t == nextEventTime_ - 1) {
             advanceTimeStep();
         }
+        LOG_FUN_END;
     }
 
     bool isEmpty()
     {
+        LOG_FUN;
         return outputBuffer_->empty();
     }
 
 
     EventSlice getEventSlice()
     {
+        LOG_FUN_START;
         if(outputBuffer_->empty()) {
             return EventSlice();
         }
 
         auto slice = outputBuffer_->front();
         outputBuffer_->pop();
+        LOG_FUN_END;
         return *slice;
     }
 
     std::shared_ptr<EventSliceQueueT> getEventSlices()
     {
+        LOG_FUN_START;
         auto oldSlices = outputBuffer_;
         outputBuffer_.reset(new EventSliceQueueT());
+        LOG_FUN_END;
         return oldSlices;
     }
 
     void setInputBuffer(std::shared_ptr<EventQueueT> buffer) {
+        LOG_FUN;
         this->inputBuffer_ = buffer;
     }
 
     void setOutputBuffer(std::shared_ptr<EventSliceQueueT> buffer) {
+        LOG_FUN;
         this->outputBuffer_ = buffer;
     }
 
 //  === Getters     ===========================================================
     unsigned int getTimeResolution() const {
+        LOG_FUN;
         return timeResolution_;
     }
 
     EventTime getCurrentTimeStep() const {
+        LOG_FUN;
         return nextEventTime_;
     }
 
 private:
     void advanceTimeStep()
     {
+        LOG_FUN_START;
         if(!currentEvents_.empty()) {
             EventSlice::Ptr slice(new EventSlice);
             slice->setFromTriplets(currentEvents_.begin(), currentEvents_.end());
@@ -129,6 +145,7 @@ private:
         }
 
         nextEventTime_ += timeResolution_;
+        LOG_FUN_END;
     }
 
 private:

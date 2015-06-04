@@ -10,11 +10,13 @@
 #include <glog/logging.h>
 
 
-
 #define THROW_INVALID_ARG(msg) \
     LOG(ERROR) << msg; \
     throw std::invalid_argument(msg)
 
+#define LOG_FUN         DLOG(INFO) << "Function:\t\t"            << __FUNCTION__
+#define LOG_FUN_START   DLOG(INFO) << "Starting function:\t "    << __FUNCTION__
+#define LOG_FUN_END     DLOG(INFO) << "Leaving function:\t"      << __FUNCTION__
 
 template<class OutT = float, class InT>
 OutT deg2rad(InT angle) {

@@ -28,6 +28,8 @@ FilterFactory::FilterFactory(float t0, float tk, float tResolution, int xRange, 
     sigma_mono(mu_mono / 3),
     fxy(sqrt(2) * 0.08, 0)  {
 
+    LOG_FUN_START;
+
     if(t0 >= tk) {
         THROW_INVALID_ARG("t0 must be >= tk");
     }
@@ -42,13 +44,19 @@ FilterFactory::FilterFactory(float t0, float tk, float tResolution, int xRange, 
     t0_ = t0 / tResolution;
     xSize_ = 2 * xRange_ + 1;
     ySize_ = 2 * yRange_ + 1;
+
+    LOG_FUN_END;
 }
 
 void FilterFactory::setFilterTransformer(FilterTransformT transform) {
+    LOG_FUN;
     this->filterTransformer_ = transform;
 }
 
 std::shared_ptr <Filter> FilterFactory::createFilter(int angle) const {
+    LOG_FUN_START;
+    LOG(INFO) << "Creating " << angle << " degree filter";
+
     auto filters = std::make_unique<std::vector<FilterT>>();
     filters->reserve(timeSpan_);
 
@@ -74,35 +82,47 @@ std::shared_ptr <Filter> FilterFactory::createFilter(int angle) const {
         currentTime += tResolution_;
     }
 
+    LOG_FUN_END;
     return std::make_shared<Filter>(angle, std::move(filters));
 }
 
 std::pair<float, float> FilterFactory::rotate(int angle, const std::pair<float, float> &vec) const {
+    LOG_FUN_START;
+
     float rad = deg2rad(angle);
     float x = std::cos(rad) * vec.first - std::sin(rad) * vec.second;
     float y = std::sin(rad) * vec.first + std::cos(rad) * vec.second;
+
+    LOG_FUN_END;
     return std::make_pair(x, y);
 }
 
 float FilterFactory::gaus(float sigma, float mu, float x) const {
+    LOG_FUN;
     float tmp = (x - mu) / sigma;
     return std::exp(-0.5 * tmp * tmp);
 }
 
 std::complex<float> FilterFactory::spatial(float x, float y, float fx, float fy) const {
+    LOG_FUN_START;
+
     static const std::complex<float> i(0, 1);
 
     std::complex<float> s = 2 * PI_ / (sigma * sigma);
     s *= std::exp(2 * PI_ * i * (fx*x + fy*y));
     float tmp = PI_ / sigma;
     s *= std::exp(-2 * tmp * tmp * (x*x + y*y));
+
+    LOG_FUN_END;
     return s;
 }
 
 float FilterFactory::timeMono(float t) const {
+    LOG_FUN;
     return gaus(sigma_mono, mu_mono, t);
 }
 
 float FilterFactory::timeBi(float t) const {
+    LOG_FUN;
     return -s1 * gaus(sigma_bi1, mu_bi1, t) + s2 * gaus(sigma_bi2, mu_bi2, t);
 }

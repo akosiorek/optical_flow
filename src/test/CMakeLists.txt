@@ -8,7 +8,6 @@ include_directories(${src_SOURCE_DIR})
 
 add_executable(test
     QuantizerTest.cpp
-    SequentialBufferTest.cpp
     BlockingQueueTest.cpp
     FourierPadderTest.cpp
     FilterTest.cpp

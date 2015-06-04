@@ -45,6 +45,8 @@ public:
               transformer_(std::move(transformer)),
               eventBuffer_(0) {
 
+        LOG_FUN_START;
+
         factory_->setFilterTransformer(
                 [this](const RealMatrix& filter) {
 
@@ -54,6 +56,8 @@ public:
                     this->transformer_->forward(padded, transformed);
                     return transformed;
                 });
+
+        LOG_FUN_END;
     }
 
     /**
@@ -61,6 +65,9 @@ public:
      * @param angle Filter angle in degrees.
      */
     void addFilter(int angle) {
+        LOG_FUN_START;
+        LOG(INFO) << "Adding " << angle << " degree filter";
+
         auto it = std::find_if(std::begin(filters_), std::end(filters_),
         [angle](std::shared_ptr<Filter> filter) {
             return filter->angle() == angle;
@@ -88,13 +95,16 @@ public:
                 extractedDataBuffer_.resize(filter->xSize(), filter->ySize());
             }
         }
-    };
+
+        LOG_FUN_END;
+    }
 
     /**
      * Filter a single event slice
      * @param slice An event slices to be filetered.
      */
     void filter(std::shared_ptr<EventSlice> slice) {
+        LOG_FUN_START;
 
         eventBuffer_.rotate(eventBuffer_.end() - 1);
         ++receivedEventSlices_;
@@ -130,20 +140,26 @@ public:
             }
             outputBuffer_->push(flowSlice);
         }
+
+        LOG_FUN_END;
     }
 
     void process() {
+        LOG_FUN_START;
         while(hasInput()) {
             auto input = inputBuffer_->front();
             inputBuffer_->pop();
             filter(input);
         }
+        LOG_FUN_END;
     }
 
     void setInputBuffer(std::shared_ptr<EventQueueT> buffer) {
+        LOG_FUN;
         this->inputBuffer_ = buffer;
     }
     void setOutputBuffer(std::shared_ptr<FlowQueueT> buffer) {
+        LOG_FUN;
         this->outputBuffer_ = buffer;
     }
 
@@ -151,6 +167,7 @@ public:
      * Filter depth or the number of the filter slices.
      */
     int timeSteps() {
+        LOG_FUN;
         return timeSteps_;
     }
 
@@ -159,6 +176,7 @@ public:
      * number of events to start estimating flow
      */
     bool isInitialized() {
+        LOG_FUN;
         return timeSteps_ != 0 && receivedEventSlices_ >= timeSteps_;
     }
 
@@ -166,6 +184,7 @@ public:
      * Checks if the input buffer is not empty.
      */
     bool hasInput() {
+        LOG_FUN;
         return inputBuffer_ && !inputBuffer_->empty();
     }
 
@@ -173,6 +192,7 @@ public:
      * Checks if the output buffer is not empty.
      */
     bool hasOutput() {
+        LOG_FUN;
         return outputBuffer_ && !outputBuffer_->empty();
     }
 
@@ -180,6 +200,7 @@ public:
      * Returns number of filters;
      */
     int numFilters() {
+        LOG_FUN;
         return filters_.size();
     }
 
