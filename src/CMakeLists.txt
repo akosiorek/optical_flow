@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 2.8)
-project( optical_flow )
+cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
+project( optical_flow CXX)
 
 #    Set CMake Install Path
 set (CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR} CACHE PATH "default install path" FORCE )
@@ -7,7 +7,7 @@ set (CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR} CACHE PATH "default install path" 
 set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -std=c++11)
 add_definitions ("-Wall -Wno-deprecated-declarations")
 
-#Debug/Profiling Options
+#   Debug/Profiling Options
 # SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
 # SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 # SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
@@ -15,27 +15,10 @@ add_definitions ("-Wall -Wno-deprecated-declarations")
 #	CMake module path for custom module finding
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/modules)
 
-find_package(Glog)
-include_directories(${GLOG_INCLUDE_DIRS})
-
-find_package(Eigen3 REQUIRED)
-include_directories(${EIGEN3_INCLUDE_DIR})
-
-find_package(Boost REQUIRED)
-include_directories(${Boost_INCLUDE_DIRS}
-)
-
-find_package(FFTW REQUIRED)
-include_directories(${FFTW_INCLUDES}
-)
-
-FIND_PACKAGE( OpenMP REQUIRED)
-if(OPENMP_FOUND)
-message("OPENMP FOUND")
+find_package(OpenMP REQUIRED)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
-endif()
 
 #-------------------
 # Edvstools Build
@@ -49,7 +32,7 @@ link_directories(${EDVSTOOLS_LIB_DIR})
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
 	configure_file(
-		${CMAKE_CURRENT_SOURCE_DIR}/../docs/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+		${CMAKE_SOURCE_DIR}/../docs/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 		add_custom_target(doc
 		${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}

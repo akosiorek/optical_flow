@@ -1,22 +1,24 @@
-cmake_minimum_required(VERSION 2.8)
-project( src )
 
-add_library(optical
-		Filter.cpp
-		FilterFactory.cpp
-		IFourierTransformer.cpp
-		FourierTransformerFFTW.cpp
-	)
+find_package(Glog REQUIRED)
+find_package(Eigen3 REQUIRED)
+find_package(Boost COMPONENTS system timer program_options REQUIRED)
+find_package(FFTW3 COMPONENTS single REQUIRED)
 
-add_executable(exe main.cpp)
-target_link_libraries(exe
-	optical
-	${GLOG_LIBRARIES}
-	${Boost_LIBRARIES}
-	fftw3f
-	${EDVSTOOLS_LIB}
-	pthread
-	boost_program_options
-	boost_system
-	boost_timer
+add_library(optical_flow
+    Filter.cpp
+    FilterFactory.cpp
+    IFourierTransformer.cpp
+    FourierTransformerFFTW.cpp
 )
+add_dependencies(optical_flow edvstools)
+target_link_libraries(optical_flow
+    PRIVATE ${GLOG_LIBRARIES} ${Boost_LIBRARIES} ${EDVSTOOLS_LIB} ${FFTW3_LIBRARIES}
+)
+
+target_include_directories(optical_flow
+    PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR} ${EIGEN3_INCLUDE_DIR}
+    PRIVATE ${GLOG_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${FFTW3_INCLUDE_DIRS}
+)
+
+add_executable(optical_flow.bin main.cpp)
+target_link_libraries(optical_flow.bin PRIVATE optical_flow)

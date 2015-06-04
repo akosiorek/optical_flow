@@ -1,12 +1,7 @@
-project(Test)
 
-# Compile gtest
 add_subdirectory(gtest)
-include_directories( ${gtest_INCLUDE_DIR})
 
-include_directories(${src_SOURCE_DIR})
-
-add_executable(test
+add_executable(test.bin
     QuantizerTest.cpp
     BlockingQueueTest.cpp
     FourierPadderTest.cpp
@@ -17,5 +12,5 @@ add_executable(test
     EventReaderTest.cpp
     )
 
-target_link_libraries(test gtest_main optical fftw3f ${EDVSTOOLS_LIB})
-add_custom_command(TARGET test POST_BUILD COMMAND test)
+target_link_libraries(test.bin PRIVATE gtest_main optical_flow)
+add_custom_command(TARGET test.bin POST_BUILD COMMAND test.bin)

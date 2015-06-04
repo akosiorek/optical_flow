@@ -1,14 +1,12 @@
 
-cmake_minimum_required(VERSION 2.8.0)
-project(edvstools)
 include(ExternalProject)
 
 ExternalProject_Add(edvstools
     GIT_REPOSITORY https://github.com/yezariael/edvstools.git
     CMAKE_ARGS -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG:PATH=DebugLibs
                -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE:PATH=ReleaseLibs
-     PREFIX "${CMAKE_CURRENT_BINARY_DIR}"
-# Disable install step
+    PREFIX "${CMAKE_CURRENT_BINARY_DIR}"
+    # Disable install step
     INSTALL_COMMAND ""
 )
 
