@@ -209,14 +209,14 @@ public:
 	}
 
 	// can be public as they are const
-	const uint32_t dataRows_;
-	const uint32_t dataCols_;
-	const uint32_t filterRows_;
-	const uint32_t filterCols_;
-	const uint32_t borderTop_;
-	const uint32_t borderLeft_;
-	const uint32_t fourierSizeRows_;
-	const uint32_t fourierSizeCols_;
+	const int32_t dataRows_;
+	const int32_t dataCols_;
+	const int32_t filterRows_;
+	const int32_t filterCols_;
+	const int32_t borderTop_;
+	const int32_t borderLeft_;
+	const int32_t fourierSizeRows_;
+	const int32_t fourierSizeCols_;
 };
 
 #endif // FOURIER_PADDER_H
