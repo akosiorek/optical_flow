@@ -23,31 +23,31 @@ public:
 
 TEST_F(BlockingQueueTest, EmptyTest)
 {
-    ASSERT_EQ(bqueue->size(), 0);
+    ASSERT_EQ(bqueue->size(), static_cast<std::size_t>(0));
 }
 
 TEST_F(BlockingQueueTest, AddElementTest)
 {
     bqueue->push(4);
-    ASSERT_EQ(bqueue->size(), 1);
+    ASSERT_EQ(bqueue->size(), static_cast<std::size_t>(1));
     bqueue->push(3);
     bqueue->push(4);
-    ASSERT_EQ(bqueue->size(), 3);
+    ASSERT_EQ(bqueue->size(), static_cast<std::size_t>(3));
 }
 
 TEST_F(BlockingQueueTest, PopElementTest)
 {
     bqueue->push(4);
-    ASSERT_EQ(bqueue->size(), 1);
+    ASSERT_EQ(bqueue->size(), static_cast<std::size_t>(1));
     bqueue->push(3);
     bqueue->push(4);
-    ASSERT_EQ(bqueue->size(), 3);
+    ASSERT_EQ(bqueue->size(), static_cast<std::size_t>(3));
     bqueue->pop();
-    ASSERT_EQ(bqueue->size(), 2);
+    ASSERT_EQ(bqueue->size(), static_cast<std::size_t>(2));
     bqueue->pop();
-    ASSERT_EQ(bqueue->size(), 1);      
+    ASSERT_EQ(bqueue->size(), static_cast<std::size_t>(1));
     bqueue->pop();
-    ASSERT_EQ(bqueue->size(), 0);    
+    ASSERT_EQ(bqueue->size(), static_cast<std::size_t>(0));
     bqueue->pop();
 }
 

@@ -24,8 +24,8 @@ public:
 
 TEST_F(QuantizerTest, ConstructorTest) {
 
-    ASSERT_EQ(quantizer->getTimeResolution(), 2);
-    ASSERT_EQ(quantizer->getCurrentTimeStep(), 0);
+    ASSERT_EQ(quantizer->getTimeResolution(), static_cast<std::size_t>(2));
+    ASSERT_EQ(quantizer->getCurrentTimeStep(), static_cast<std::size_t>(0));
 }
 
 TEST_F(QuantizerTest, NoEventTest) {
@@ -114,7 +114,7 @@ TEST_F(QuantizerTest, QuantizeGetMultipleEventsTest) {
 
     auto eventSlices = quantizer->getEventSlices();
     ASSERT_TRUE(quantizer->isEmpty());
-    ASSERT_EQ(eventSlices->size(), 5);
+    ASSERT_EQ(eventSlices->size(), static_cast<std::size_t>(5));
 
     auto last_slice = expectedEntries[0][0];
     for(const auto& expected : expectedEntries) {
@@ -143,7 +143,7 @@ TEST_F(QuantizerTest, LongPauseBetweenEventsTest) {
     ASSERT_FALSE(quantizer->isEmpty());
     auto slices = quantizer->getEventSlices();
     ASSERT_TRUE(quantizer->isEmpty());
-    ASSERT_EQ(slices->size(), 100);
+    ASSERT_EQ(slices->size(), static_cast<std::size_t>(100));
     std::vector<std::shared_ptr<EventSlice>> nonZero;
 
     while(!slices->empty())

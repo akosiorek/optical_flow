@@ -82,7 +82,7 @@ public:
             LOG(INFO) << "Creating filter with angle " << angle << " xSize " <<  filter->xSize() <<  " ySize " << filter->ySize();
 
             // intialize buffer by allocating memory for all event slices to be kept
-            if(eventBuffer_.size() != timeSteps_) {
+            if(eventBuffer_.size() != static_cast<std::size_t>(timeSteps_)) {
             LOG(INFO) << "timeSteps_ " << timeSteps_ << " eventBuffer_.size() " <<  eventBuffer_.size() << " ...";
                 eventBuffer_.set_capacity(timeSteps_);
             LOG(INFO) << " Now : timeSteps_ " << timeSteps_ << " eventBuffer_.size() " <<  eventBuffer_.size() << " ...";
@@ -123,14 +123,14 @@ public:
             for(int sliceIndex = 0; sliceIndex < timeSteps_; ++sliceIndex) {
                 const auto& eventSlice = eventBuffer_[sliceIndex];
                 // iterate over filters
-                for(int filterIndex = 0; filterIndex < filters_.size(); ++filterIndex) {
+                for(std::size_t filterIndex = 0; filterIndex < filters_.size(); ++filterIndex) {
                     const auto& filterSlice = filters_[filterIndex]->at(sliceIndex);
                     responseBuffer_[filterIndex] += eventSlice.cwiseProduct(filterSlice);
                 }
             }
 
             auto flowSlice = std::make_shared<FlowSlice>(slice->rows(), slice->cols());
-            for(int filterIndex = 0; filterIndex < filters_.size(); ++filterIndex) {
+            for(std::size_t filterIndex = 0; filterIndex < filters_.size(); ++filterIndex) {
 
                 float rad = deg2rad(filters_[filterIndex]->angle());
                 transformer_->backward(responseBuffer_[filterIndex], inversedDataBuffer_);
@@ -177,7 +177,7 @@ public:
      */
     bool isInitialized() {
         LOG_FUN;
-        return timeSteps_ != 0 && receivedEventSlices_ >= timeSteps_;
+        return timeSteps_ != 0 && receivedEventSlices_ >= static_cast<std::size_t>(timeSteps_);
     }
 
     /*

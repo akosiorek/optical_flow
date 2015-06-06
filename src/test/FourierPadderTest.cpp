@@ -27,16 +27,16 @@ const uint32_t FourierPadderTest::filterSizeCols;
 
 TEST_F(FourierPadderTest, GetPowerOfTwoTest)
 {
-	ASSERT_EQ(0,FourierPadder::roundUpPow2(0));
-	ASSERT_EQ(1,FourierPadder::roundUpPow2(1));
-	ASSERT_EQ(2,FourierPadder::roundUpPow2(2));
-	ASSERT_EQ(4,FourierPadder::roundUpPow2(3));
-	ASSERT_EQ(4,FourierPadder::roundUpPow2(4));
-	ASSERT_EQ(8,FourierPadder::roundUpPow2(5));
-	ASSERT_EQ(1024,FourierPadder::roundUpPow2(823));
-	ASSERT_EQ(1024,FourierPadder::roundUpPow2(1023));
-	ASSERT_EQ(1024,FourierPadder::roundUpPow2(1024));
-	ASSERT_EQ(2048,FourierPadder::roundUpPow2(1025));
+	ASSERT_EQ(static_cast<uint32_t>(0),FourierPadder::roundUpPow2(0));
+	ASSERT_EQ(static_cast<uint32_t>(1),FourierPadder::roundUpPow2(1));
+	ASSERT_EQ(static_cast<uint32_t>(2),FourierPadder::roundUpPow2(2));
+	ASSERT_EQ(static_cast<uint32_t>(4),FourierPadder::roundUpPow2(3));
+	ASSERT_EQ(static_cast<uint32_t>(4),FourierPadder::roundUpPow2(4));
+	ASSERT_EQ(static_cast<uint32_t>(8),FourierPadder::roundUpPow2(5));
+	ASSERT_EQ(static_cast<uint32_t>(1024),FourierPadder::roundUpPow2(823));
+	ASSERT_EQ(static_cast<uint32_t>(1024),FourierPadder::roundUpPow2(1023));
+	ASSERT_EQ(static_cast<uint32_t>(1024),FourierPadder::roundUpPow2(1024));
+	ASSERT_EQ(static_cast<uint32_t>(2048),FourierPadder::roundUpPow2(1025));
 }
 
 
@@ -178,8 +178,8 @@ TEST_F(FourierPadderTest, ExtractSparseOutputTest)
 	padder->extractSparseOutput(paddedOutput, extracted);
 
 	// Check size of returned matrix
-	ASSERT_EQ(padder->dataRows_, extracted.rows());
-	ASSERT_EQ(padder->dataCols_, extracted.cols());
+	ASSERT_EQ(padder->dataRows_, static_cast<std::size_t>(extracted.rows()));
+	ASSERT_EQ(padder->dataCols_, static_cast<std::size_t>(extracted.cols()));
 	// Verfiy Sparsity
 	ASSERT_EQ(6, extracted.nonZeros());
 
