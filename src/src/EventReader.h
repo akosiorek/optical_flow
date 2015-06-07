@@ -61,7 +61,7 @@ public:
 		}
 	}
 
-	bool isPublishing() { return running_; }
+	bool isPublishing() { return (running_ && !stream_->eos()); }
 
 private:
 	/**
@@ -91,6 +91,7 @@ private:
 				}
 			}
 		}
+		running_ == false; // only of interest if stream->eos() notifies EOF
 	}
 
 

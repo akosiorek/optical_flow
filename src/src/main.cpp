@@ -110,26 +110,26 @@ int main(int argc, char** argv)
     LOG(INFO) << "Initialization completed";
     LOG(INFO) << "Processing...";
 
-    std::size_t lastFlowStatus = 0;
+    // std::size_t lastFlowStatus = 0;
     int counter = 0;
     boost::timer::auto_cpu_timer t;
     if(eventReader.startPublishing())
     {
         // TODO handle keyboard interrupts
-        while(true)
+        while(eventReader.isPublishing() || !eventQueue->empty())
         {
             quantizer.process();
             engine.process();
             // sink.process();
 
             // Get out of this loop once there is no change in FlowSlices anymore!
-            if((lastFlowStatus == flowSliceQueue->size()) && lastFlowStatus > 0)
-            {
-                if(counter > 5000) break;
-                else ++counter;
-            }
+            // if((lastFlowStatus == flowSliceQueue->size()) && lastFlowStatus > 0)
+            // {
+            //     if(counter > 5000) break;
+            //     else ++counter;
+            // }
 
-            lastFlowStatus = flowSliceQueue->size();
+            // lastFlowStatus = flowSliceQueue->size();
         }
     }
 
