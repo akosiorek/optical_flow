@@ -59,7 +59,7 @@ TEST_F(BlockingQueueTest, FrontWriteTest)
     int& fe = bqueue->front();
     ASSERT_EQ(bqueue->front(), 4);
     fe = 5;
-    ASSERT_EQ(bqueue->front(), 5);    
+    ASSERT_EQ(bqueue->front(), 5);
     bqueue->pop();
     ASSERT_EQ(bqueue->front(), 3);
 }
@@ -72,7 +72,7 @@ TEST_F(BlockingQueueTest, BackWriteTest)
     int& be = bqueue->back();
     ASSERT_EQ(bqueue->back(), 2);
     be = 7;
-    ASSERT_EQ(bqueue->back(), 7);    
+    ASSERT_EQ(bqueue->back(), 7);
     bqueue->pop();
     ASSERT_EQ(bqueue->back(), 7);
 }

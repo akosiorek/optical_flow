@@ -15,8 +15,8 @@ FourierTransformerFFTW::FourierTransformerFFTW(const int rows, const int cols)
 
 	/* Create plan */
 	//TODO NEEDS THREAD SAFETY IN THE FUTURE!?
-	fwd_plan_ = fftwf_plan_dft_r2c_2d(rows_, cols_, rl, fftw_cast(cl), FFTW_MEASURE);
-	bwd_plan_ = fftwf_plan_dft_c2r_2d(rows_, cols_, fftw_cast(cl), rl,FFTW_MEASURE);
+	fwd_plan_ = fftwf_plan_dft_r2c_2d(rows_, cols_, rl, fftw_cast(cl), FFTW_PATIENT);
+	bwd_plan_ = fftwf_plan_dft_c2r_2d(rows_, cols_, fftw_cast(cl), rl,FFTW_PATIENT);
 	delete[] rl;
 	delete[] cl;
 }
