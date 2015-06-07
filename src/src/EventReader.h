@@ -19,19 +19,31 @@ class EventReader
 {
 public:
 
-	EventReader() : bufferSet_(false), uri_(std::string("")), running_(false) {}
-	~EventReader() {}
+	EventReader() 
+	: 	bufferSet_(false),
+		buffer_(nullptr),
+		uri_(std::string("")),
+		stream_(nullptr),
+		eventPublisher_(nullptr),
+		running_(false) {}
+	~EventReader()
+	{
+	    stopPublishing();
+	}
 
-	void setURI(const std::string& uri) { uri_ = uri; }
-	std::string getURI() const { return uri_; }
-	
+
+	void setURI(const std::string& uri) { LOG_FUN; uri_ = uri; }
+	std::string getURI() const { LOG_FUN; return uri_; }
+	bool isURISet() { return !uri_.empty(); }
+
 	void setOutputBuffer(std::shared_ptr<BufferType> buffer)
 	{
+		LOG_FUN;
 		buffer_ = buffer;
 		bufferSet_ = true;
 	}
 
-	bool isBufferSet() { return bufferSet_; }
+	bool isBufferSet() { LOG_FUN; return bufferSet_; }
 
 	/**
 	 * @brief Opens stream and start event polling thread
@@ -39,20 +51,39 @@ public:
 	 */
 	bool startPublishing()
 	{
-		if(!openStream())
+		LOG_FUN_START;
+		if(!isBufferSet())
 		{
-			std::cout << "stream could not be opened!" << std::endl;
+			std::cerr << "No event buffer has been set!" << std::endl;
 			return false;
 		}
+
+		if(!isURISet())
+		{
+			std::cerr << "URI has not been set!" << std::endl;
+			return false;
+		}
+
+		if(!openStream())
+		{
+			std::cerr << "Stream could not be opened!" << std::endl;
+			return false;
+		}
+
 
 		eventPublisher_ = std::make_unique<std::thread>(&EventReader::pollEventStream, this);
 
 		if(eventPublisher_ != nullptr) return running_ = true, running_;
 		else return false;
+		LOG_FUN_END;
 	}
 
+	/**
+	 * @brief Stop polling the event stream, shutsdown all threads
+	 */
 	void stopPublishing()
 	{
+		LOG_FUN;
 		if(running_)
 		{
 			running_ = false;
@@ -61,7 +92,7 @@ public:
 		}
 	}
 
-	bool isPublishing() { return (running_ && !stream_->eos()); }
+	bool isPublishing() { LOG_FUN; return (running_ && !stream_->eos()); }
 
 private:
 	/**
@@ -69,6 +100,7 @@ private:
 	 */
 	bool openStream()
 	{
+		LOG_FUN;
 		stream_ = Edvs::OpenEventStream(uri_);
 		return stream_->is_open();
 	}
@@ -78,6 +110,7 @@ private:
 	 */
 	void pollEventStream()
 	{
+		LOG_FUN_START;
 	    // capture events (run until end of file or Ctrl+C)
 		while(!stream_->eos() && running_ == true)
 		{
@@ -92,6 +125,7 @@ private:
 			}
 		}
 		running_ == false; // only of interest if stream->eos() notifies EOF
+		LOG_FUN_END;
 	}
 
 

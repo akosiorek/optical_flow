@@ -106,12 +106,10 @@ int main(int argc, char** argv)
     // FlowSink<QueueT> sink;
     // sink.setInputBuffer(flowSliceQueue);
 
-// Start Processing
+    // Start Processing
     LOG(INFO) << "Initialization completed";
     LOG(INFO) << "Processing...";
 
-    // std::size_t lastFlowStatus = 0;
-    int counter = 0;
     boost::timer::auto_cpu_timer t;
     if(eventReader.startPublishing())
     {
@@ -121,21 +119,10 @@ int main(int argc, char** argv)
             quantizer.process();
             engine.process();
             // sink.process();
-
-            // Get out of this loop once there is no change in FlowSlices anymore!
-            // if((lastFlowStatus == flowSliceQueue->size()) && lastFlowStatus > 0)
-            // {
-            //     if(counter > 5000) break;
-            //     else ++counter;
-            // }
-
-            // lastFlowStatus = flowSliceQueue->size();
         }
     }
 
     LOG(INFO) << "Processing finished. Completed " << flowSliceQueue->size() << " FlowSlices!";
-    //shutdown?
-    eventReader.stopPublishing();
 
 	return 0;
 }

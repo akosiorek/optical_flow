@@ -74,6 +74,7 @@ public:
 	 */
 	void padData(const RealMatrix& tm, RealMatrix& fm)
 	{
+		LOG_FUN;
 		if(static_cast<size_t>(tm.rows())!=fourierSizeRows_ || static_cast<size_t>(tm.cols())!=fourierSizeCols_)
 		{
 			fm.resize(fourierSizeRows_, fourierSizeCols_);
@@ -93,6 +94,7 @@ public:
 	 */
 	void padData(const SparseMatrix& tm, RealMatrix& fm)
 	{
+		LOG_FUN;
 		if(static_cast<size_t>(tm.rows())!=fourierSizeRows_ || static_cast<size_t>(tm.cols())!=fourierSizeCols_)
 		{
 			fm.resize(fourierSizeRows_, fourierSizeCols_);
@@ -117,6 +119,7 @@ public:
 	 */
 	void padFilter(const RealMatrix& tm, RealMatrix& fm)
 	{
+		LOG_FUN;
 		if(static_cast<size_t>(tm.rows())!=fourierSizeRows_ || static_cast<size_t>(tm.cols())!=fourierSizeCols_)
 		{
 			fm.resize(fourierSizeRows_, fourierSizeCols_);
@@ -137,6 +140,7 @@ public:
 	 */
 	void padFilter(const SparseMatrix& tm, RealMatrix& fm)
 	{
+		LOG_FUN;
 		if(static_cast<size_t>(tm.rows())!=fourierSizeRows_ || static_cast<size_t>(tm.cols())!=fourierSizeCols_)
 		{
 			fm.resize(fourierSizeRows_, fourierSizeCols_);
@@ -163,6 +167,7 @@ public:
 	 */
 	void extractDenseOutput(const RealMatrix& fm, RealMatrix& tm)
 	{
+		LOG_FUN;
 		if(static_cast<size_t>(tm.rows())!=dataRows_ || static_cast<size_t>(tm.cols())!=dataCols_)
 		{
 			tm.resize(dataRows_, dataCols_);
@@ -181,6 +186,7 @@ public:
 	 */
 	void extractSparseOutput(const RealMatrix& fm, SparseMatrix& tm)
 	{
+		LOG_FUN;
 		if(static_cast<size_t>(tm.rows())!=dataRows_ || static_cast<size_t>(tm.cols())!=dataCols_)
 		{
 			tm.resize(dataRows_, dataCols_);
@@ -199,6 +205,7 @@ public:
  */
 	static uint32_t roundUpPow2(uint32_t v)
 	{
+		LOG_FUN;
 		v--;
 		v |= v >> 1;
 		v |= v >> 2;

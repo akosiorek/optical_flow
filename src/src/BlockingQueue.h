@@ -28,11 +28,11 @@ public:
 	{
 		std::lock_guard<std::mutex> lck (mtx_);
 		return queue_.size();
-	}	
+	}
 
 	T& front()
 	{
-		std::lock_guard<std::mutex> lck (mtx_);		
+		std::lock_guard<std::mutex> lck (mtx_);
 		return queue_.front();
 	}
 
@@ -44,20 +44,20 @@ public:
 
 	T& back()
 	{
-		std::lock_guard<std::mutex> lck (mtx_);		
+		std::lock_guard<std::mutex> lck (mtx_);
 		return queue_.back();
 	}
 
 	const T& back() const
 	{
-		std::lock_guard<std::mutex> lck (mtx_);		
+		std::lock_guard<std::mutex> lck (mtx_);
 		return queue_.back();
 	}
 
 	//NOT TESTEDz
 	void emplace(T&& val)
 	{
-		std::lock_guard<std::mutex> lck (mtx_);		
+		std::lock_guard<std::mutex> lck (mtx_);
 		return queue_.emplace(val);
 	}
 
@@ -69,7 +69,7 @@ public:
 
 	void pop()
 	{
-		std::lock_guard<std::mutex> lck (mtx_);		
+		std::lock_guard<std::mutex> lck (mtx_);
 		return queue_.pop();
 	}
 
