@@ -15,22 +15,22 @@
 
 #include "common.h"
 #include "types.h"
+#include "DataFlowPolicy.h"
 #include "EventSlice.h"
 
-template < template<typename> class BufferType>
-class Quantizer {
+template < template<class> class BufferT>
+class Quantizer :
+        public BufferedInputPolicy<Event, BufferT>,
+        public BufferedOutputPolicy<EventSlice::Ptr, BufferT>{
 public:
-
-    using EventQueueT = BufferType<Event>;
-    using EventSliceQueueT = BufferType<EventSlice::Ptr>;;
+    using InputBuffer = typename BufferedInputPolicy<Event, BufferT>::InputBuffer;
+    using OutputBuffer = typename BufferedOutputPolicy<EventSlice::Ptr, BufferT>::OutputBuffer;
 
     Quantizer(int timeResolution)
     :   initialized_(false),
         nextEventTime_(0),
-        timeResolution_(timeResolution),
-        inputBuffer_(new EventQueueT()),
-        outputBuffer_(new EventSliceQueueT())
-    {
+        timeResolution_(timeResolution) {
+
         LOG_FUN_START;
         currentEvents_.reserve(100);
         LOG_FUN_END;
@@ -40,20 +40,13 @@ public:
     {
         LOG_FUN_START;
         std::vector<Event> events;
-        while(hasInput())
+        while(this->hasInput())
         {
-            events.push_back(inputBuffer_->front());
-            inputBuffer_->pop();
+            events.push_back(this->inputBuffer_->front());
+            this->inputBuffer_->pop();
         }
         quantize(events);
         LOG_FUN_END;
-    }
-
-    /*
-     * Checks if the input buffer is not empty.
-     */
-    bool hasInput() {
-        return inputBuffer_ && !inputBuffer_->empty();
     }
 
     void quantize(const std::vector<Edvs::Event>& events)
@@ -84,40 +77,30 @@ public:
     bool isEmpty()
     {
         LOG_FUN;
-        return outputBuffer_->empty();
+        return this->outputBuffer_->empty();
     }
 
 
-    EventSlice getEventSlice()
+    std::shared_ptr<EventSlice> getEventSlice()
     {
         LOG_FUN_START;
-        if(outputBuffer_->empty()) {
-            return EventSlice();
+        if(this->outputBuffer_->empty()) {
+            return std::make_shared<EventSlice>();
         }
 
-        auto slice = outputBuffer_->front();
-        outputBuffer_->pop();
+        auto slice = this->outputBuffer_->front();
+        this->outputBuffer_->pop();
         LOG_FUN_END;
-        return *slice;
+        return slice;
     }
 
-    std::shared_ptr<EventSliceQueueT> getEventSlices()
+    std::shared_ptr<OutputBuffer> getEventSlices()
     {
         LOG_FUN_START;
-        auto oldSlices = outputBuffer_;
-        outputBuffer_.reset(new EventSliceQueueT());
+        auto oldSlices = this->outputBuffer_;
+        this->outputBuffer_.reset(new OutputBuffer());
         LOG_FUN_END;
         return oldSlices;
-    }
-
-    void setInputBuffer(std::shared_ptr<EventQueueT> buffer) {
-        LOG_FUN;
-        this->inputBuffer_ = buffer;
-    }
-
-    void setOutputBuffer(std::shared_ptr<EventSliceQueueT> buffer) {
-        LOG_FUN;
-        this->outputBuffer_ = buffer;
     }
 
 //  === Getters     ===========================================================
@@ -139,9 +122,9 @@ private:
             EventSlice::Ptr slice(new EventSlice);
             slice->setFromTriplets(currentEvents_.begin(), currentEvents_.end());
             currentEvents_.clear();
-            outputBuffer_->push(slice);
+            this->outputBuffer_->push(slice);
         } else {
-            outputBuffer_->emplace(std::make_shared<EventSlice>());
+            this->outputBuffer_->emplace(std::make_shared<EventSlice>());
         }
 
         nextEventTime_ += timeResolution_;
@@ -152,8 +135,6 @@ private:
     bool initialized_;
     EventTime nextEventTime_;
     unsigned int timeResolution_;
-    std::shared_ptr<EventQueueT> inputBuffer_;
-    std::shared_ptr<EventSliceQueueT> outputBuffer_;
     std::vector<Eigen::Triplet<int>> currentEvents_;
 };
 

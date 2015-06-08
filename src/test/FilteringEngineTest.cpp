@@ -54,8 +54,8 @@ struct FourierTransformerMock : public IFourierTransformer {
 class FilteringEngineTest : public testing::Test {
 public:
     typedef FilteringEngine<BlockingQueue> EngineT;
-    typedef typename EngineT::EventQueueT EventQueueT;
-    typedef typename EngineT::FlowQueueT FlowQueueT;
+    typedef typename EngineT::InputBuffer EventQueueT;
+    typedef typename EngineT::OutputBuffer FlowQueueT;
 
     FilteringEngineTest() :
             eventSliceQueue(new EventQueueT()),

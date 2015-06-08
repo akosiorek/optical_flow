@@ -9,6 +9,7 @@
 
 #include <boost/circular_buffer.hpp>
 
+#include "DataFlowPolicy.h"
 #include "EventSlice.h"
 #include "FlowSlice.h"
 #include "IFilterFactory.h"
@@ -22,10 +23,12 @@
  * @param OutputBufferT output buffer template type, will store outgoing flow slices.
  */
 template<template <class> class InputBufferT, template <class> class OutputBufferT = InputBufferT>
-class FilteringEngine {
+class FilteringEngine :
+        public BufferedInputPolicy<EventSlice::Ptr, InputBufferT>,
+        public BufferedOutputPolicy<FlowSlice::Ptr, OutputBufferT> {
 public:
-    using EventQueueT = InputBufferT<std::shared_ptr<EventSlice>>;
-    using FlowQueueT = OutputBufferT<std::shared_ptr<FlowSlice>>;
+    using InputBuffer = typename BufferedInputPolicy<EventSlice::Ptr, InputBufferT>::InputBuffer;
+    using OutputBuffer = typename BufferedOutputPolicy<FlowSlice::Ptr, OutputBufferT>::OutputBuffer;
 
     /**
      * @brief Creates the FilteringEngine
@@ -138,7 +141,7 @@ public:
                 flowSlice->xv_ += std::cos(rad) * extractedDataBuffer_;
                 flowSlice->yv_ -= std::sin(rad) * extractedDataBuffer_;
             }
-            outputBuffer_->push(flowSlice);
+            this->outputBuffer_->push(flowSlice);
         }
 
         LOG_FUN_END;
@@ -146,22 +149,14 @@ public:
 
     void process() {
         LOG_FUN_START;
-        while(hasInput()) {
-            auto input = inputBuffer_->front();
-            inputBuffer_->pop();
+        while(this->hasInput()) {
+            auto input = this->inputBuffer_->front();
+            this->inputBuffer_->pop();
             filter(input);
         }
         LOG_FUN_END;
     }
 
-    void setInputBuffer(std::shared_ptr<EventQueueT> buffer) {
-        LOG_FUN;
-        this->inputBuffer_ = buffer;
-    }
-    void setOutputBuffer(std::shared_ptr<FlowQueueT> buffer) {
-        LOG_FUN;
-        this->outputBuffer_ = buffer;
-    }
 
     /**
      * Filter depth or the number of the filter slices.
@@ -180,22 +175,6 @@ public:
         return timeSteps_ != 0 && receivedEventSlices_ >= static_cast<std::size_t>(timeSteps_);
     }
 
-    /*
-     * Checks if the input buffer is not empty.
-     */
-    bool hasInput() {
-        LOG_FUN;
-        return inputBuffer_ && !inputBuffer_->empty();
-    }
-
-    /**
-     * Checks if the output buffer is not empty.
-     */
-    bool hasOutput() {
-        LOG_FUN;
-        return outputBuffer_ && !outputBuffer_->empty();
-    }
-
     /**
      * Returns number of filters;
      */
@@ -210,8 +189,6 @@ private:
     RealMatrix paddedDataBuffer_;
     RealMatrix extractedDataBuffer_;
     RealMatrix inversedDataBuffer_;
-    std::shared_ptr<EventQueueT> inputBuffer_;
-    std::shared_ptr<FlowQueueT> outputBuffer_;
     std::unique_ptr<IFilterFactory> factory_;
     std::unique_ptr<FourierPadder> padder_;
     std::unique_ptr<IFourierTransformer> transformer_;

@@ -19,6 +19,3 @@ target_include_directories(optical_flow
     PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR} ${EIGEN3_INCLUDE_DIR}
     PRIVATE ${GLOG_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${FFTW3_INCLUDE_DIRS}
 )
-
-add_executable(optical_flow.bin main.cpp)
-target_link_libraries(optical_flow.bin PRIVATE optical_flow)

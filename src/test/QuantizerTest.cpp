@@ -33,7 +33,7 @@ TEST_F(QuantizerTest, NoEventTest) {
     ASSERT_TRUE(quantizer->isEmpty());
     quantizer->quantize(std::vector<Event>());
     ASSERT_TRUE(quantizer->isEmpty());
-    ASSERT_TRUE(quantizer->getEventSlice().isZero());
+    ASSERT_TRUE(quantizer->getEventSlice()->isZero());
 }
 
 TEST_F(QuantizerTest, SingleEventTest) {
@@ -47,13 +47,13 @@ TEST_F(QuantizerTest, SingleEventTest) {
     ASSERT_TRUE(quantizer->isEmpty());
 
     auto eventSlice = quantizer->getEventSlice();
-    ASSERT_TRUE(eventSlice.isZero());
+    ASSERT_TRUE(eventSlice->isZero());
 
     events = {{4, 1, 2, 0, 0}};
     quantizer->quantize(events);
     ASSERT_FALSE(quantizer->isEmpty());
     eventSlice = quantizer->getEventSlice();
-    ASSERT_EQ(eventSlice(1, 1), 1);
+    ASSERT_EQ(eventSlice->at(1, 1), 1);
 }
 
 TEST_F(QuantizerTest, QuantizeTest) {
@@ -68,16 +68,16 @@ TEST_F(QuantizerTest, QuantizeTest) {
 
     auto event = quantizer->getEventSlice();
     ASSERT_FALSE(quantizer->isEmpty());
-    ASSERT_EQ(event(1, 1), 1);
-    ASSERT_EQ(event(2, 2), -1);
-    ASSERT_EQ(event(127, 127), 0);
+    ASSERT_EQ(event->at(1, 1), 1);
+    ASSERT_EQ(event->at(2, 2), -1);
+    ASSERT_EQ(event->at(127, 127), 0);
 
     event = quantizer->getEventSlice();
     ASSERT_TRUE(quantizer->isEmpty());
-    ASSERT_EQ(event(1, 1), 0);
-    ASSERT_EQ(event(3, 3), -1);
+    ASSERT_EQ(event->at(1, 1), 0);
+    ASSERT_EQ(event->at(3, 3), -1);
 
-    ASSERT_TRUE(quantizer->getEventSlice().isZero());
+    ASSERT_TRUE(quantizer->getEventSlice()->isZero());
 }
 
 TEST_F(QuantizerTest, QuantizeGetMultipleEventsTest) {
@@ -127,7 +127,7 @@ TEST_F(QuantizerTest, QuantizeGetMultipleEventsTest) {
             eventSlices->pop();
             last_slice=slice;
         }
-        ASSERT_EQ((*eventSlices->front())(x, y), parity) << "slice = " << slice << ", x = " << x << ", y = " << y;
+        ASSERT_EQ(eventSlices->front()->at(x, y), parity) << "slice = " << slice << ", x = " << x << ", y = " << y;
     }
 }
 
@@ -148,7 +148,9 @@ TEST_F(QuantizerTest, LongPauseBetweenEventsTest) {
 
     while(!slices->empty())
     {
-        if(!(*slices->front()).isZero()) nonZero.push_back(slices->front());
+        if(!(slices->front())->isZero()) {
+            nonZero.push_back(slices->front());
+        }
         slices->pop();
     }
 
