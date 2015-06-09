@@ -15,7 +15,7 @@ const float FilterFactory::PI_ = static_cast<float>(M_PI);
 
 FilterFactory::FilterFactory(float t0, float tk, float tResolution, int xRange, int yRange)
     : xRange_(xRange), yRange_(yRange),
-      filterTransformer_([](const MatrixT& filter) { return filter.cast<ComplexMatrix::Scalar>(); }),
+      filterTransformer_([](const MatrixT& filter) { return filter.cast<Filter::FilterT::Scalar>(); }),
     // filters parameters
     sigma(25),
     s1(0.5),
@@ -55,7 +55,7 @@ void FilterFactory::setFilterTransformer(FilterTransformT transform) {
 
 std::shared_ptr <Filter> FilterFactory::createFilter(int angle) const {
     LOG_FUN_START;
-    LOG(INFO) << "Creating " << angle << " degree filter";
+    LOG(INFO) << "Creating filter with angle " << angle << " xSize " <<  xSize_ <<  " ySize " << ySize_;
 
     auto filters = std::make_unique<std::vector<FilterT>>();
     filters->reserve(timeSpan_);

@@ -5,6 +5,8 @@
  *      Author: Adam Kosiorek
  */
 
+#include <FilteringEngineCPU.h>
+#include <IFourierTransformer.h>
 #include "gtest/gtest.h"
 
 #include "utils.h"
@@ -14,7 +16,7 @@
 #include "Filter.h"
 #include "EventSlice.h"
 #include "FlowSlice.h"
-#include "FilteringEngine.h"
+#include "FilteringEngineCPU.h"
 
 struct FilterFactoryMock : public IFilterFactory {
 
@@ -51,13 +53,13 @@ struct FourierTransformerMock : public IFourierTransformer {
     }
 };
 
-class FilteringEngineTest : public testing::Test {
+class FilteringEngineCPUTest : public testing::Test {
 public:
-    typedef FilteringEngine<BlockingQueue> EngineT;
+    typedef FilteringEngineCPU<BlockingQueue> EngineT;
     typedef typename EngineT::InputBuffer EventQueueT;
     typedef typename EngineT::OutputBuffer FlowQueueT;
 
-    FilteringEngineTest() :
+    FilteringEngineCPUTest() :
             eventSliceQueue(new EventQueueT()),
             flowSliceQueue(new FlowQueueT()) {}
 
@@ -79,7 +81,7 @@ public:
 };
 
 
-TEST_F(FilteringEngineTest, ConstructorPostconditionsTest) {
+TEST_F(FilteringEngineCPUTest, ConstructorPostconditionsTest) {
 
     ASSERT_FALSE(engine->isInitialized());
     ASSERT_FALSE(engine->hasInput());
@@ -88,7 +90,7 @@ TEST_F(FilteringEngineTest, ConstructorPostconditionsTest) {
     ASSERT_EQ(engine->numFilters(), 0);
 }
 
-TEST_F(FilteringEngineTest, HasInputOutputTest) {
+TEST_F(FilteringEngineCPUTest, HasInputOutputTest) {
 
     engine->setInputBuffer(eventSliceQueue);
     engine->setOutputBuffer(flowSliceQueue);
@@ -104,7 +106,7 @@ TEST_F(FilteringEngineTest, HasInputOutputTest) {
     ASSERT_TRUE(engine->hasOutput());
 }
 
-TEST_F(FilteringEngineTest, AddFilterTest) {
+TEST_F(FilteringEngineCPUTest, AddFilterTest) {
 
     engine->addFilter(15);
     ASSERT_EQ(engine->numFilters(), 1);
@@ -119,34 +121,34 @@ TEST_F(FilteringEngineTest, AddFilterTest) {
     ASSERT_EQ(engine->numFilters(), 2);
 }
 
-TEST_F(FilteringEngineTest, IntializeAndProduceOutputTest) {
+TEST_F(FilteringEngineCPUTest, IntializeAndProduceOutputTest) {
     engine->setOutputBuffer(flowSliceQueue);
     engine->addFilter(15);
-    ASSERT_FALSE(engine->isInitialized());
+    ASSERT_FALSE(engine->isBufferFilled());
 
     auto slice = std::make_shared<EventSlice>(dataSize_, dataSize_);
     engine->filter(slice);
-    ASSERT_TRUE(engine->isInitialized());
+    ASSERT_TRUE(engine->isBufferFilled());
     ASSERT_TRUE(engine->hasOutput());
 }
 
-TEST_F(FilteringEngineTest, ConsumeInputTest) {
+TEST_F(FilteringEngineCPUTest, ConsumeInputTest) {
     engine->setInputBuffer(eventSliceQueue);
     engine->setOutputBuffer(flowSliceQueue);
     engine->addFilter(15);
-    ASSERT_FALSE(engine->isInitialized());
+    ASSERT_FALSE(engine->isBufferFilled());
 
     auto slice = std::make_shared<EventSlice>(dataSize_, dataSize_);
     eventSliceQueue->push(slice);
     ASSERT_TRUE(engine->hasInput());
     engine->process();
     ASSERT_FALSE(engine->hasInput());
-    ASSERT_TRUE(engine->isInitialized());
+    ASSERT_TRUE(engine->isBufferFilled());
     ASSERT_TRUE(engine->hasOutput());
 }
 
 
-TEST_F(FilteringEngineTest, BasicFilteringTest) {
+TEST_F(FilteringEngineCPUTest, BasicFilteringTest) {
     int angle = 15;
     engine->setOutputBuffer(flowSliceQueue);
     engine->addFilter(angle);

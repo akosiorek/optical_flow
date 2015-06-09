@@ -5,10 +5,7 @@
 #ifndef OPTICAL_FLOW_FILTERINGENGINE_H
 #define OPTICAL_FLOW_FILTERINGENGINE_H
 
-#include <memory>
-
-#include <boost/circular_buffer.hpp>
-
+#include "common.h"
 #include "DataFlowPolicy.h"
 #include "EventSlice.h"
 #include "FlowSlice.h"
@@ -45,8 +42,7 @@ public:
               receivedEventSlices_(0),
               factory_(std::move(factory)),
               padder_(std::move(padder)),
-              transformer_(std::move(transformer)),
-              eventBuffer_(0) {
+              transformer_(std::move(transformer)) {
 
         LOG_FUN_START;
 
@@ -55,13 +51,26 @@ public:
 
                     RealMatrix padded;
                     this->padder_->padFilter(filter, padded);
-                    ComplexMatrix transformed(padded.rows(),padded.cols()/2 + 1);
-                    this->transformer_->forward(padded, transformed);
-                    return transformed;
+                    return padded;
                 });
 
         LOG_FUN_END;
     }
+
+    virtual void storeFilter(std::shared_ptr<Filter> filter) = 0;
+    virtual void prepareResponseBuffer() = 0;
+    virtual void initialize(std::shared_ptr<Filter> filter) = 0;
+    virtual bool isInitialized()  = 0;
+    /**
+     * Returns number of filters;
+     */
+    virtual int numFilters() = 0;
+
+    /**
+     * Filter a single event slice
+     * @param slice An event slices to be filetered.
+     */
+    virtual void filter(std::shared_ptr<EventSlice> slice) = 0;
 
     /**
      * Adds a filter with a specified angle.
@@ -71,79 +80,18 @@ public:
         LOG_FUN_START;
         LOG(INFO) << "Adding " << angle << " degree filter";
 
-        auto it = std::find_if(std::begin(filters_), std::end(filters_),
-        [angle](std::shared_ptr<Filter> filter) {
-            return filter->angle() == angle;
-        });
+        auto it = std::find(std::begin(angles_), std::end(angles_), angle);
 
-        if(it == filters_.end()) {
+        if(it == angles_.end()) {
             auto filter = factory_->createFilter(angle);
-
-            filters_.push_back(filter);
             timeSteps_ = filter->numSlices();
-            responseBuffer_.emplace_back(filter->ySize(), filter->xSize());
-            LOG(INFO) << "Creating filter with angle " << angle << " xSize " <<  filter->xSize() <<  " ySize " << filter->ySize();
+            storeFilter(filter);
+            prepareResponseBuffer();
 
-            // intialize buffer by allocating memory for all event slices to be kept
-            if(eventBuffer_.size() != static_cast<std::size_t>(timeSteps_)) {
-            LOG(INFO) << "timeSteps_ " << timeSteps_ << " eventBuffer_.size() " <<  eventBuffer_.size() << " ...";
-                eventBuffer_.set_capacity(timeSteps_);
-            LOG(INFO) << " Now : timeSteps_ " << timeSteps_ << " eventBuffer_.size() " <<  eventBuffer_.size() << " ...";
-             google::FlushLogFiles(google::GLOG_ERROR);
-                while(eventBuffer_.size() != eventBuffer_.capacity()) {
-                    eventBuffer_.push_back(ComplexMatrix(filter->xSize(), filter->ySize()));
-                    LOG(INFO) << "timeSteps_ " << timeSteps_ << " eventBuffer_.size() " <<  eventBuffer_.size() << " ...";
-                }
-
-                extractedDataBuffer_.resize(filter->xSize(), filter->ySize());
+            if(!isInitialized()) {
+                initialize(filter);
             }
         }
-
-        LOG_FUN_END;
-    }
-
-    /**
-     * Filter a single event slice
-     * @param slice An event slices to be filetered.
-     */
-    void filter(std::shared_ptr<EventSlice> slice) {
-        LOG_FUN_START;
-
-        eventBuffer_.rotate(eventBuffer_.end() - 1);
-        ++receivedEventSlices_;
-        padder_->padData(*slice, paddedDataBuffer_);
-        transformer_->forward(paddedDataBuffer_, eventBuffer_[0]);
-
-        // may the magic happen
-        if(isInitialized()) {
-
-            // zero the response buffers
-            for(auto& buffer : responseBuffer_) {
-                buffer.setZero();
-            }
-
-            // iterate over eventSlices and filterSlices
-            for(int sliceIndex = 0; sliceIndex < timeSteps_; ++sliceIndex) {
-                const auto& eventSlice = eventBuffer_[sliceIndex];
-                // iterate over filters
-                for(std::size_t filterIndex = 0; filterIndex < filters_.size(); ++filterIndex) {
-                    const auto& filterSlice = filters_[filterIndex]->at(sliceIndex);
-                    responseBuffer_[filterIndex] += eventSlice.cwiseProduct(filterSlice);
-                }
-            }
-
-            auto flowSlice = std::make_shared<FlowSlice>(slice->rows(), slice->cols());
-            for(std::size_t filterIndex = 0; filterIndex < filters_.size(); ++filterIndex) {
-
-                float rad = deg2rad(filters_[filterIndex]->angle());
-                transformer_->backward(responseBuffer_[filterIndex], inversedDataBuffer_);
-                padder_->extractDenseOutput(inversedDataBuffer_, extractedDataBuffer_);
-                flowSlice->xv_ += std::cos(rad) * extractedDataBuffer_;
-                flowSlice->yv_ -= std::sin(rad) * extractedDataBuffer_;
-            }
-            this->outputBuffer_->push(flowSlice);
-        }
-
         LOG_FUN_END;
     }
 
@@ -157,7 +105,6 @@ public:
         LOG_FUN_END;
     }
 
-
     /**
      * Filter depth or the number of the filter slices.
      */
@@ -170,31 +117,18 @@ public:
      * Checks whether it has at least one filter and received a sufficient
      * number of events to start estimating flow
      */
-    bool isInitialized() {
+    bool isBufferFilled() {
         LOG_FUN;
         return timeSteps_ != 0 && receivedEventSlices_ >= static_cast<std::size_t>(timeSteps_);
     }
 
-    /**
-     * Returns number of filters;
-     */
-    int numFilters() {
-        LOG_FUN;
-        return filters_.size();
-    }
-
-private:
+protected:
     int timeSteps_;
     size_t receivedEventSlices_;
-    RealMatrix paddedDataBuffer_;
-    RealMatrix extractedDataBuffer_;
-    RealMatrix inversedDataBuffer_;
     std::unique_ptr<IFilterFactory> factory_;
     std::unique_ptr<FourierPadder> padder_;
     std::unique_ptr<IFourierTransformer> transformer_;
-    std::vector<std::shared_ptr<Filter>> filters_;
-    std::vector<ComplexMatrix> responseBuffer_;
-    boost::circular_buffer<ComplexMatrix> eventBuffer_;
+    std::vector<int> angles_;
 };
 
 

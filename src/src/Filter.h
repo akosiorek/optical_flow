@@ -11,7 +11,7 @@
 class Filter {
 public:
     using MatrixT = RealMatrix;
-    using FilterT = ComplexMatrix;
+    using FilterT = RealMatrix;
 
     Filter();
     Filter(float angle, std::unique_ptr<std::vector<FilterT>> filters);

@@ -10,7 +10,6 @@
 
 #include "Filter.h"
 #include "FilterFactory.h"
-#include "../src/FilterFactory.h"
 
 class FilterFactoryTest : public testing::Test {
 public:
@@ -95,10 +94,9 @@ TEST_F(FilterFactoryTest, SmallFilterTest) {
 
     for (int x = 0; x < this->size(xRadius); ++x) {
         for (int y = 0; y < this->size(yRadius); ++y) {
-            ASSERT_NEAR(filterSlice.real()(x, y), expectedFilter(x, y), tolerance) << "x = " << x << ", y = " << y;
+            ASSERT_NEAR(filterSlice(x, y), expectedFilter(x, y), tolerance) << "x = " << x << ", y = " << y;
         }
     }
-    ASSERT_TRUE(filterSlice.imag().isZero(0));
 }
 
 TEST_F(FilterFactoryTest, TransformedFilterTest) {
@@ -118,7 +116,6 @@ TEST_F(FilterFactoryTest, TransformedFilterTest) {
 
     auto filterbank = factory.createFilter(angle);
     auto filter = filterbank->at(0);
-    ASSERT_NEAR(filter.real().maxCoeff(), 1, this->tolerance);
-    ASSERT_TRUE(filter.imag().isZero(0));
+    ASSERT_NEAR(filter.maxCoeff(), 1, this->tolerance);
 }
 

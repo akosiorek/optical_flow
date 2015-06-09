@@ -9,7 +9,7 @@
 #include "FilterFactory.h"
 #include "FourierPadder.h"
 #include "FourierTransformerFFTW.h"
-#include "FilteringEngine.h"
+#include "FilteringEngineCPU.h"
 
 template<class T>
 using QueueT = BlockingQueue<T>;
@@ -94,7 +94,7 @@ int main(int argc, char** argv)
     auto transformer = std::make_unique<FourierTransformerFFTW>(padder->fourierSizeRows_,
                                                                 padder->fourierSizeCols_);
 
-    FilteringEngine<QueueT, QueueT> engine(std::move(factory), std::move(padder), std::move(transformer));
+    FilteringEngineCPU<QueueT, QueueT> engine(std::move(factory), std::move(padder), std::move(transformer));
 
     engine.setInputBuffer(eventSliceQueue);
     engine.setOutputBuffer(flowSliceQueue);
