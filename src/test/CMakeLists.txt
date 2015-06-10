@@ -8,6 +8,7 @@ add_executable(test.bin
     FilterTest.cpp
     FilterFactoryTest.cpp
     FilteringEngineCPUTest.cpp
+    FilteringEngineGPUTest.cpp
     FourierTransformerTest.cpp
     EventReaderTest.cpp
     )

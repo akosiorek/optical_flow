@@ -2,16 +2,18 @@
 // Created by Adam Kosiorek on 22.05.15.
 //
 
-#ifndef OPTICAL_FLOW_FILTERINGENGINEGPU_H
-#define OPTICAL_FLOW_FILTERINGENGINEGPU_H
+#ifndef OPTICAL_FLOW_FILTERINGENGINECPU_H
+#define OPTICAL_FLOW_FILTERINGENGINECPU_H
 
-#include <arrayfire.h>
+#include "arrayfire.h"
 #include <boost/circular_buffer.hpp>
 #include "FilteringEngine.h"
 
-template<template <class> class InputBufferT, template <class> class OutputBufferT = InputBufferT>
+template<template<class> class InputBufferT, template<class> class OutputBufferT = InputBufferT>
 class FilteringEngineGPU : public FilteringEngine<InputBufferT, OutputBufferT> {
 public:
+    using BaseT = FilteringEngine<InputBufferT, OutputBufferT>;
+    using BaseT::timeSteps_;
 
     /**
      * @brief Creates the FilteringEngine
@@ -23,30 +25,33 @@ public:
     FilteringEngineGPU(std::unique_ptr<IFilterFactory> factory,
                     std::unique_ptr<FourierPadder> padder,
                     std::unique_ptr<IFourierTransformer> transformer)
-
-            : FilteringEngine(std::move(factory), std::move(padder), std::move(transformer)),
+            : BaseT(std::move(factory), std::move(padder), std::move(transformer)),
             eventBuffer_(0) {}
 
 
     virtual void storeFilter(std::shared_ptr<Filter> filter) override {
 
         this->angles_.push_back(filter->angle());
-        this->filters_.emplace_back(filter->ySize(), filter->xSize(), filter->numSlices(), af::c32);
+        this->filters_.emplace_back();
         auto& filterVec = this->filters_[this->filters_.size() - 1];
+        filterVec.reserve(filter->numSlices());
 
         ComplexMatrix transformed;
         for(int i = 0; i < filter->numSlices(); ++i) {
             this->transformer_->forward(filter->at(i), transformed);
-            filterVec(af::span, af::span, i) = af::array(filter->ySize(), filter->xSize(), transformed.data);
+
+            filterVec.emplace_back(transformed.rows(), transformed.cols(), reinterpret_cast<af::cfloat*>(transformed.data()));
         }
+        filterRows_ = transformed.rows();
+        filterCols_ = transformed.cols();
     }
 
-    virtual void prepareResponseBuffer(int rows, int cols) override {
-        responseBuffer_.emplace_back(rows, cols);
+    virtual void prepareResponseBuffer() override {
+        responseBuffer_.emplace_back(filterRows_, filterCols_);
     }
 
     virtual bool isInitialized() override {
-        return eventBuffer_.size() == timeSteps_;
+        return  !this->angles_.empty() && eventBuffer_.size() == timeSteps_;
     }
 
     virtual void initialize(std::shared_ptr<Filter> filter) override {
@@ -55,9 +60,9 @@ public:
             LOG(INFO) << "timeSteps_ " << timeSteps_ << " eventBuffer_.size() " <<  eventBuffer_.size() << " ...";
             eventBuffer_.set_capacity(timeSteps_);
             LOG(INFO) << " Now : timeSteps_ " << timeSteps_ << " eventBuffer_.size() " <<  eventBuffer_.size() << " ...";
-            google::FlushLogFiles(google::GLOG_ERROR);
+
             while(eventBuffer_.size() != eventBuffer_.capacity()) {
-                eventBuffer_.push_back(ComplexMatrix(filter->xSize(), filter->ySize()));
+                eventBuffer_.push_back(af::array(filterRows_, filterCols_, c32));
                 LOG(INFO) << "timeSteps_ " << timeSteps_ << " eventBuffer_.size() " <<  eventBuffer_.size() << " ...";
             }
             extractedDataBuffer_.resize(filter->xSize(), filter->ySize());
@@ -68,16 +73,17 @@ public:
         LOG_FUN_START;
 
         eventBuffer_.rotate(eventBuffer_.end() - 1);
-        ++receivedEventSlices_;
-        padder_->padData(*slice, paddedDataBuffer_);
-        transformer_->forward(paddedDataBuffer_, eventBuffer_[0]);
+        ++this->receivedEventSlices_;
+        this->padder_->padData(*slice, paddedDataBuffer_);
+        this->transformer_->forward(paddedDataBuffer_, transformedDataBuffer_);
+        eventBuffer_[0] = af::array(eventBuffer_[0].dims(), reinterpret_cast<af::cfloat*>(transformedDataBuffer_.data()));
 
         // may the magic happen
-        if(isBufferFilled()) {
+        if(this->isBufferFilled()) {
 
             // zero the response buffers
             for(auto& buffer : responseBuffer_) {
-                buffer.setZero();
+                buffer = af::constant(0, buffer.dims());
             }
 
             // iterate over eventSlices and filterSlices
@@ -86,20 +92,32 @@ public:
                 // iterate over filters
                 for(int filterIndex = 0; filterIndex < filters_.size(); ++filterIndex) {
                     const auto& filterSlice = filters_[filterIndex][sliceIndex];
-                    responseBuffer_[filterIndex] += eventSlice.cwiseProduct(filterSlice);
+
+                    LOG(ERROR) << responseBuffer_[filterIndex].dims();
+                    LOG(ERROR) << eventSlice.dims();
+                    LOG(ERROR) << filterSlice.dims();
+
+                    responseBuffer_[filterIndex] += eventSlice * filterSlice;
                 }
             }
+
+
 
             auto flowSlice = std::make_shared<FlowSlice>(slice->rows(), slice->cols());
             for(int filterIndex = 0; filterIndex < filters_.size(); ++filterIndex) {
 
-                float rad = deg2rad(angles_[filterIndex]);
-                transformer_->backward(responseBuffer_[filterIndex], inversedDataBuffer_);
-                padder_->extractDenseOutput(inversedDataBuffer_, extractedDataBuffer_);
+                float rad = deg2rad(this->angles_[filterIndex]);
+                std::complex<float>* data = reinterpret_cast<std::complex<float>*>(responseBuffer_[filterIndex].host<af::cfloat>());
+                auto dims = responseBuffer_[filterIndex].dims();
+                Eigen::Map<ComplexMatrix> mappedData(data, dims[0], dims[1]);
+                this->transformer_->backward(mappedData, inversedDataBuffer_);
+                delete[] data;
+
+                this->padder_->extractDenseOutput(inversedDataBuffer_, extractedDataBuffer_);
                 flowSlice->xv_ += std::cos(rad) * extractedDataBuffer_;
                 flowSlice->yv_ -= std::sin(rad) * extractedDataBuffer_;
             }
-            outputBuffer_->push(flowSlice);
+            this->outputBuffer_->push(flowSlice);
         }
 
         LOG_FUN_END;
@@ -117,10 +135,13 @@ private:
     RealMatrix paddedDataBuffer_;
     RealMatrix extractedDataBuffer_;
     RealMatrix inversedDataBuffer_;
-    std::vector<af::array> filters_;
+    ComplexMatrix transformedDataBuffer_;
+    std::vector<std::vector<af::array>> filters_;
     std::vector<af::array> responseBuffer_;
     boost::circular_buffer<af::array> eventBuffer_;
+    int filterRows_;
+    int filterCols_;
 };
 
 
-#endif //OPTICAL_FLOW_FILTERINGENGINEGPU_H
+#endif //OPTICAL_FLOW_FILTERINGENGINECPU_H
