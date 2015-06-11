@@ -5,9 +5,53 @@
 #ifndef OPTICAL_FLOW_FILTERINGENGINECPU_H
 #define OPTICAL_FLOW_FILTERINGENGINECPU_H
 
-#include "arrayfire.h"
+#include <cuda.h>
 #include <boost/circular_buffer.hpp>
 #include "FilteringEngine.h"
+#include "gpu_math.h"
+
+template<class T>
+class CudaMatrix {
+public:
+    CudaMatrix(int rows, int cols) : rows_(rows), cols_(cols), bytes_(rows_ * cols_ * sizeof(T)) {
+        cudaMalloc(&data_, bytes_);
+    }
+
+    CudaMatrix(int rows, int cols, T* from) : CudaMatrix(rows, cols) {
+        copyFromHost(from);
+    }
+
+    ~CudaMatrix() {
+        cudaFree(data_);
+        data_ = nullptr;
+    }
+
+    void copyFrom(T* from) {
+        cudaMemcpy(data_, from, cudaMemcpyHostToDevice);
+    }
+
+    void setZero() {
+        cudaMemset(data_, 0, bytes_);
+    }
+
+    size_t rows() const {
+        return rows_;
+    }
+
+    size_t cols() const {
+        return cols_;
+    }
+
+    T const* data() const {
+        return data_;
+    }
+
+private:
+    size_t rows_;
+    size_t cols_;
+    size_t bytes_;
+    T* data_;
+};
 
 template<template<class> class InputBufferT, template<class> class OutputBufferT = InputBufferT>
 class FilteringEngineGPU : public FilteringEngine<InputBufferT, OutputBufferT> {
@@ -39,15 +83,14 @@ public:
         ComplexMatrix transformed;
         for(int i = 0; i < filter->numSlices(); ++i) {
             this->transformer_->forward(filter->at(i), transformed);
-
-            filterVec.emplace_back(transformed.rows(), transformed.cols(), reinterpret_cast<af::cfloat*>(transformed.data()));
+            filterVec.emplace_back(transformed.rows(), transformed.cols(), transformed.data());
         }
-        filterRows_ = transformed.rows();
-        filterCols_ = transformed.cols();
+        transformedRows_ = transformed.rows();
+        transformedCols_ = transformed.cols();
     }
 
     virtual void prepareResponseBuffer() override {
-        responseBuffer_.emplace_back(filterRows_, filterCols_);
+        responseBuffer_.emplace_back(transformedRows_, transformedCols_);
     }
 
     virtual bool isInitialized() override {
@@ -57,13 +100,10 @@ public:
     virtual void initialize(std::shared_ptr<Filter> filter) override {
         // intialize buffer by allocating memory for all event slices to be kept
         if(eventBuffer_.size() != timeSteps_) {
-            LOG(INFO) << "timeSteps_ " << timeSteps_ << " eventBuffer_.size() " <<  eventBuffer_.size() << " ...";
             eventBuffer_.set_capacity(timeSteps_);
-            LOG(INFO) << " Now : timeSteps_ " << timeSteps_ << " eventBuffer_.size() " <<  eventBuffer_.size() << " ...";
 
             while(eventBuffer_.size() != eventBuffer_.capacity()) {
-                eventBuffer_.push_back(af::array(filterRows_, filterCols_, c32));
-                LOG(INFO) << "timeSteps_ " << timeSteps_ << " eventBuffer_.size() " <<  eventBuffer_.size() << " ...";
+                eventBuffer_.push_back(CudaMatrix<std::complex<float>>(transformedRows_, transformedCols_));
             }
             extractedDataBuffer_.resize(filter->xSize(), filter->ySize());
         }
@@ -76,14 +116,15 @@ public:
         ++this->receivedEventSlices_;
         this->padder_->padData(*slice, paddedDataBuffer_);
         this->transformer_->forward(paddedDataBuffer_, transformedDataBuffer_);
-        eventBuffer_[0] = af::array(eventBuffer_[0].dims(), reinterpret_cast<af::cfloat*>(transformedDataBuffer_.data()));
+        eventBuffer_[0].copyFrom(transformedDataBuffer_.data());
+
 
         // may the magic happen
         if(this->isBufferFilled()) {
 
             // zero the response buffers
             for(auto& buffer : responseBuffer_) {
-                buffer = af::constant(0, buffer.dims());
+                buffer.setZero();
             }
 
             // iterate over eventSlices and filterSlices
@@ -92,10 +133,6 @@ public:
                 // iterate over filters
                 for(int filterIndex = 0; filterIndex < filters_.size(); ++filterIndex) {
                     const auto& filterSlice = filters_[filterIndex][sliceIndex];
-
-                    LOG(ERROR) << responseBuffer_[filterIndex].dims();
-                    LOG(ERROR) << eventSlice.dims();
-                    LOG(ERROR) << filterSlice.dims();
 
                     responseBuffer_[filterIndex] += eventSlice * filterSlice;
                 }
@@ -139,8 +176,8 @@ private:
     std::vector<std::vector<af::array>> filters_;
     std::vector<af::array> responseBuffer_;
     boost::circular_buffer<af::array> eventBuffer_;
-    int filterRows_;
-    int filterCols_;
+    int transformedRows_;
+    int transformedCols_;
 };
 
 
