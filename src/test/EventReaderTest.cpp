@@ -1,18 +1,18 @@
 #include "gtest/gtest.h"
 #include "common.h"
 #include "Edvs/event.h"
-#include "BlockingQueue.h"
+#include "../src/BlockingDeque.h"
 #include "EventReader.h"
 
 
 class EventReaderTest : public testing::Test {
 
     void SetUp() {
-        event_reader = std::make_unique<EventReader<BlockingQueue<Edvs::Event>>>();
+        event_reader = std::make_unique<EventReader<BlockingDeque<Edvs::Event>>>();
     }
 
 public:
-    std::unique_ptr<EventReader<BlockingQueue<Edvs::Event>>> event_reader;
+    std::unique_ptr<EventReader<BlockingDeque<Edvs::Event>>> event_reader;
 };
 
 TEST_F(EventReaderTest, ConstructorTest) {
@@ -30,7 +30,7 @@ TEST_F(EventReaderTest, SetGetURITest)
 TEST_F(EventReaderTest, SetBufferTest)
 {
     ASSERT_EQ(event_reader->isBufferSet(), false);
-    event_reader->setOutputBuffer(std::make_shared<BlockingQueue<Edvs::Event>>());
+    event_reader->setOutputBuffer(std::make_shared<BlockingDeque<Edvs::Event>>());
     ASSERT_EQ(event_reader->isBufferSet(), true);
 }
 

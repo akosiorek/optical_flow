@@ -115,14 +115,16 @@ private:
 		while(!stream_->eos() && running_ == true)
 		{
 			// read events from stream
+			// auto events = stream_->read();
+			// if(!events.empty())
+			// {
+			// 	for(auto event : events)
+			// 	{
+			// 		buffer_->push(event);
+			// 	}
+			// }
 			auto events = stream_->read();
-			if(!events.empty())
-			{
-				for(auto event : events)
-				{
-					buffer_->push(event);
-				}
-			}
+			buffer_->pushVector(events);
 		}
 		running_ == false; // only of interest if stream->eos() notifies EOF
 		LOG_FUN_END;

@@ -42,8 +42,8 @@ public:
         std::vector<Event> events;
         while(this->hasInput())
         {
-            events.push_back(this->inputBuffer_->front());
-            this->inputBuffer_->pop();
+            // events.push_back(inputBuffer_->front());
+            inputBuffer_->pop(events);
         }
         quantize(events);
         LOG_FUN_END;

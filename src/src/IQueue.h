@@ -2,35 +2,39 @@
 #define I_QUEUE_H
 
 /**
- * @brief A very basic thread-safe wrapper for the stl queue (c.f. std::queue)
- * 
- * @tparam T Type to store in queue
+ * @brief A very basic interface wrapper for STL compliant containers offering queue-like access.
+ * 		  Thread-safety is up to the implementation.
  */
-template<typename T>
+template<typename T, typename Queue >
 class IQueue
 {
 public:
-	typedef std::shared_ptr<IQueue>  Ptr;
-
 	virtual~IQueue() = default;
 
-	virtual bool empty() const = 0;
-	virtual size_t size() = 0;
-
+	// Element Access
 	virtual T& front() = 0;
 	virtual const T& front() const = 0;
 
 	virtual T& back() = 0;
+	virtual const T& back() const = 0;
 
-	const T& back() const;
+	// Modifiers
+	virtual void push(const T& val) = 0;
+	virtual void pushVector(const std::vector<T>& vals) = 0;
 
-	void push(const T& val);
+	// Some might a emplace here...
 
-	void pop();
+	virtual void pop() = 0;
+	virtual void swap(Queue& x) = 0;
+	virtual void clear();
 
-private:
-	mutable std::mutex mtx_;
-	std::queue<T> queue_;
+	// Combined Modifiers (less locks)
+	virtual void pop(T& val) = 0;
+	virtual void pop(std::vector<T>& vals) = 0;
+
+	// Capacity
+	virtual bool empty() const = 0;
+	virtual std::size_t size() const = 0;
 };
 
 #endif //I_QUEUE_H

@@ -7,7 +7,7 @@
 
 /**
  * @brief A very basic thread-safe wrapper for the stl queue (c.f. std::queue)
- * 
+ *
  * @tparam T Type to store in queue
  */
 template<typename T>
