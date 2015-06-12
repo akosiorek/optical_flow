@@ -6,71 +6,34 @@
 #define OPTICAL_FLOW_FILTERINGENGINECPU_H
 
 #include <cuda.h>
+#include <thrust/complex.h>
 #include <boost/circular_buffer.hpp>
 #include "FilteringEngine.h"
+#include "DeviceBlob.h"
 #include "gpu_math.h"
 
-template<class T>
-class CudaMatrix {
-public:
-    CudaMatrix(int rows, int cols) : rows_(rows), cols_(cols), bytes_(rows_ * cols_ * sizeof(T)) {
-        cudaMalloc(&data_, bytes_);
-    }
-
-    CudaMatrix(int rows, int cols, T* from) : CudaMatrix(rows, cols) {
-        copyFromHost(from);
-    }
-
-    ~CudaMatrix() {
-        cudaFree(data_);
-        data_ = nullptr;
-    }
-
-    void copyFrom(T* from) {
-        cudaMemcpy(data_, from, cudaMemcpyHostToDevice);
-    }
-
-    void setZero() {
-        cudaMemset(data_, 0, bytes_);
-    }
-
-    size_t rows() const {
-        return rows_;
-    }
-
-    size_t cols() const {
-        return cols_;
-    }
-
-    T const* data() const {
-        return data_;
-    }
-
-private:
-    size_t rows_;
-    size_t cols_;
-    size_t bytes_;
-    T* data_;
-};
+thrust::complex<float>* castThrust(std::complex<float>* ptr) {
+    return reinterpret_cast<thrust::complex<float>*>(ptr);
+}
 
 template<template<class> class InputBufferT, template<class> class OutputBufferT = InputBufferT>
 class FilteringEngineGPU : public FilteringEngine<InputBufferT, OutputBufferT> {
 public:
     using BaseT = FilteringEngine<InputBufferT, OutputBufferT>;
     using BaseT::timeSteps_;
+private:
+    using RealBlob = DeviceBlob<float>;
+    using ComplexBlob = DeviceBlob<thrust::complex<float>>;
+public:
 
-    /**
-     * @brief Creates the FilteringEngine
-     *
-     * @param factory Factory used to create filters.
-     * @param padder  Pre-configured fourier padder used for padding filters and event slices.
-     * @param transformer   Transforms filters and event slices into the Fourier domain.
-     */
     FilteringEngineGPU(std::unique_ptr<IFilterFactory> factory,
                     std::unique_ptr<FourierPadder> padder,
                     std::unique_ptr<IFourierTransformer> transformer)
+
             : BaseT(std::move(factory), std::move(padder), std::move(transformer)),
-            eventBuffer_(0) {}
+            eventBuffer_(0),
+            rowsTransformed_(0),
+            colsTransformed_(0) {}
 
 
     virtual void storeFilter(std::shared_ptr<Filter> filter) override {
@@ -83,14 +46,20 @@ public:
         ComplexMatrix transformed;
         for(int i = 0; i < filter->numSlices(); ++i) {
             this->transformer_->forward(filter->at(i), transformed);
-            filterVec.emplace_back(transformed.rows(), transformed.cols(), transformed.data());
+            filterVec.emplace_back(transformed.rows(), transformed.cols(), castThrust(transformed.data()));
         }
-        transformedRows_ = transformed.rows();
-        transformedCols_ = transformed.cols();
+        if(rowsTransformed_ == 0) {
+            rowsTransformed_ = transformed.rows();
+            colsTransformed_ = transformed.cols();
+        }
     }
 
     virtual void prepareResponseBuffer() override {
-        responseBuffer_.emplace_back(transformedRows_, transformedCols_);
+        responseBuffer_.emplace_back(rowsTransformed_, colsTransformed_);
+        if(finalResponseBufferX_.rows() != rowsTransformed_) {
+            finalResponseBufferX_ = ComplexBlob(rowsTransformed_, colsTransformed_);
+            finalResponseBufferY_ = ComplexBlob(rowsTransformed_, colsTransformed_);
+        }
     }
 
     virtual bool isInitialized() override {
@@ -103,7 +72,7 @@ public:
             eventBuffer_.set_capacity(timeSteps_);
 
             while(eventBuffer_.size() != eventBuffer_.capacity()) {
-                eventBuffer_.push_back(CudaMatrix<std::complex<float>>(transformedRows_, transformedCols_));
+                eventBuffer_.push_back(ComplexBlob(rowsTransformed_, colsTransformed_));
             }
             extractedDataBuffer_.resize(filter->xSize(), filter->ySize());
         }
@@ -116,7 +85,7 @@ public:
         ++this->receivedEventSlices_;
         this->padder_->padData(*slice, paddedDataBuffer_);
         this->transformer_->forward(paddedDataBuffer_, transformedDataBuffer_);
-        eventBuffer_[0].copyFrom(transformedDataBuffer_.data());
+        eventBuffer_[0].copyFrom(castThrust(transformedDataBuffer_.data()));
 
 
         // may the magic happen
@@ -133,27 +102,29 @@ public:
                 // iterate over filters
                 for(int filterIndex = 0; filterIndex < filters_.size(); ++filterIndex) {
                     const auto& filterSlice = filters_[filterIndex][sliceIndex];
-
-                    responseBuffer_[filterIndex] += eventSlice * filterSlice;
+//                    responseBuffer_[filterIndex] += eventSlice * filterSlice;
+                    gpu_mul(eventSlice.count(), eventSlice.data(), filterSlice.data(), responseBuffer_[filterIndex].data());
                 }
             }
 
-
-
             auto flowSlice = std::make_shared<FlowSlice>(slice->rows(), slice->cols());
+            finalResponseBufferX_.setZero();
+            finalResponseBufferY_.setZero();
             for(int filterIndex = 0; filterIndex < filters_.size(); ++filterIndex) {
 
                 float rad = deg2rad(this->angles_[filterIndex]);
-                std::complex<float>* data = reinterpret_cast<std::complex<float>*>(responseBuffer_[filterIndex].host<af::cfloat>());
-                auto dims = responseBuffer_[filterIndex].dims();
-                Eigen::Map<ComplexMatrix> mappedData(data, dims[0], dims[1]);
-                this->transformer_->backward(mappedData, inversedDataBuffer_);
-                delete[] data;
-
-                this->padder_->extractDenseOutput(inversedDataBuffer_, extractedDataBuffer_);
-                flowSlice->xv_ += std::cos(rad) * extractedDataBuffer_;
-                flowSlice->yv_ -= std::sin(rad) * extractedDataBuffer_;
+                gpu_axpy(finalResponseBufferX_.count(), std::cos(rad), responseBuffer_[filterIndex].data(), finalResponseBufferX_.data());
+                gpu_axpy(finalResponseBufferY_.count(), -std::sin(rad), responseBuffer_[filterIndex].data(), finalResponseBufferY_.data());
             }
+
+            finalResponseBufferX_.copyTo(castThrust(transformedDataBuffer_.data()));
+            this->transformer_->backward(transformedDataBuffer_, inversedDataBuffer_);
+            this->padder_->extractDenseOutput(inversedDataBuffer_, flowSlice->xv_);
+
+            finalResponseBufferY_.copyTo(castThrust(transformedDataBuffer_.data()));
+            this->transformer_->backward(transformedDataBuffer_, inversedDataBuffer_);
+            this->padder_->extractDenseOutput(inversedDataBuffer_, flowSlice->yv_);
+
             this->outputBuffer_->push(flowSlice);
         }
 
@@ -173,11 +144,13 @@ private:
     RealMatrix extractedDataBuffer_;
     RealMatrix inversedDataBuffer_;
     ComplexMatrix transformedDataBuffer_;
-    std::vector<std::vector<af::array>> filters_;
-    std::vector<af::array> responseBuffer_;
-    boost::circular_buffer<af::array> eventBuffer_;
-    int transformedRows_;
-    int transformedCols_;
+    ComplexBlob finalResponseBufferX_;
+    ComplexBlob finalResponseBufferY_;
+    std::vector<std::vector<ComplexBlob>> filters_;
+    std::vector<ComplexBlob> responseBuffer_;
+    boost::circular_buffer<ComplexBlob> eventBuffer_;
+    int rowsTransformed_;
+    int colsTransformed_;
 };
 
 

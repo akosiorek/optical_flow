@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 project( optical_flow CXX)
 
+option(WITH_CUDA "Enable CUDA backend" ON)
+
 #    Set CMake Install Path
 set (CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR} CACHE PATH "default install path" FORCE )
 
@@ -39,6 +41,17 @@ if(DOXYGEN_FOUND)
 		COMMENT "Generating API documentation with Doxygen" VERBATIM
 	)
 endif(DOXYGEN_FOUND)
+
+
+# CUDA
+find_package(CUDA)
+if(CUDA_FOUND)
+    message(STATUS "Building CUDA backend")
+    set(CUDA_PROPAGATE_HOST_FLAGS OFF)
+elseif()
+    message(STATUS "Could not find CUDA. Disabling CUDA backend")
+    set(WITH_CUDA OFF)
+endif()
 
 add_subdirectory(exe)
 add_subdirectory(src)

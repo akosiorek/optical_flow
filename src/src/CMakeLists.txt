@@ -22,15 +22,16 @@ target_include_directories(optical_flow
 )
 
 
-find_package(CUDA)
-if(CUDA_FOUND)
-    message(STATUS "Building CUDA backend")
-    set(CUDA_PROPAGATE_HOST_FLAGS OFF)
-    add_library(optical_flow_gpu_utils gpu_math.cpp)
-    cuda_add_library(optical_flow_gpu gpu_math.cu)
-    target_link_libraries(optical_flow_gpu optical_flow_gpu_utils ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
-    target_include_directories(optical_flow_gpu PUBLIC ${CUDA_INCLUDE_DIRS})
 
-    # link to the main optical flow lib
-    target_link_libraries(optical_flow PUBLIC optical_flow_gpu)
+if(WITH_CUDA)
+    add_library(optical_flow_gpu_utils
+        DeviceBlob.cpp
+        gpu_math.cpp
+    )
+    cuda_add_library(optical_flow_gpu gpu_math.cu)
+
+    target_link_libraries(optical_flow
+        PUBLIC optical_flow_gpu optical_flow_gpu_utils ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES}
+    )
+    target_include_directories(optical_flow PUBLIC ${CUDA_INCLUDE_DIRS})
 endif()
