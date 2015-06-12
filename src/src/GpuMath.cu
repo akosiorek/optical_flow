@@ -142,7 +142,7 @@ template <class Dtype>
 __global__ void mulToKernel(const int n, const Dtype* a, const Dtype* b, Dtype* y) {
 
     CUDA_KERNEL_LOOP(index, n) {
-        y[index] = a[index] * b[index];
+        y[index] += a[index] * b[index];
     }
 }
 

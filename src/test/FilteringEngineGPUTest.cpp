@@ -5,14 +5,13 @@
  *      Author: Adam Kosiorek
  */
 
-#include <FilteringEngineGPU.h>
-#include <IFourierTransformer.h>
 #include "gtest/gtest.h"
 
 #include "utils.h"
 #include "FilterFactory.h"
 #include "BlockingQueue.h"
 #include "IFilterFactory.h"
+#include "IFourierTransformer.h"
 #include "Filter.h"
 #include "EventSlice.h"
 #include "FlowSlice.h"

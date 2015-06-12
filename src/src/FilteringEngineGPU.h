@@ -70,7 +70,6 @@ public:
             while(eventBuffer_.size() != eventBuffer_.capacity()) {
                 eventBuffer_.push_back(ComplexBlob(rowsTransformed_, colsTransformed_));
             }
-            extractedDataBuffer_.resize(filter->xSize(), filter->ySize());
         }
     }
 
@@ -131,7 +130,7 @@ public:
 
 private:
     /**
-     * Cats std::complex<float>* to thrust::complex<float>*, which are binary compatible
+     * Casts std::complex<float>* to thrust::complex<float>*, which are binary compatible
      * It is required due to CUDA not working with std::complex implementation.
      */
     thrust::complex<float>* castThrust(std::complex<float>* ptr) {
@@ -139,6 +138,8 @@ private:
     }
 
     void extractFilterResponse(const ComplexBlob& deviceResponse, RealMatrix& hostResponse) {
+//        CHECK_EQ(transformedDataBuffer_.rows(), deviceResponse.rows());
+//        CHECK_EQ(transformedDataBuffer_.cols(), deviceResponse.cols());
         deviceResponse.copyTo(castThrust(transformedDataBuffer_.data()));
         this->transformer_->backward(transformedDataBuffer_, inversedDataBuffer_);
         this->padder_->extractDenseOutput(inversedDataBuffer_, hostResponse);
@@ -146,7 +147,6 @@ private:
 
 private:
     RealMatrix paddedDataBuffer_;
-    RealMatrix extractedDataBuffer_;
     RealMatrix inversedDataBuffer_;
     ComplexMatrix transformedDataBuffer_;
     ComplexBlob weightedResponseBufferX_;

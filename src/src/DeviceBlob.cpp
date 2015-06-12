@@ -34,7 +34,7 @@ void DeviceBlob<Dtype>::copyFrom(Dtype* from) {
 
 template<class Dtype>
 void DeviceBlob<Dtype>::copyTo(Dtype* to) const {
-    cudaMemcpy(data_, to, bytes_, cudaMemcpyDeviceToHost);
+    cudaMemcpy(to, data_, bytes_, cudaMemcpyDeviceToHost);
 }
 
 template<class Dtype>
