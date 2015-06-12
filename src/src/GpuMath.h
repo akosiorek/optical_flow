@@ -10,24 +10,18 @@
  * Y = alpha * X + Y
  */
 template <class Dtype>
-void gpu_axpy(const int N, const float alpha, const Dtype* X, Dtype* Y);
+void gpuAXPY(const int N, const float alpha, const Dtype* X, Dtype* Y);
 
 /**
  * X = alpha * X
  */
 template <class Dtype>
-void gpu_scal(const int N, const float alpha, Dtype *X);
+void gpuScale(const int N, const float alpha, Dtype *X);
 
 /**
- * y = a + b
+ * y = y + a * b
  */
 template <class Dtype>
-void gpu_add(const int N, const Dtype* a, const Dtype* b, Dtype* y);
-
-/**
- * y = a * b
- */
-template <class Dtype>
-void gpu_mul(const int N, const Dtype* a, const Dtype* b, Dtype* y);
+void gpuMulTo(const int N, const Dtype* a, const Dtype* b, Dtype* y);
 
 #endif //OPTICAL_FLOW_GPU_MATH_H

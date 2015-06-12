@@ -16,7 +16,7 @@ public:
     ~DeviceBlob();
 
     void copyFrom(Dtype* from);
-    void copyTo(Dtype* to);
+    void copyTo(Dtype* to) const;
     void setZero();
     size_t rows() const;
     size_t cols() const;

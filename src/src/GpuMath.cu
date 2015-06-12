@@ -8,7 +8,13 @@
 #include <cuda_runtime.h>
 #include <thrust/complex.h>
 
-#include "gpu_math.h"
+#include "GpuMath.h"
+
+//  ###########################################################################
+//  ### Helpers  ##############################################################
+//  ###########################################################################
+
+
 
 // CUDA: various checks for different function calls.
 #define CUDA_CHECK(condition) \
@@ -101,52 +107,39 @@ private:
     cublasHandle_t cublasHandle_;
 };
 
+
+
+//  ###########################################################################
+//  ### Math Functions  #######################################################
+//  ###########################################################################
+
+
+
 template <>
-void gpu_axpy<float>(const int N, const float alpha, const float* X, float* Y) {
+void gpuAXPY<float>(const int N, const float alpha, const float* X, float* Y) {
     CUBLAS_CHECK(cublasSaxpy(Cuda::cublasHandle(), N, &alpha, X, 1, Y, 1));
 }
 
 template <>
-void gpu_axpy<thrust::complex<float> >(const int N, const float alpha,
+void gpuAXPY<thrust::complex<float> >(const int N, const float alpha,
 const thrust::complex<float>* X, thrust::complex<float>* Y) {
     thrust::complex<float> cAlpha(alpha, 0);
     CUBLAS_CHECK(cublasCaxpy(Cuda::cublasHandle(), N, (cuComplex*)&cAlpha, (cuComplex*)X, 1, (cuComplex*)Y, 1));
 }
 
 template <>
-void gpu_scal<float>(const int N, const float alpha, float *X) {
+void gpuScale<float>(const int N, const float alpha, float *X) {
     CUBLAS_CHECK(cublasSscal(Cuda::cublasHandle(), N, &alpha, X, 1));
 }
 
 template <>
-void gpu_scal<thrust::complex<float> >(const int N, const float alpha, thrust::complex<float> *X) {
+void gpuScale<thrust::complex<float> >(const int N, const float alpha, thrust::complex<float> *X) {
     thrust::complex<float> cAlpha(alpha, 0);
     CUBLAS_CHECK(cublasCscal(Cuda::cublasHandle(), N, (cuComplex*)&alpha, (cuComplex*)X, 1));
 }
 
 template <class Dtype>
-__global__ void add_kernel(const int n, const Dtype* a, const Dtype* b, Dtype* y) {
-
-    CUDA_KERNEL_LOOP(index, n) {
-        y[index] = a[index] + b[index];
-    }
-}
-
-template <>
-void gpu_add<float>(const int N, const float* a, const float* b, float* y) {
-
-    add_kernel<float><<<CUDA_GET_BLOCKS(N), CUDA_NUM_THREADS>>>(N, a, b, y);
-}
-
-template <>
-void gpu_add<thrust::complex<float> >(const int N, const thrust::complex<float>* a,
-    const thrust::complex<float>* b, thrust::complex<float>* y) {
-
-    add_kernel<thrust::complex<float> ><<<CUDA_GET_BLOCKS(N), CUDA_NUM_THREADS>>>(N, a, b, y);
-}
-
-template <class Dtype>
-__global__ void mul_kernel(const int n, const Dtype* a, const Dtype* b, Dtype* y) {
+__global__ void mulToKernel(const int n, const Dtype* a, const Dtype* b, Dtype* y) {
 
     CUDA_KERNEL_LOOP(index, n) {
         y[index] = a[index] * b[index];
@@ -154,14 +147,14 @@ __global__ void mul_kernel(const int n, const Dtype* a, const Dtype* b, Dtype* y
 }
 
 template <>
-void gpu_mul<float >(const int N, const float* a, const float* b, float* y) {
+void gpuMulTo<float >(const int N, const float* a, const float* b, float* y) {
 
-    mul_kernel <float><<<CUDA_GET_BLOCKS(N), CUDA_NUM_THREADS>>> (N, a, b, y);
+    mulToKernel<float><<<CUDA_GET_BLOCKS(N), CUDA_NUM_THREADS>>> (N, a, b, y);
 }
 
 template <>
-void gpu_mul<thrust::complex<float> >(const int N, const thrust::complex<float>* a,
+void gpuMulTo<thrust::complex<float> >(const int N, const thrust::complex<float>* a,
     const thrust::complex<float>* b, thrust::complex<float>* y) {
 
-    mul_kernel<thrust::complex<float> ><<<CUDA_GET_BLOCKS(N), CUDA_NUM_THREADS>>> (N, a, b, y);
+    mulToKernel<thrust::complex<float> ><<<CUDA_GET_BLOCKS(N), CUDA_NUM_THREADS>>> (N, a, b, y);
 }

@@ -7,7 +7,6 @@
 #include <thrust/complex.h>
 #include "DeviceBlob.h"
 
-
 template<class Dtype>
 DeviceBlob<Dtype>::DeviceBlob() : rows_(0), cols_(0), count_(0), bytes_(0), data_(nullptr) {}
 
@@ -34,7 +33,7 @@ void DeviceBlob<Dtype>::copyFrom(Dtype* from) {
 }
 
 template<class Dtype>
-void DeviceBlob<Dtype>::copyTo(Dtype* to) {
+void DeviceBlob<Dtype>::copyTo(Dtype* to) const {
     cudaMemcpy(data_, to, bytes_, cudaMemcpyDeviceToHost);
 }
 

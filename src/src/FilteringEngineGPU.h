@@ -10,11 +10,7 @@
 #include <boost/circular_buffer.hpp>
 #include "FilteringEngine.h"
 #include "DeviceBlob.h"
-#include "gpu_math.h"
-
-thrust::complex<float>* castThrust(std::complex<float>* ptr) {
-    return reinterpret_cast<thrust::complex<float>*>(ptr);
-}
+#include "GpuMath.h"
 
 template<template<class> class InputBufferT, template<class> class OutputBufferT = InputBufferT>
 class FilteringEngineGPU : public FilteringEngine<InputBufferT, OutputBufferT> {
@@ -56,9 +52,9 @@ public:
 
     virtual void prepareResponseBuffer() override {
         responseBuffer_.emplace_back(rowsTransformed_, colsTransformed_);
-        if(finalResponseBufferX_.rows() != rowsTransformed_) {
-            finalResponseBufferX_ = ComplexBlob(rowsTransformed_, colsTransformed_);
-            finalResponseBufferY_ = ComplexBlob(rowsTransformed_, colsTransformed_);
+        if(weightedResponseBufferX_.rows() != rowsTransformed_) {
+            weightedResponseBufferX_ = ComplexBlob(rowsTransformed_, colsTransformed_);
+            weightedResponseBufferY_ = ComplexBlob(rowsTransformed_, colsTransformed_);
         }
     }
 
@@ -102,28 +98,22 @@ public:
                 // iterate over filters
                 for(int filterIndex = 0; filterIndex < filters_.size(); ++filterIndex) {
                     const auto& filterSlice = filters_[filterIndex][sliceIndex];
-//                    responseBuffer_[filterIndex] += eventSlice * filterSlice;
-                    gpu_mul(eventSlice.count(), eventSlice.data(), filterSlice.data(), responseBuffer_[filterIndex].data());
+                    gpuMulTo(eventSlice.count(), eventSlice.data(), filterSlice.data(), responseBuffer_[filterIndex].data());
                 }
             }
 
             auto flowSlice = std::make_shared<FlowSlice>(slice->rows(), slice->cols());
-            finalResponseBufferX_.setZero();
-            finalResponseBufferY_.setZero();
+            weightedResponseBufferX_.setZero();
+            weightedResponseBufferY_.setZero();
             for(int filterIndex = 0; filterIndex < filters_.size(); ++filterIndex) {
 
                 float rad = deg2rad(this->angles_[filterIndex]);
-                gpu_axpy(finalResponseBufferX_.count(), std::cos(rad), responseBuffer_[filterIndex].data(), finalResponseBufferX_.data());
-                gpu_axpy(finalResponseBufferY_.count(), -std::sin(rad), responseBuffer_[filterIndex].data(), finalResponseBufferY_.data());
+                gpuAXPY(weightedResponseBufferX_.count(), std::cos(rad), responseBuffer_[filterIndex].data(), weightedResponseBufferX_.data());
+                gpuAXPY(weightedResponseBufferY_.count(), -std::sin(rad), responseBuffer_[filterIndex].data(), weightedResponseBufferY_.data());
             }
 
-            finalResponseBufferX_.copyTo(castThrust(transformedDataBuffer_.data()));
-            this->transformer_->backward(transformedDataBuffer_, inversedDataBuffer_);
-            this->padder_->extractDenseOutput(inversedDataBuffer_, flowSlice->xv_);
-
-            finalResponseBufferY_.copyTo(castThrust(transformedDataBuffer_.data()));
-            this->transformer_->backward(transformedDataBuffer_, inversedDataBuffer_);
-            this->padder_->extractDenseOutput(inversedDataBuffer_, flowSlice->yv_);
+            extractFilterResponse(weightedResponseBufferX_, flowSlice->xv_);
+            extractFilterResponse(weightedResponseBufferY_, flowSlice->yv_);
 
             this->outputBuffer_->push(flowSlice);
         }
@@ -140,12 +130,27 @@ public:
     }
 
 private:
+    /**
+     * Cats std::complex<float>* to thrust::complex<float>*, which are binary compatible
+     * It is required due to CUDA not working with std::complex implementation.
+     */
+    thrust::complex<float>* castThrust(std::complex<float>* ptr) {
+        return reinterpret_cast<thrust::complex<float>*>(ptr);
+    }
+
+    void extractFilterResponse(const ComplexBlob& deviceResponse, RealMatrix& hostResponse) {
+        deviceResponse.copyTo(castThrust(transformedDataBuffer_.data()));
+        this->transformer_->backward(transformedDataBuffer_, inversedDataBuffer_);
+        this->padder_->extractDenseOutput(inversedDataBuffer_, hostResponse);
+    }
+
+private:
     RealMatrix paddedDataBuffer_;
     RealMatrix extractedDataBuffer_;
     RealMatrix inversedDataBuffer_;
     ComplexMatrix transformedDataBuffer_;
-    ComplexBlob finalResponseBufferX_;
-    ComplexBlob finalResponseBufferY_;
+    ComplexBlob weightedResponseBufferX_;
+    ComplexBlob weightedResponseBufferY_;
     std::vector<std::vector<ComplexBlob>> filters_;
     std::vector<ComplexBlob> responseBuffer_;
     boost::circular_buffer<ComplexBlob> eventBuffer_;
