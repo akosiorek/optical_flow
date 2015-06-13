@@ -18,7 +18,7 @@ function quantized = quantize_events(events, time_resolution, retinaSize)
         quantized{current_step} = sparse(quantized{current_step});
         if events(i, 3) > time_end
             time_end = time_end + time_resolution;
-            disp(['Slice number', num2str(current_step), ', at time ', num2str(time_end), ', with ', num2str(i), ' events']);
+%             disp(['Slice number', num2str(current_step), ', at time ', num2str(time_end), ', with ', num2str(i), ' events']);
             current_step = current_step + 1;
             quantized{current_step} = zeros(retinaSize(1), retinaSize(2));
         end

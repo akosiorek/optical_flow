@@ -39,13 +39,12 @@ py = sin(y);
 % scaleFactor=5;
 % f=quiver(x,y,opticalFlowX(:,:,j).*scaleFactor,opticalFlowY(:,:,j).*scaleFactor,'AutoScale','off');
 scaleFactor=1;
-% f=quiver(x,y,maskedFlowX(:,:,j).*scaleFactor,maskedFlowY(:,:,j).*scaleFactor)';%,'AutoScale','off');
-merged=maskedFlowX(:,:,j)+maskedFlowY(:,:,j);   
-%     s = size(merged);
-%     x = 1:s(2);
-%     y = 1:s(1);
-merged=merged';
-mesh(x, y, merged);
+f=quiver(x,y,maskedFlowX(:,:,j)'.*scaleFactor,maskedFlowY(:,:,j)'.*scaleFactor)';
+
+% %reference mesh
+% merged=maskedFlowX(:,:,j)+maskedFlowY(:,:,j);   
+% merged=merged';
+% mesh(x, y, merged);
 
         view([0 90]);
 %     xlim([-5 size(opticalFlowX,2)+5]);
