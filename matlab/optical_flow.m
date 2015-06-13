@@ -1,15 +1,35 @@
-function optical_flow()
-    clc, clear all
-    time_resolution = 0.01;
-    time_start = 0;
-    time_end = 0.7;
+function optical_flow(eventFile, retinaSize, time_start_end, time_resolution)
+    clc
+    
+    if nargin < 1
+    eventFile='../data/events_medium.tsv';
+    end
+    if nargin <2
+            retinaSize=[128 128];
+    end
+    if nargin <3
+        time_start = 0;
+        time_end = 0.7;
+    else
+        time_start=time_start_end(1);
+        time_end=time_start_end(2);
+    end
+    if nargin <4
+        time_resolution=0.01;
+%         time_resolution=0.0025;
+
+    end
+    
+    
+%     time_resolution = 0.01;
+
     angles = [0 45 90 135];
-    retinaSize = [128 128];
+%     retinaSize = [128 128];
     
     
-    events = read_events('../data/events_medium.tsv', 1);
+    events = read_events(eventFile, 1);
     fprintf('Number of events:\t%d\n', size(events, 1));
-    quantized = quantize_events(events, time_resolution);
+    quantized = quantize_events(events, time_resolution, retinaSize);
     fprintf('Number of event slices:\t%d\n', size(quantized, 1));
     
 %     % used to convert EventSlices to a displayable format
@@ -19,6 +39,7 @@ function optical_flow()
 %     end
     
 
+%fix this here for a very low number of slices (aedat file)
     filterTimeSteps = numel(time_start:time_resolution:time_end);
     numEventSlices = numel(quantized);
     opticalFlowSize = [retinaSize numEventSlices-filterTimeSteps];
@@ -49,7 +70,8 @@ function optical_flow()
     
     
 %     make_movie(opticalFlowX, 'flow_x.avi');  
-%     make_movie2('flow_quivers.avi');
+%     make_movie2(opticalFlowX, opticalFlowY, quantized, 'flow_quivers.avi');
+    make_quiver_movie('flow_quivers.avi',opticalFlowX,opticalFlowY,quantized);
 end
 
 
@@ -136,19 +158,19 @@ function make_movie(data, name)
     close(figureHandle);    
 end
 
-% function make_movie2(name)
-%     
-%     figureHandle = figure('units','normalized','outerposition',[0 0 1 1]);
-%     loops = 294;
-%     F(loops) = struct('cdata',[],'colormap',[]);
-%     for i = 1:loops
-%         visualization(i)
-%             xlim([-5 130]);
-%     ylim([-5 130]);
-% %         view([0 90]);
-%         drawnow
-%         F(i) = getframe(gcf);
-%     end
-%     movie2avi(F, name, 'compression', 'none');
-%     close(figureHandle);    
-% end
+function make_movie2(opticalFlowX,opticalFlowY, quantized, name)
+    
+    figureHandle = figure('units','normalized','outerposition',[0 0 1 1]);
+    loops = size(opticalFlowX,3);
+    F(loops) = struct('cdata',[],'colormap',[]);
+    for i = 1:loops
+show_flow(i,opticalFlowX,opticalFlowY, quantized);
+    xlim([-5 size(opticalFlowX,2)+5]);
+    ylim([-5 size(opticalFlowY,1)+5]);
+%         view([0 90]);
+        drawnow
+        F(i) = getframe(gcf);
+    end
+    movie2avi(F, name, 'compression', 'none');
+    close(figureHandle);    
+end
