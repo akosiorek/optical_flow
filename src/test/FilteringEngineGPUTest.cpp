@@ -25,10 +25,8 @@ struct FilterFactoryMock : public IFilterFactory {
     virtual std::shared_ptr<Filter> createFilter(int angle) const override {
 
         auto filters = std::make_unique<std::vector<FilterT>>();
-
         MatrixT mat(filterSize_, filterSize_);
         mat.setConstant(angle);
-//        mat(0, 0) = angle;
         filters->emplace_back(filterTransformer_(mat));
         return std::make_shared<Filter>(angle, std::move(filters));
     }

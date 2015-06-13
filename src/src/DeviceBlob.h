@@ -12,10 +12,11 @@ class DeviceBlob {
 public:
     DeviceBlob();
     DeviceBlob(int rows, int cols);
-    DeviceBlob(int rows, int cols, Dtype* from);
+    DeviceBlob(int rows, int cols, const Dtype* from);
+    DeviceBlob(const DeviceBlob& that);
     ~DeviceBlob();
 
-    void copyFrom(Dtype* from);
+    void copyFrom(const Dtype* from);
     void copyTo(Dtype* to) const;
     void setZero();
     size_t rows() const;

@@ -6,13 +6,9 @@
 #include <thrust/complex.h>
 #include <complex>
 #include "common.h"
+#include "TestUtils.h"
 #include "GpuMath.h"
 #include "DeviceBlob.h"
-
-#define ASSERT_NEAR_VEC(x, y, N) for(std::size_t i = 0; i < N; ++i) ASSERT_NEAR(x[i], y[i], this->tolerance)
-#define ASSERT_NEAR_VEC_COMPLEX(x, y, N) \
-    for(std::size_t i = 0; i < N; ++i) ASSERT_NEAR(x[i].real(), y[i].real(), this->tolerance); \
-    for(std::size_t i = 0; i < N; ++i) ASSERT_NEAR(x[i].imag(), y[i].imag(), this->tolerance)
 
 class RealGpuMathTest : public testing::Test {
 public:

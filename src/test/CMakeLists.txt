@@ -1,7 +1,7 @@
 
 add_subdirectory(gtest)
 
-add_executable(test.cpu
+set(TEST_SRC
     QuantizerTest.cpp
     BlockingQueueTest.cpp
     FourierPadderTest.cpp
@@ -12,15 +12,18 @@ add_executable(test.cpu
     EventReaderTest.cpp
 )
 
-target_link_libraries(test.cpu PRIVATE gtest_main optical_flow)
-add_custom_command(TARGET test.cpu POST_BUILD COMMAND test.cpu)
-
-
 if(WITH_CUDA)
-    add_executable(test.gpu
+    set(TEST_SRC ${TEST_SRC}
+        DeviceBlobTest.cpp
         FilteringEngineGPUTest.cpp
         GpuMathTest.cpp
     )
-    target_link_libraries(test.gpu PRIVATE gtest_main optical_flow)
-    add_custom_command(TARGET test.gpu POST_BUILD COMMAND test.gpu)
 endif()
+
+
+add_executable(test.bin ${TEST_SRC})
+
+target_link_libraries(test.bin PRIVATE gtest_main optical_flow)
+add_custom_command(TARGET test.bin POST_BUILD COMMAND test.bin)
+
+
