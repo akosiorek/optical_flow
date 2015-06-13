@@ -24,14 +24,14 @@ target_include_directories(optical_flow
 
 
 if(WITH_CUDA)
-#    add_library(optical_flow_gpu_utils DeviceBlob.cpp)
-    cuda_add_library(optical_flow_gpu GpuMath.cu DeviceBlob.cu)
+    add_library(optical_flow_gpu_utils DeviceBlob.cpp)
+    cuda_add_library(optical_flow_gpu GpuMath.cu)
 
-#    target_link_libraries(optical_flow
-#        PUBLIC optical_flow_gpu optical_flow_gpu_utils ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES}
-#    )
     target_link_libraries(optical_flow
-        PUBLIC optical_flow_gpu ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES}
+        PUBLIC optical_flow_gpu optical_flow_gpu_utils ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES}
     )
+#    target_link_libraries(optical_flow
+#        PUBLIC optical_flow_gpu ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES}
+#    )
     target_include_directories(optical_flow PUBLIC ${CUDA_INCLUDE_DIRS})
 endif()
