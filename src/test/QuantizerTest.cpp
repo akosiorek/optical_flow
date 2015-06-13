@@ -4,8 +4,6 @@
  *  Created on: May 28, 2014
  *      Author: Adam Kosiorek
  */
-
-
 #include "gtest/gtest.h"
 #include "common.h"
 #include "BlockingQueue.h"

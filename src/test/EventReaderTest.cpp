@@ -1,13 +1,8 @@
-#include <memory>
-
-#include <glog/logging.h>
 #include "gtest/gtest.h"
-
-#include "utils.h"
-
+#include "common.h"
 #include "Edvs/event.h"
-#include "../src/BlockingQueue.h"
-#include "../src/EventReader.h"
+#include "BlockingQueue.h"
+#include "EventReader.h"
 
 
 class EventReaderTest : public testing::Test {

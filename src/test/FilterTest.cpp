@@ -4,12 +4,8 @@
  *  Created on: May 28, 2014
  *      Author: Adam Kosiorek
  */
-
-#include <memory>
-#include <glog/logging.h>
 #include "gtest/gtest.h"
-#include "utils.h"
-
+#include "common.h"
 #include "Filter.h"
 
 class FilterTest : public testing::Test {

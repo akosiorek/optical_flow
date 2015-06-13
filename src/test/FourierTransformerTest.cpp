@@ -1,11 +1,8 @@
 //
 // Created by Adam Kosiorek on 23.05.15.
 //
-
 #include "gtest/gtest.h"
-
-#include "types.h"
-#include "utils.h"
+#include "common.h"
 #include "IFourierTransformer.cpp"
 #include "FourierTransformerFFTW.cpp"
 #include "FourierPadder.h"

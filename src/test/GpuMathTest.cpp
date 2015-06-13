@@ -1,10 +1,9 @@
 //
 // Created by Adam Kosiorek on 6/12/15.
 //
-
 #include "gtest/gtest.h"
-#include <thrust/complex.h>
 #include <complex>
+#include <thrust/complex.h>
 #include "common.h"
 #include "TestUtils.h"
 #include "GpuMath.h"

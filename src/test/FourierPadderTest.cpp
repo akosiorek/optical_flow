@@ -1,7 +1,5 @@
 #include "gtest/gtest.h"
-#include <Eigen/SparseCore>
 #include "common.h"
-#include "types.h"
 #include "FourierPadder.h"
 
 class FourierPadderTest : public testing::Test {

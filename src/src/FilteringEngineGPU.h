@@ -109,6 +109,7 @@ public:
             for(int sliceIndex = 0; sliceIndex < timeSteps_; ++sliceIndex) {
                 const auto& eventSlice = eventBuffer_[sliceIndex];
                 // iterate over filters
+                #pragma omp parallel for
                 for(int filterIndex = 0; filterIndex < filters_.size(); ++filterIndex) {
                     const auto& filterSlice = filters_[filterIndex][sliceIndex];
                     gpuMulTo(eventSlice.count(), eventSlice.data(), filterSlice.data(), responseBuffer_[filterIndex].data());
@@ -155,8 +156,6 @@ private:
     void extractFilterResponse(const ComplexBlob& deviceResponse, RealMatrix& hostResponse) {
         LOG_FUN_START;
 
-//        CHECK_EQ(transformedDataBuffer_.rows(), deviceResponse.rows());
-//        CHECK_EQ(transformedDataBuffer_.cols(), deviceResponse.cols());
         deviceResponse.copyTo(castThrust(transformedDataBuffer_.data()));
         this->transformer_->backward(transformedDataBuffer_, inversedDataBuffer_);
         this->padder_->extractDenseOutput(inversedDataBuffer_, hostResponse);

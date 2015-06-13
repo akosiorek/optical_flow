@@ -4,51 +4,15 @@
  *  Created on: May 28, 2014
  *      Author: Adam Kosiorek
  */
-
 #include "gtest/gtest.h"
-
+#include "CommonMocks.h"
 #include "utils.h"
-#include "FilterFactory.h"
 #include "BlockingQueue.h"
-#include "IFilterFactory.h"
-#include "IFourierTransformer.h"
-#include "Filter.h"
 #include "EventSlice.h"
-#include "FlowSlice.h"
+#include "Filter.h"
+#include "FilterFactory.h"
 #include "FilteringEngineGPU.h"
-
-struct FilterFactoryMock : public IFilterFactory {
-
-    FilterFactoryMock(int filterSize) : filterSize_(filterSize) {}
-
-    // create 1x1x1 filter with the only coefficient equal to angle
-    virtual std::shared_ptr<Filter> createFilter(int angle) const override {
-
-        auto filters = std::make_unique<std::vector<FilterT>>();
-        MatrixT mat(filterSize_, filterSize_);
-        mat.setConstant(angle);
-        filters->emplace_back(filterTransformer_(mat));
-        return std::make_shared<Filter>(angle, std::move(filters));
-    }
-
-    virtual void setFilterTransformer(FilterTransformT transform) override {
-        filterTransformer_ = transform;
-    }
-
-    int filterSize_;
-    FilterTransformT filterTransformer_;
-};
-
-struct FourierTransformerMock : public IFourierTransformer {
-    virtual void forward(const RealMatrix& src, ComplexMatrix& dst) const override {
-
-        dst = src.cast<ComplexMatrix::Scalar>();
-    }
-
-    virtual void backward(const ComplexMatrix& src, RealMatrix& dst) const override {
-        dst = src.real();
-    }
-};
+#include "FlowSlice.h"
 
 class FilteringEngineGPUTest : public testing::Test {
 public:
