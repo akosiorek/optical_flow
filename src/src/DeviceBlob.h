@@ -16,6 +16,18 @@ public:
     DeviceBlob(const DeviceBlob& that);
     ~DeviceBlob();
 
+    DeviceBlob& operator= (DeviceBlob that);
+    friend void swap(DeviceBlob<Dtype>& one, DeviceBlob<Dtype>& other) {
+        if(&one != &other) {
+            using std::swap;
+            swap(one.cols_, other.cols_);
+            swap(one.rows_, other.rows_);
+            swap(one.count_, other.count_);
+            swap(one.bytes_, other.bytes_);
+            swap(one.data_, other.data_);
+        }
+    }
+
     void copyFrom(const Dtype* from);
     void copyTo(Dtype* to) const;
     void setZero();

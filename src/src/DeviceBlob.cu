@@ -36,6 +36,13 @@ DeviceBlob<Dtype>::~DeviceBlob() {
 }
 
 template<class Dtype>
+DeviceBlob<Dtype>& DeviceBlob<Dtype>::operator= (DeviceBlob that) {
+    swap(*this, that);
+    return *this;
+}
+
+
+template<class Dtype>
 void DeviceBlob<Dtype>::copyFrom(const Dtype* from) {
     CUDA_CHECK(cudaMemcpy(data_, from, bytes_, cudaMemcpyHostToDevice));
 }
@@ -74,7 +81,6 @@ template<class Dtype>
 const Dtype* DeviceBlob<Dtype>::data() const{
     return data_;
 }
-
 
 template class DeviceBlob<float>;
 template class DeviceBlob<thrust::complex<float> >;

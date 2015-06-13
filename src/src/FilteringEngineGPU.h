@@ -45,7 +45,7 @@ public:
 
         ComplexMatrix transformed;
         for(int i = 0; i < filter->numSlices(); ++i) {
-            this->transformer_->forward(filter->at(i), transformed);(i);
+            this->transformer_->forward(filter->at(i), transformed);
             filterVec.emplace_back(transformed.rows(), transformed.cols(), castThrust(transformed.data()));
         }
         if(rowsTransformed_ == 0) {
@@ -116,29 +116,17 @@ public:
             }
 
             auto flowSlice = std::make_shared<FlowSlice>(slice->rows(), slice->cols());
-//            weightedResponseBufferX_.setZero();
-//            weightedResponseBufferY_.setZero();
-//            for(int filterIndex = 0; filterIndex < filters_.size(); ++filterIndex) {
-//
-//                float rad = deg2rad(this->angles_[filterIndex]);
-//                gpuAXPY(weightedResponseBufferX_.count(), std::cos(rad), responseBuffer_[filterIndex].data(), weightedResponseBufferX_.data());
-//                gpuAXPY(weightedResponseBufferY_.count(), -std::sin(rad), responseBuffer_[filterIndex].data(), weightedResponseBufferY_.data());
-//            }
-//
-//            extractFilterResponse(weightedResponseBufferX_, flowSlice->xv_);
-//            extractFilterResponse(weightedResponseBufferY_, flowSlice->yv_);
-
-            ComplexMatrix mat(rowsTransformed_, colsTransformed_);
-            RealMatrix extractedMat;
+            weightedResponseBufferX_.setZero();
+            weightedResponseBufferY_.setZero();
             for(int filterIndex = 0; filterIndex < filters_.size(); ++filterIndex) {
 
                 float rad = deg2rad(this->angles_[filterIndex]);
-                responseBuffer_[filterIndex].copyTo(castThrust(mat.data()));
-                this->transformer_->backward(mat, inversedDataBuffer_);
-                this->padder_->extractDenseOutput(inversedDataBuffer_, extractedMat);
-                flowSlice->xv_ += std::cos(rad) * extractedMat;
-                flowSlice->yv_ -= std::sin(rad) * extractedMat;
+                gpuAXPY(weightedResponseBufferX_.count(), std::cos(rad), responseBuffer_[filterIndex].data(), weightedResponseBufferX_.data());
+                gpuAXPY(weightedResponseBufferY_.count(), -std::sin(rad), responseBuffer_[filterIndex].data(), weightedResponseBufferY_.data());
             }
+
+            extractFilterResponse(weightedResponseBufferX_, flowSlice->xv_);
+            extractFilterResponse(weightedResponseBufferY_, flowSlice->yv_);
 
             this->outputBuffer_->push(flowSlice);
         }
