@@ -18,7 +18,11 @@ for i = 1:loops
     drawnow
     F(i) = getframe(gcf);
 end
-movie2avi(F, name, 'compression', 'none');
+vidObj = VideoWriter(name);
+      open(vidObj);
+      writeVideo(vidObj,F);
+      close(vidObj);
+
 close(figureHandle);
 
 
