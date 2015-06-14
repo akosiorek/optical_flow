@@ -3,6 +3,7 @@ find_package(Glog REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(Boost COMPONENTS system timer program_options REQUIRED)
 find_package(FFTW3 COMPONENTS single REQUIRED)
+find_package(CUDA REQUIRED)
 
 add_library(optical_flow
     Filter.cpp
@@ -24,11 +25,13 @@ target_include_directories(optical_flow
 
 
 if(WITH_CUDA)
-    add_library(optical_flow_gpu_utils DeviceBlob.cpp)
+    add_library(optical_flow_gpu_utils DeviceBlob.cpp FourierTransformerCUFFTW.cpp)
     cuda_add_library(optical_flow_gpu GpuMath.cu)
 
+    target_include_directories(optical_flow_gpu_utils PUBLIC ${EIGEN3_INCLUDE_DIR})
+
     target_link_libraries(optical_flow
-        PUBLIC optical_flow_gpu optical_flow_gpu_utils ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES}
+        PUBLIC optical_flow_gpu optical_flow_gpu_utils ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES} ${CUDA_CUFFT_LIBRARIES}
     )
 #    target_link_libraries(optical_flow
 #        PUBLIC optical_flow_gpu ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES}

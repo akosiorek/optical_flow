@@ -1,21 +1,21 @@
-#ifndef FOURIER_TRANSFORMER_FFTW_H
-#define FOURIER_TRANSFORMER_FFTW_H
+#ifndef FOURIER_TRANSFORMER_CUFFTW_H
+#define FOURIER_TRANSFORMER_CUFFTW_H
 
 #include <complex>
 
 #include <Eigen/Core>
 
-#include <fftw3.h>
+#include "/opt/cuda/include/cufftw.h"
 
 #include "types.h"
 #include "IFourierTransformer.h"
 
-class FourierTransformerFFTW : public IFourierTransformer
+class FourierTransformerCUFFTW : public IFourierTransformer
 {
 public:
 
-    FourierTransformerFFTW(const int rows, const int cols);
-    ~FourierTransformerFFTW();
+    FourierTransformerCUFFTW(const int rows, const int cols);
+    ~FourierTransformerCUFFTW();
 
     /**
      * @brief Performs forward 2D Fourier transform of real-valued data
@@ -61,4 +61,4 @@ private:
     fftwf_plan bwd_plan_;   /*!< Reusable plan for backward transformation */
 };
 
-#endif //FOURIER_TRANSFORMER_FFTW_H
+#endif //FOURIER_TRANSFORMER_CUFFTW_H
