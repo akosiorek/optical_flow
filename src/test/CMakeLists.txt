@@ -9,7 +9,7 @@ set(TEST_SRC
     FilterTest.cpp
     FilterFactoryTest.cpp
     FilteringEngineCPUTest.cpp
-    FourierTransformerTest.cpp
+    FourierTransformerCPUTest.cpp
     EventReaderTest.cpp
 )
 
@@ -17,6 +17,7 @@ if(WITH_CUDA)
     set(TEST_SRC ${TEST_SRC}
         DeviceBlobTest.cpp
         FilteringEngineGPUTest.cpp
+        FourierTransformerGPUTest.cpp
         GpuMathTest.cpp
     )
 endif()

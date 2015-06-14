@@ -8,7 +8,6 @@ find_package(CUDA REQUIRED)
 add_library(optical_flow
     Filter.cpp
     FilterFactory.cpp
-    IFourierTransformer.cpp
     FourierTransformerFFTW.cpp
 )
 

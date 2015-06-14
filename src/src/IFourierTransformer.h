@@ -39,7 +39,12 @@ public:
      * @param src real-valued matrix to be transformed
      * @return complex-valued output matrix with the same size as src
      */
-    ComplexMatrix forward(const RealMatrix& src) const;
+    ComplexMatrix forward(const RealMatrix& src) const
+    {
+        ComplexMatrix dst(src.rows(), src.cols());
+        forward(src, dst);
+        return dst;
+    }
 
     /**
      * @brief Performs inverse 2D Fourier transform
@@ -47,7 +52,12 @@ public:
      * @param src complex-valued matrix to be inversly transformed
      * @return real-valued output matrix with the same size as src
      */
-    RealMatrix backward(const ComplexMatrix& src) const;
+    RealMatrix backward(const ComplexMatrix& src) const
+    {
+        RealMatrix dst(src.rows(), src.cols());
+        backward(src, dst);
+        return dst;
+    }
 };
 
 #endif //OPTICAL_FLOW_IFOURIERTRANSFORMER_H
