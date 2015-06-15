@@ -122,8 +122,8 @@ public:
             for(int filterIndex = 0; filterIndex < filters_.size(); ++filterIndex) {
 
                 float rad = deg2rad(this->angles_[filterIndex]);
-                gpuAXPY(weightedResponseBufferX_.count(), std::cos(rad), responseBuffer_[filterIndex].data(), weightedResponseBufferX_.data());
-                gpuAXPY(weightedResponseBufferY_.count(), -std::sin(rad), responseBuffer_[filterIndex].data(), weightedResponseBufferY_.data());
+                gpuAXPY(weightedResponseBufferX_.count(), std::cos(rad)/this->transformer_->fftScaling_, responseBuffer_[filterIndex].data(), weightedResponseBufferX_.data());
+                gpuAXPY(weightedResponseBufferY_.count(), -std::sin(rad)/this->transformer_->fftScaling_, responseBuffer_[filterIndex].data(), weightedResponseBufferY_.data());
             }
 
             extractFilterResponse(weightedResponseBufferX_, flowSlice->xv_);

@@ -101,8 +101,8 @@ public:
                 float rad = deg2rad(this->angles_[filterIndex]);
                 this->transformer_->backward(responseBuffer_[filterIndex], inversedDataBuffer_);
                 this->padder_->extractDenseOutput(inversedDataBuffer_, extractedDataBuffer_);
-                flowSlice->xv_ += std::cos(rad) * extractedDataBuffer_;
-                flowSlice->yv_ -= std::sin(rad) * extractedDataBuffer_;
+                flowSlice->xv_ += std::cos(rad) * extractedDataBuffer_ / this->transformer_->fftScaling_;
+                flowSlice->yv_ -= std::sin(rad) * extractedDataBuffer_ / this->transformer_->fftScaling_;
             }
             this->outputBuffer_->push(flowSlice);
         }

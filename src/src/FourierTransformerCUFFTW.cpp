@@ -6,8 +6,10 @@
 FourierTransformerCUFFTW::FourierTransformerCUFFTW(const int rows, const int cols)
 	: 	rows_(rows),
 		cols_(cols),
-		colsHS_(cols/2 + 1)
+		colsHS_(cols/2 + 1),
+		IFourierTransformer(rows,cols)
 {
+
 	// Allocate some bogus space // Needed for FFTW_MEASURE/PATIENT
 	float* rl = new float[rows_*cols_];
 

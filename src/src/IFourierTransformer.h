@@ -15,6 +15,9 @@
 class IFourierTransformer {
 public:
 
+    IFourierTransformer() : fftScaling_(1) {}
+    IFourierTransformer(const int rows, const int cols) : fftScaling_(rows*cols) {}
+
     /**
      * @brief Performs forward 2D Fourier transform
      * Takes dst as an argument to allow memory reuse
@@ -58,6 +61,8 @@ public:
         backward(src, dst);
         return dst;
     }
+
+    const int fftScaling_;
 };
 
 #endif //OPTICAL_FLOW_IFOURIERTRANSFORMER_H
