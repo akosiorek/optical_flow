@@ -15,8 +15,8 @@ FourierTransformerFFTW::FourierTransformerFFTW(const int rows, const int cols)
 	std::complex<float>* cl = new std::complex<float>[rows_ * colsHS_];
 
 	/* Create plan */
-	fwd_plan_ = fftwf_plan_dft_r2c_2d(rows_, cols_, rl, fftw_cast(cl), FFTW_PATIENT);
-	bwd_plan_ = fftwf_plan_dft_c2r_2d(rows_, cols_, fftw_cast(cl), rl,FFTW_PATIENT);
+	fwd_plan_ = fftwf_plan_dft_r2c_2d(rows_, cols_, rl, fftw_cast(cl), FFTW_EXHAUSTIVE);
+	bwd_plan_ = fftwf_plan_dft_c2r_2d(rows_, cols_, fftw_cast(cl), rl, FFTW_EXHAUSTIVE);
 	delete[] rl;
 	delete[] cl;
 }
