@@ -9,6 +9,9 @@
 #include <cmath>
 #include <glog/logging.h>
 
+#include <boost/program_options.hpp>
+#include <boost/timer/timer.hpp>
+
 
 #define THROW_INVALID_ARG(msg) \
     LOG(ERROR) << msg; \
@@ -22,7 +25,6 @@ template<class OutT = float, class InT>
 OutT deg2rad(InT angle) {
     return static_cast<OutT>((M_PI * angle) / 180);
 }
-
 
 // add to std to be symmetric with make_shared
 namespace std {
