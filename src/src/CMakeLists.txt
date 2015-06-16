@@ -3,7 +3,7 @@ find_package(Glog REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(Boost COMPONENTS system timer program_options REQUIRED)
 find_package(FFTW3 COMPONENTS single REQUIRED)
-find_package(CUDA REQUIRED)
+find_package(CUDA)
 
 add_library(optical_flow
     Filter.cpp
