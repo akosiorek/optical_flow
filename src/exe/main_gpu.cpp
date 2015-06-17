@@ -1,7 +1,8 @@
 #include "common.h"
 #include "utils.h"
 #include "types.h"
-#include "BlockingQueue.h"
+// #include "BlockingQueue.h"
+#include "BlockingDeque.h"
 #include "EventReader.h"
 #include "Quantizer.h"
 #include "FilterFactory.h"
@@ -12,8 +13,8 @@
 #include "runtimeHelpers.h"
 
 template<class T>
-using QueueT = BlockingQueue<T>;
-
+// using QueueT = BlockingQueue<T>;
+using QueueT = BlockingDeque<T>;
 
 int main(int argc, char** argv)
 {

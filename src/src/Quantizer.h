@@ -43,7 +43,7 @@ public:
         while(this->hasInput())
         {
             // events.push_back(inputBuffer_->front());
-            inputBuffer_->pop(events);
+            this->inputBuffer_->pop(events);
         }
         quantize(events);
         LOG_FUN_END;
