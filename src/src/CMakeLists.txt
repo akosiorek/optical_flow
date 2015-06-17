@@ -30,7 +30,13 @@ if(WITH_CUDA)
     target_include_directories(optical_flow_gpu_utils PUBLIC ${EIGEN3_INCLUDE_DIR})
 
     target_link_libraries(optical_flow
-        PUBLIC optical_flow_gpu optical_flow_gpu_utils ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES} ${CUDA_CUFFT_LIBRARIES}
+        PUBLIC
+            optical_flow_gpu
+            optical_flow_gpu_utils
+            ${CUDA_LIBRARIES}
+            ${CUDA_CUBLAS_LIBRARIES}
+            ${CUDA_CUFFT_LIBRARIES}
+            ${CUDA_CUFFTW_LIBRARIES}
     )
 #    target_link_libraries(optical_flow
 #        PUBLIC optical_flow_gpu ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES}
