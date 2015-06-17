@@ -4,10 +4,10 @@
 #include "FourierTransformerCUFFTW.h"
 
 FourierTransformerCUFFTW::FourierTransformerCUFFTW(const int rows, const int cols)
-	: 	rows_(rows),
+	:	IFourierTransformer(rows,cols),
+	 	rows_(rows),
 		cols_(cols),
-		colsHS_(cols/2 + 1),
-		IFourierTransformer(rows,cols)
+		colsHS_(cols/2 + 1)
 {
 
 	// Allocate some bogus space // Needed for FFTW_MEASURE/PATIENT

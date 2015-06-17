@@ -5,7 +5,7 @@
 
 #include <Eigen/Core>
 
-#include "/opt/cuda/include/cufftw.h"
+#include "cufftw.h"
 
 #include "types.h"
 #include "IFourierTransformer.h"
