@@ -45,31 +45,7 @@ endif(DOXYGEN_FOUND)
 # Latex
 FIND_PACKAGE(LATEX)
 IF(LATEX_COMPILER)
-set(REPORT_DIR ${CMAKE_SOURCE_DIR}/../report)
-	add_custom_target(reportdvi
-	COMMAND   ${LATEX_COMPILER} ${REPORT_DIR}/ebof.tex 
-	DEPENDS   ${REPORT_DIR}/ebof.tex
-	COMMENT   "Tex2dvi"
-	)
-
-	IF(DVIPS_CONVERTER)
-		add_custom_target(reportps
-		  COMMAND   ${DVIPS_CONVERTER} ${CMAKE_CURRENT_BINARY_DIR}/ebof.dvi
-		            -o ${CMAKE_CURRENT_BINARY_DIR}/ebof.ps
-		  DEPENDS   ${CMAKE_CURRENT_BINARY_DIR}/ebof.dvi
-		  COMMENT   "dvi2ps"
-		)
-		add_dependencies(reportps reportdvi)
-
-		IF(PS2PDF_CONVERTER)
-			add_custom_target(report
-			COMMAND   ${PS2PDF_CONVERTER} -sPAPERSIZE=a4 ${CMAKE_CURRENT_BINARY_DIR}/ebof.ps
-			DEPENDS   ${CMAKE_CURRENT_BINARY_DIR}/ebof.ps
-			COMMENT   "ps2pdf"
-			)
-			add_dependencies(report reportps)
-		ENDIF(PS2PDF_CONVERTER)
-	ENDIF(DVIPS_CONVERTER)
+INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/modules/CompileReport.cmake)
 ENDIF(LATEX_COMPILER)
 
 
