@@ -1,31 +1,42 @@
-function evaluation_algorithm(aedat_file, path_to_flo_files, timecode_file, disregarded_timesteps)
+function evaluation_algorithm(path_to_data, aedat_file, timecode_file, disregarded_timesteps, data_Descriptor)
 %EVALUATION_ALGORITHM Summary of this function goes here
 %   Detailed explanation goes here
-if nargin <1
-    %    aedat_file='../data/pushbot_DVS.aedat';
-    aedat_file='../data/quadrat/quadrat_DVS_Only.aedat';
-    
+if nargin < 1
+   path_to_data = '../data/quadrat/'; 
 end
-if nargin <2
-    %     flo_file='../data/scene00002_mdpof.flo';
-    path_to_flo_files='../data/quadrat/';
+if nargin < 2
+    %    aedat_file='../data/pushbot_DVS.aedat';
+    aedat_file='quadrat_DVS_Only.aedat';
     
 end
 if nargin < 3
     %     timecode_file='../data/pushbot-timecode.txt';
-    timecode_file='../data/quadrat/quadrat_Frames_Timecode.txt';
+    timecode_file='quadrat_Frames_Timecode.txt';
     
 end
-if nargin <4
+if nargin < 4
     %     disregarded_timesteps =0
-    disregarded_timesteps =1
+    disregarded_timesteps =1;
     
 end
+if nargin < 5
+   data_Descriptor = 'quadrat' ;
+end
+aedat_file = strcat(path_to_data,aedat_file);
+timecode_file=strcat(path_to_data,timecode_file);
+
+%Create logfile
+t = [datetime('now')];
+DateString = datestr(t);
+DateString=strrep(DateString,' ','_');
+logfile_name=strcat(path_to_data,data_Descriptor,'_logfile_', DateString, '.txt');
+diary(logfile_name);
+
+
 %% read out events from .aedat file and save them to a .tsv file
 [tsv_matrix, retinaSize] = events_from_aedat(aedat_file);
 eventsfile_tsv_name='../data/eval_events.tsv'
 save_aedat_events(tsv_matrix,eventsfile_tsv_name)
-
 
 
 %% Read events from the saved .tsv file and calculate optical flow
@@ -63,7 +74,6 @@ start_scene_offset = timecode(1,1);
 opticalFlowX_flo=zeros(retinaSize(1),retinaSize(2), nr_flo_files);
 opticalFlowY_flo=zeros(retinaSize(1),retinaSize(2), nr_flo_files);
 
-path_to_flo_files='../data/quadrat/';
 for i=1:nr_flo_files
     scene_index=i+start_scene_offset;
     if (scene_index<10)
@@ -71,7 +81,7 @@ for i=1:nr_flo_files
     else
         flo_name=strcat('scene000',num2str(scene_index),'_mdpof.flo');
     end
-    full_path=strcat(path_to_flo_files,flo_name);
+    full_path=strcat(path_to_data,flo_name);
     flo_matrix = readFlowFile(full_path);
     opticalFlowX_flo(:,:,i)=flipud(flo_matrix(:,:,1))'; %transpose might be wrong
     opticalFlowY_flo(:,:,i)=flipud(flo_matrix(:,:,2))';
@@ -87,6 +97,10 @@ end
 %these previous slices from the quantized array
 quantizedOffset=size(quantized,1)-size(opticalFlowX_aedat,3);
 mask_eventLocations = createMaskFromQuantized(quantized, quantizedOffset);
+
+%Modify mask to remove erroneous pixels from the left side of the image
+mask_eventLocations(1:50,:,:)=0;
+
 
 % mask_eventLocations= permute(mask_eventLocations,[2 1 3]);
 % visualize_matrix3d(mask_eventLocations,0.5);
@@ -127,23 +141,30 @@ eval_angular_errors(angularErrors, mask_eventLocations);
 
 %% Interpolate the Ground Truth to get exact temporal matches for comparison
 
-[intp_flowX_GT, intp_flowY] = interpolate_ground_truth(opticalFlowX_aedat, ...
+[intp_flowX_GT, intp_flowY_GT] = interpolate_ground_truth(opticalFlowX_aedat, ...
     opticalFlowY_aedat, opticalFlowX_flo, opticalFlowY_flo, quantized_timestamps, ...
     timecode);
 
 
 % Calculate angular errors
 angularErrors2 = calc_angular_errors(opticalFlowX_aedat, opticalFlowY_aedat, ...
-    intp_flowX_GT, intp_flowY);
+    intp_flowX_GT, intp_flowY_GT);
 eval_angular_errors(angularErrors2, mask_eventLocations);
 
 
 
-%% Visualize results in quiver plot
+%% Visualize results in quiver plot and save logfile
+maskedFlowx=apply_mask(opticalFlowX_aedat,mask_eventLocations);
+maskedFlowy=apply_mask(opticalFlowY_aedat,mask_eventLocations);
 
-make_quiver_movie('square_quivers.avi',opticalFlowX_aedat, opticalFlowY_aedat, quantized);
-make_quiver_movie('ground_truth_quivers.avi',opticalFlowX_flo,opticalFlowY_flo);
-% make_quiver_movie('ground_truth_quivers_interpolated.avi',intp_opticalFlowX_flo,intp_opticalFlowY_flo);
+% make_quiver_movie(strcat(data_Descriptor,'.avi'),opticalFlowX_aedat, opticalFlowY_aedat);
+% make_quiver_movie(strcat(data_Descriptor,'_masked.avi'),maskedFlowx, maskedFlowy);
+% make_quiver_movie(strcat(data_Descriptor,'_GT.avi'),opticalFlowX_flo,opticalFlowY_flo);
+% make_quiver_movie(strcat(data_Descriptor,'_GT_interp.avi'),intp_flowX_GT,intp_flowY_GT);
+
+% fprintf(fid,'%d\n',5); %write the value into the file
+% fclose(fid);
+diary off;
 
 
 end
@@ -291,7 +312,7 @@ end
 function [maskedArray] = apply_mask(Array, mask)
 maskedArray=Array;
 for i=1:size(Array,3)
-    Array(mask==0)=0;
+    maskedArray(mask==0)=0;
 end
 
 end
@@ -341,24 +362,12 @@ end
 %comparable .tsv files use indexing 0-127, aedat reader gives 1-128
 x=x-1;
 y=y-1;
-tsv_matrix=[x y ts pol];
+id = (1:size(x))';
+
+
+tsv_matrix=[ts x y pol id];
 retinaSize=[240 180];
-%for now, cut down to 128x128
-% conditionX=tsvMatrix(:,1)>127;
-% conditionY=tsvMatrix(:,2)>127;
-% conditionMerged=conditionX | conditionY;
-% tsvMatrix(conditionMerged,:)=[];
 
-
-
-% clear x y pol ts;
-% eventFile='pushbot_DVS.tsv';
-%     aedat_events = read_events(tsv_matrix, 1);
-
-% optical_flow(eventFile, retinaSize);
-
-%regarding address format: http://sourceforge.net/p/jaer/discussion/631959/thread/fdbbb82f/
-%https://www.ini.uzh.ch/~shih/dbio08/loadaerdat.m
 end
 
 function save_aedat_events(tsv_matrix,name_of_saved_tsv)
@@ -368,68 +377,6 @@ end
 dlmwrite(name_of_saved_tsv,tsv_matrix,'\t');
 end
 
-
-
-%
-% function [quantized] = timecode_quantizer(events, timecode, retinaSize)
-%
-%     time_steps = size(timecode,1);
-%     quantized = cell(time_steps, 1);
-%
-%     current_step = 1;
-% %     time_start=timecode(current_step,2)
-%     if current_step < time_steps
-%         time_end = timecode(current_step,2); %time at which reference frame was recorded
-% %     else
-% %         time_end=events(end,3)
-%     end
-%
-%     quantized{1} = zeros(retinaSize(1), retinaSize(2));
-%
-%     numEvents = size(events, 1);
-%     i = 1;
-%     waitbarHandle = waitbar(0, 'Quantizing events. Please wait...');
-%     while i <= numEvents
-%         quantized{current_step} = sparse(quantized{current_step});
-%         if events(i, 3) > time_end
-% %             if current_step <time_steps
-%                 current_step = current_step +1;
-% %             elseif current_step == time_steps
-% %                 break
-% %             end
-%
-%             time_end=timecode(current_step,2)
-% %             current_step = current_step + 1;
-% %             if current_step < time_steps
-% %                time_end = timecode(current_step,2);
-% %             else
-% %                 time_end=events(end,3)
-% %             end
-%
-%
-%             quantized{current_step} = zeros(retinaSize(1), retinaSize(2));
-%         end
-%
-%         x = events(i, 1) + 1;
-%         y = events(i, 2) + 1;
-% %         quantized{current_step}(x, y)
-%         response = quantized{current_step}(x, y);
-%         response = response + events(i, 4);
-%         quantized{current_step}(x, y) = response;
-%
-%         if mod(i, 100) == 0
-%             waitbar(i / numEvents, waitbarHandle);
-%         end
-%         i = i + 1;
-%
-%         if current_step+1 ==time_steps
-%                break; %no more reference frames in ground truth available
-%         end
-%     end
-%     quantized{current_step} = sparse(quantized{current_step});
-%     close(waitbarHandle)
-%
-% end
 
 
 function [ events ] = read_events( file, response )

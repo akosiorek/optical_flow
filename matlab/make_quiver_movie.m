@@ -19,7 +19,9 @@ for i = 1:loops
     drawnow
      F(i) = getframe(gcf);
 end
-vidObj = VideoWriter(name);
+path = '../data/';
+fullname=strcat(path,name);
+vidObj = VideoWriter(fullname);
       open(vidObj);
       writeVideo(vidObj,F);
       close(vidObj);

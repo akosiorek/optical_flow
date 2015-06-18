@@ -3,13 +3,13 @@ function [quantized timestamps] = quantize_events(events, time_resolution, retin
 % time_resolution is given in seconds
     
     time_resolution = time_resolution * 1e6;
-    time_span = events(end, 3) - events(1, 3);
+    time_span = events(end, 1) - events(1, 1);
     time_steps = ceil(time_span / time_resolution);
     quantized = cell(time_steps, 1);
 %     allEvents = cell(time_steps, 1);
     timestamps=zeros(time_steps,1);
     
-    time_end = events(1, 3) + time_resolution;
+    time_end = events(1, 1) + time_resolution;
     current_step = 1;
     quantized{1} = zeros(retinaSize(1), retinaSize(2));
     
@@ -20,7 +20,7 @@ function [quantized timestamps] = quantize_events(events, time_resolution, retin
         quantized{current_step} = sparse(quantized{current_step});
 %         allEvents{current_step} = sparse(allEvents{current_step});
 
-        if events(i, 3) > time_end
+        if events(i, 1) > time_end
             time_end = time_end + time_resolution;
 %             disp(['Slice number', num2str(current_step), ', at time ', num2str(time_end), ', with ', num2str(i), ' events']);
             timestamps(current_step)=time_end;
@@ -29,8 +29,8 @@ function [quantized timestamps] = quantize_events(events, time_resolution, retin
 %             allEvents{current_step} = zeros(retinaSize(1), retinaSize(2));
         end
         
-        x = events(i, 1) + 1;
-        y = events(i, 2) + 1;
+        x = events(i, 2) + 1;
+        y = events(i, 3) + 1;
 %         quantized{current_step}(x, y)
         response = quantized{current_step}(x, y);
         response = response + events(i, 4);
@@ -42,7 +42,7 @@ function [quantized timestamps] = quantize_events(events, time_resolution, retin
         end
         i = i + 1;        
     end
-    timestamps(current_step)=events(end,3);
+    timestamps(current_step)=events(end,1);
     quantized{current_step} = sparse(quantized{current_step});
     close(waitbarHandle)
 end
