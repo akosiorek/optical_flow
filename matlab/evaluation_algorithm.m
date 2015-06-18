@@ -21,20 +21,19 @@ if nargin <4
     disregarded_timesteps =1
     
 end
-%read out events from .aedat file and save them to a .tsv file
+%% read out events from .aedat file and save them to a .tsv file
 [tsv_matrix, retinaSize] = events_from_aedat(aedat_file);
 eventsfile_tsv_name='../data/eval_events.tsv'
 save_aedat_events(tsv_matrix,eventsfile_tsv_name)
 
 
 
-
+%% Read events from the saved .tsv file and calculate optical flow
 % time_end=timecode(2,2);
 % time_start=timecode(2,2)-0.0001*1e6;
 time_start=0;
 time_end=0.5
 time_resolution=0.01;
-
 total_time=time_end-time_start;
 % time_resolution=total_time/size(timecode,1);
 %match the upscaling of the resolution in quantizer
@@ -43,19 +42,30 @@ total_time=time_end-time_start;
 %quantize events according to timecode file
 events = read_events(eventsfile_tsv_name, 1);
 % quantized = timecode_quantizer(events, timecode, retinaSize);
-%run the optical_flow code
-optical_flow(eventsfile_tsv_name, retinaSize, [time_start time_end], time_resolution);
 
+%% run the optical_flow code
+% optical_flow(eventsfile_tsv_name, retinaSize, [time_start time_end], time_resolution);
+load('flow.mat');
+opticalFlowX_aedat = opticalFlowX;
+opticalFlowY_aedat = opticalFlowY;
+quantized_timestamps=timestamps;
+%transpose the slices of both arrays
+% opticalFlowX_aedat = permute(opticalFlowX_aedat,[2 1 3]);
+% opticalFlowY_aedat = permute(opticalFlowY_aedat,[2 1 3]);
+% make_quiver_movie('square_quivers.avi',opticalFlowX_aedat, opticalFlowY_aedat);
+
+
+
+%% Read the ground truth flow from the .flo files
 timecode= parse_timecode(timecode_file, disregarded_timesteps);
+nr_flo_files = size(timecode,1)-1;
+start_scene_offset = timecode(1,1);
+opticalFlowX_flo=zeros(retinaSize(1),retinaSize(2), nr_flo_files);
+opticalFlowY_flo=zeros(retinaSize(1),retinaSize(2), nr_flo_files);
 
-
-nr_flo_files = 19;
-start_scene_nr = 2;
-opticalFlowX=zeros(retinaSize(1),retinaSize(2), nr_flo_files);
-opticalFlowY=zeros(retinaSize(1),retinaSize(2), nr_flo_files);
 path_to_flo_files='../data/quadrat/';
 for i=1:nr_flo_files
-    scene_index=i+start_scene_nr;
+    scene_index=i+start_scene_offset;
     if (scene_index<10)
         flo_name=strcat('scene0000',num2str(scene_index),'_mdpof.flo');
     else
@@ -63,13 +73,243 @@ for i=1:nr_flo_files
     end
     full_path=strcat(path_to_flo_files,flo_name);
     flo_matrix = readFlowFile(full_path);
-    opticalFlowX(:,:,i)=flo_matrix(:,:,1)'; %transpose might be wrong
-    opticalFlowY(:,:,i)=flo_matrix(:,:,2)';
+    opticalFlowX_flo(:,:,i)=flipud(flo_matrix(:,:,1))'; %transpose might be wrong
+    opticalFlowY_flo(:,:,i)=flipud(flo_matrix(:,:,2))';
+end
+% visualize_matrix3d(opticalFlowX_flo,1);
+% visualize_matrix3d(opticalFlowY_flo,1);
+% make_quiver_movie('ground_truth_quivers.avi',opticalFlowX_flo,opticalFlowY_flo);
+
+%% Obtain mask containing th event locations
+
+%The opticalFlow output only saves slices for which the full amount of
+%previous slices were convoluted by the tempral filter. We also remove
+%these previous slices from the quantized array
+quantizedOffset=size(quantized,1)-size(opticalFlowX_aedat,3);
+mask_eventLocations = createMaskFromQuantized(quantized, quantizedOffset);
+
+% mask_eventLocations= permute(mask_eventLocations,[2 1 3]);
+% visualize_matrix3d(mask_eventLocations,0.5);
+
+
+
+%%  Map each quantized timeslice to a frame in the ground truth and calculate angular error
+quantized_timestamps=quantized_timestamps(quantizedOffset+1:end);
+indexQuantizedToGT = zeros(size(quantized_timestamps,1),2);
+
+for i=1:size(indexQuantizedToGT)
+    compareIndex=1;
+    diff = 1e6;
+    for j=1:size(timecode)-1
+        newdiff =(abs(quantized_timestamps(i)-timecode(j,2)));
+        if (newdiff<diff)
+            compareIndex =j;
+            diff=newdiff;
+        end
+    end
+    indexQuantizedToGT(i,1)=compareIndex;
+    indexQuantizedToGT(i,2)=diff;
 end
 
-make_quiver_movie('ground_truth_quivers.avi',opticalFlowX,opticalFlowY);
+% masked_opticalFlowX_aedat = apply_mask(opticalFlowX_aedat,mask_eventLocations);
+% masked_opticalFlowY_aedat =apply_mask(opticalFlowY_aedat,mask_eventLocations);
+% masked_opticalFlowX_flo = apply_mask(opticalFlowY_flo,mask_eventLocations);
+% masked_opticalFlowY_flo= apply_mask(opticalFlowY_flo,mask_eventLocations);
+%consider converting the masked matrices to sparse matrices
+
+% Calculate the angular error for all '1'-events saved in quantized
+angularErrors= calc_angular_errors(opticalFlowX_aedat, opticalFlowY_aedat ...
+    , opticalFlowX_flo, opticalFlowY_flo, indexQuantizedToGT);
+eval_angular_errors(angularErrors, mask_eventLocations);
+
+
+
+
+%% Interpolate the Ground Truth to get exact temporal matches for comparison
+
+[intp_flowX_GT, intp_flowY] = interpolate_ground_truth(opticalFlowX_aedat, ...
+    opticalFlowY_aedat, opticalFlowX_flo, opticalFlowY_flo, quantized_timestamps, ...
+    timecode);
+
+
+% Calculate angular errors
+angularErrors2 = calc_angular_errors(opticalFlowX_aedat, opticalFlowY_aedat, ...
+    intp_flowX_GT, intp_flowY);
+eval_angular_errors(angularErrors2, mask_eventLocations);
+
+
+
+%% Visualize results in quiver plot
+
+make_quiver_movie('square_quivers.avi',opticalFlowX_aedat, opticalFlowY_aedat, quantized);
+make_quiver_movie('ground_truth_quivers.avi',opticalFlowX_flo,opticalFlowY_flo);
+% make_quiver_movie('ground_truth_quivers_interpolated.avi',intp_opticalFlowX_flo,intp_opticalFlowY_flo);
+
 
 end
+
+
+
+
+
+
+
+function [interp_flowX_GT, interp_flowY_GT]= interpolate_ground_truth(flowX, flowY, flowX_GT, flowY_GT, ...
+    quantized_timestamps, timecode)
+interp_flowX_GT=zeros(size(flowX));
+interp_flowY_GT=zeros(size(flowX));
+
+interpolationPoints = zeros(size(flowX,3),5);
+%entries: (indexBefore, indexAfter, timeBefore, timeAfter, timeQuantized)
+for i=1:size(interp_flowX_GT,3)
+    indexBefore=1;
+    indexAfter=0;
+    diffBefore=1e7;
+    diffAfter=1e7;
+    for j=1:size(timecode)-1
+        current_diffBefore = (quantized_timestamps(i)-timecode(j,2));
+        if(current_diffBefore > 0 && current_diffBefore < diffBefore)
+            indexBefore=j;
+            diffBefore=current_diffBefore;
+        end
+        current_diffAfter = (timecode(j,2)-quantized_timestamps(i));
+        if(current_diffAfter > 0 && current_diffAfter < diffAfter)
+            indexAfter=j;
+            diffAfter=current_diffAfter;
+        end
+        
+    end
+    %Hanlde situation where quantized slices exceed the ground truth time
+    if (indexAfter==0)
+        indexBefore=size(timecode,1)-2;
+        indexAfter=size(timecode,1)-1;
+    end
+    
+    interpolationPoints(i,:)=[indexBefore, indexAfter, timecode(indexBefore,2), ...
+        timecode(indexAfter,2), quantized_timestamps(i)];
+end
+
+for i=1:size(interp_flowX_GT,3)
+    %interpolate between two closest ground truth slices
+    index1=interpolationPoints(i,1);
+    index2=interpolationPoints(i,2);
+    x= cat(3,flowX_GT(:,:,index1),flowX_GT(:,:,index2));
+    x=permute(x, [3 1 2]);
+    t0 = [interpolationPoints(i,3), interpolationPoints(i,4)];
+    x_interp=interp1(t0,x,interpolationPoints(i,5));
+    
+    y= cat(3,flowY_GT(:,:,index1),flowY_GT(:,:,index2));
+    y=permute(y, [3 1 2]);
+    t0 = [interpolationPoints(i,3), interpolationPoints(i,4)];
+    y_interp=interp1(t0,y,interpolationPoints(i,5));
+    
+    interp_flowX_GT(:,:,i)=x_interp;
+    interp_flowY_GT(:,:,i)=y_interp;
+    
+end
+
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function eval_angular_errors(angularErrors, set_to_nan_mask)
+if nargin >1
+    angularErrors(set_to_nan_mask==0)=NaN;
+end
+disp(['Angular Errors: ']);
+
+for i=1:size(angularErrors,3)
+    anglesSlice=angularErrors(:,:,i);
+    %     meanAngularError=nanmean(anglesSlice(:));
+    %     medianAngularError=nanmedian(anglesSlice(:));
+    %     disp(['Mean angular error in slice nr ', num2str(i), ': ', num2str(meanAngularError)])
+    %     disp(['Median angular error in slice nr ', num2str(i), ': ', num2str(medianAngularError)]);
+    
+    tmp = anglesSlice.^2;
+    sqrtMeanAngularError=sqrt(nanmean(tmp(:)));
+    meanAngularErrorAbs=nanmean(abs(anglesSlice(:)));
+    medianAngularError=nanmedian(anglesSlice(:));
+    disp(['Slice nr ', num2str(i), ' - RMSE angular error: ', num2str(sqrtMeanAngularError)])
+    disp(['Slice nr ', num2str(i), ' - Abs-Mean angular error: ', num2str(meanAngularErrorAbs)])
+    disp(['Slice nr ', num2str(i), ' - Median angular error : ', num2str(medianAngularError)]);
+    
+end
+disp(['----']);
+
+
+end
+
+
+function [angularErrors] = calc_angular_errors(flowX, flowY, flowX_ref, flowY_ref, index_matcher)
+angularErrors = zeros(size(flowX));
+vectorLengths = zeros(size(flowX));
+vectorLengths_ref = zeros(size(flowX_ref));
+
+for i=1:size(flowX_ref,3)
+    vectorLengths_ref(:,:,i) = sqrt( ...
+        flowX_ref(:,:,i).*flowX_ref(:,:,i)+ ...
+        flowY_ref(:,:,i).*flowY_ref(:,:,i));
+end
+
+for i=1:size(flowX,3)
+    vectorLengths(:,:,i) = sqrt( ...
+        flowX(:,:,i).*flowX(:,:,i)+ ...
+        flowY(:,:,i).*flowY(:,:,i));
+end
+
+for i=1:size(angularErrors,3)
+    if nargin > 4
+        %compare with closest available ground truth frame, if an index_matcher
+        %variable is given
+        compareIndex=index_matcher(i);
+    else
+        compareIndex=i;
+    end
+    
+    angularErrors(:,:,i) = 180/pi * acos( ...
+        (flowX(:,:,i)./vectorLengths(:,:,i)).* ...
+        (flowX_ref(:,:,compareIndex)./vectorLengths_ref(:,:,compareIndex)) + ...
+        (flowY(:,:,i)./vectorLengths(:,:,i)).* ...
+        (flowY_ref(:,:,compareIndex)./vectorLengths_ref(:,:,compareIndex)));
+end
+
+end
+
+
+
+function [maskedArray] = apply_mask(Array, mask)
+maskedArray=Array;
+for i=1:size(Array,3)
+    Array(mask==0)=0;
+end
+
+end
+
+function [mask] = createMaskFromQuantized(quantized, quantizedOffset)
+%convert quantized array to full matrix
+
+for j=1:(size(quantized,2))
+    quantized_relevant=quantized(quantizedOffset+1:size(quantized,1));
+    mask=zeros(size(quantized_relevant{1}));
+    for i=1:size(quantized_relevant,1)
+        mask(:,:,i)=full(quantized_relevant{i});
+    end
+end
+
+end
+
+
 
 
 

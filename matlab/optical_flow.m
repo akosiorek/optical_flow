@@ -23,13 +23,13 @@ function optical_flow(eventFile, retinaSize, time_start_end, time_resolution)
     
 %     time_resolution = 0.01;
 
-    angles = [0 45 90 135];
+    angles = [0 45 90 135 180 225 270 315];
 %     retinaSize = [128 128];
     
     
     events = read_events(eventFile, 1);
     fprintf('Number of events:\t%d\n', size(events, 1));
-    quantized = quantize_events(events, time_resolution, retinaSize);
+    [quantized timestamps]= quantize_events(events, time_resolution, retinaSize);
     fprintf('Number of event slices:\t%d\n', size(quantized, 1));
     
 %     % used to convert EventSlices to a displayable format
@@ -62,16 +62,17 @@ function optical_flow(eventFile, retinaSize, time_start_end, time_resolution)
         toc
         
         % sum up stuff in X direction
-        opticalFlowX = opticalFlowX + cos(angle / 180 * pi) * responses;
+        correctionOffset = -90;
+        opticalFlowX = opticalFlowX + cos((correctionOffset+angle) / 180 * pi) * responses;
         % and in Y direction
-        opticalFlowY = opticalFlowY - sin(angle / 180 * pi) * responses;
+        opticalFlowY = opticalFlowY - sin((correctionOffset+angle) / 180 * pi) * responses;
     end
-    save('flow.mat', 'opticalFlowX', 'opticalFlowY','quantized')
+    save('flow.mat', 'opticalFlowX', 'opticalFlowY','quantized', 'timestamps')
     
     
 %     make_movie(opticalFlowX, 'flow_x.avi');  
 %     make_movie2(opticalFlowX, opticalFlowY, quantized, 'flow_quivers.avi');
-    make_quiver_movie('flow_quivers.avi',opticalFlowX,opticalFlowY,quantized);
+%     make_quiver_movie('flow_quivers.avi',opticalFlowX,opticalFlowY,quantized);
 end
 
 

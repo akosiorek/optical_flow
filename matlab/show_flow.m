@@ -1,5 +1,5 @@
-function show_flow(slice_nr,opticalFlowX,opticalFlowY, quantized)
-if nargin <2
+function [f] = show_flow(title_string,slice_nr,opticalFlowX,opticalFlowY, quantized)
+if nargin <4
     load('flow.mat');
     
     %  else
@@ -7,7 +7,7 @@ if nargin <2
     %      opticalFlowY=flow_file(:,:,2);
 end
 
-if nargin <1
+if nargin <2
     j=1;
 else
     j=slice_nr;
@@ -17,7 +17,7 @@ end
 
     maskedFlowX=opticalFlowX;
     maskedFlowY=opticalFlowY;
-if nargin >3
+if nargin >4
 
     quantizedOffset=size(quantized,1)-size(opticalFlowX,3);
     mask=quantized(quantizedOffset+1:size(quantized,1));
@@ -33,22 +33,20 @@ end
 
 % figure
 % hold on
-[x,y] = meshgrid(1:1:size(opticalFlowX,1),1:1:size(opticalFlowX,2 ));
-px = cos(x);
-py = sin(y);
-% scaleFactor=5;
-% f=quiver(x,y,opticalFlowX(:,:,j).*scaleFactor,opticalFlowY(:,:,j).*scaleFactor,'AutoScale','off');
-scaleFactor=1;
-f=quiver(x,y,maskedFlowX(:,:,j)'.*scaleFactor,maskedFlowY(:,:,j)'.*scaleFactor)';
+[x,y] = meshgrid(1:1:size(opticalFlowX,1),1:1:size(opticalFlowX,2));
+angles = atan(opticalFlowY./opticalFlowX);
+% py = sin(y);
 
-% %reference mesh
-% merged=maskedFlowX(:,:,j)+maskedFlowY(:,:,j);   
-% merged=merged';
-% mesh(x, y, merged);
 
-        view([0 90]);
-%     xlim([-5 size(opticalFlowX,2)+5]);
-%     ylim([-5 size(opticalFlowY,1)+5]);
-%         drawnow
+% f=quiver(x,y,maskedFlowX(:,:,j)',maskedFlowY(:,:,j)');
+%Bigger quivers
+scaleFactor=5;
+f=quiver(x,y,maskedFlowX(:,:,j)'.*scaleFactor,maskedFlowY(:,:,j)'.*scaleFactor,'AutoScale','off');
+    xlabel('x');
+    ylabel('y');
+    title(title_string);
+    
+
+
 
 end

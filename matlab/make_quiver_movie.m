@@ -8,15 +8,16 @@ loops = size(opticalFlowX,3);
 F(loops) = struct('cdata',[],'colormap',[]);
 for i = 1:loops
     if nargin <4
-        show_flow(i,opticalFlowX,opticalFlowY);
+        show_flow(name, i,opticalFlowX,opticalFlowY);
     else
-        show_flow(i,opticalFlowX,opticalFlowY, quantized);
+        show_flow(name, i,opticalFlowX,opticalFlowY, quantized);
     end
     xlim([-5 size(opticalFlowX,1)+5]);
     ylim([-5 size(opticalFlowY,2)+5]);
     %         view([0 90]);
+    grid on
     drawnow
-    F(i) = getframe(gcf);
+     F(i) = getframe(gcf);
 end
 vidObj = VideoWriter(name);
       open(vidObj);
