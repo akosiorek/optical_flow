@@ -6,8 +6,8 @@ class FlowSlice;
 class IFlowSinkTask
 {
 public:
-	virtual ~IFlowSinkTask() = 0;
-	virtual void process(FlowSlice& flowSlice);
+	virtual ~IFlowSinkTask() {};
+	virtual void process(std::shared_ptr<FlowSlice> flowSlice) {}
 };
 
 #endif //I_FLOW_SINK_TASK_H

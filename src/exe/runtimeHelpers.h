@@ -5,6 +5,7 @@ struct EBOFConfig
 {
     // File Name / URI for event stream
     std::string fn_input;
+    std::string fn_path;
 
     // Configuration Parameters and default values
     int timeSliceDuration = 10000;
@@ -51,6 +52,7 @@ int init(int argc, char** argv, EBOFConfig& cfg)
     desc.add_options()
         ("help", "produce help message")
         ("filename,f", po::value<std::string>(&cfg.fn_input), "Filename for event file / URI")
+        ("output-folder,o", po::value<std::string>(&cfg.fn_path), "Path where EBOF writes ebflo files")
         ("duration,d", po::value<int>(&cfg.timeSliceDuration)->default_value(10000),
             "TimeSlice Duration (in millisecond)")
         ("filterSize", po::value<int>(&cfg.filterSize)->default_value(21),

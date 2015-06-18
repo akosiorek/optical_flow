@@ -1,19 +1,23 @@
 #ifndef FLOW_SINK_PROCESSOR_H
 #define FLOW_SINK_PROCESSOR_H
 
-#include <queue>
+#include <vector>
 
 #include "common.h"
 #include "DataFlowPolicy.h"
+#include "FlowSlice.h"
 #include "IFlowSinkTask.h"
 
-class FlowSinkProcessor : public BufferedInputPolicy<EventSlice::Ptr, InputBufferT>
+template<template <class> class InputBufferT>
+class FlowSinkProcessor :
+	public BufferedInputPolicy<FlowSlice::Ptr, InputBufferT>
 {
 public:
+	using InputBuffer = typename BufferedInputPolicy<FlowSlice::Ptr, InputBufferT>::InputBuffer;
 
 	FlowSinkProcessor()
-		: running_(false),
-			processThread_(nullptr)
+		:	processThread_(nullptr),
+			running_(false)
 	{}
 
 	~FlowSinkProcessor()
@@ -42,7 +46,7 @@ public:
 
 	void addTask(std::unique_ptr<IFlowSinkTask> task)
 	{
-		taskQueue_.push(task);
+		taskQueue_.emplace_back(std::move(task));
 	}
 
 private:
@@ -51,14 +55,16 @@ private:
 	{
 		while(running_ == true)
 		{
-			for(auto task : taskQueue_)
+			auto input = this->inputBuffer_->front();
+			this->inputBuffer_->pop();
+			for(std::size_t i = 0; i<taskQueue_.size(); ++i)
 			{
-				task->process();
+				taskQueue_[i]->process(input);
 			}
 		}
 	}
 
-	std::queue<std::unique_ptr<IFlowSinkTask> > taskQueue_;
+	std::vector<std::unique_ptr<IFlowSinkTask> > taskQueue_;
 
 	std::unique_ptr<std::thread> processThread_;
 	std::atomic_bool running_;

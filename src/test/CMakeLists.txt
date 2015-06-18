@@ -10,6 +10,7 @@ set(TEST_SRC
     FilteringEngineCPUTest.cpp
     FourierTransformerCPUTest.cpp
     EventReaderTest.cpp
+    FlowSinkTest.cpp
 )
 
 if(WITH_CUDA)
