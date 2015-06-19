@@ -9,6 +9,9 @@
 #include "FourierTransformerCUFFTW.h"
 #include "FilteringEngineGPU.h"
 
+#include "FlowSinkProcessor.h"
+#include "TaskWriteFlowSlice.h"
+
 #include "runtimeHelpers.h"
 
 template<class T>
@@ -50,8 +53,11 @@ int main(int argc, char** argv)
     }
 
     //TODO implement FlowSink
-    // FlowSink<QueueT> sink;
-    // sink.setInputBuffer(flowSliceQueue);
+    FlowSinkProcessor<QueueT> sink;
+    sink.setInputBuffer(flowSliceQueue);
+    auto ebfloWriter = std::make_unique<TaskWriteFlowSlice<OutputPolicyBinary> >();
+    ebfloWriter->setFilePath(cfg.fn_path);
+    sink.addTask(std::move(ebfloWriter));
 
     // Start Processing
     LOG(INFO) << "Initialization completed";
@@ -65,11 +71,18 @@ int main(int argc, char** argv)
         {
             quantizer.process();
             engine.process();
-            // sink.process();
+            if(flowSliceQueue->size() > 10) break;
         }
     }
-
     LOG(INFO) << "Processing finished. Completed " << flowSliceQueue->size() << " FlowSlices!";
+
+    sink.start();
+    while(!flowSliceQueue->empty())
+    {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+    sink.stop();
+
     //shutdown?
     eventReader.stopPublishing();
 

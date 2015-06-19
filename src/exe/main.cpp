@@ -59,7 +59,7 @@ int main(int argc, char** argv)
     //TODO implement FlowSink
     FlowSinkProcessor<QueueT> sink;
     sink.setInputBuffer(flowSliceQueue);
-    auto ebfloWriter = std::make_unique<TaskWriteFlowSlice>();
+    auto ebfloWriter = std::make_unique<TaskWriteFlowSlice<OutputPolicyBinary> >();
     ebfloWriter->setFilePath(cfg.fn_path);
     sink.addTask(std::move(ebfloWriter));
 
