@@ -56,18 +56,17 @@ int main(int argc, char** argv)
         engine.addFilter(angle);
     }
 
-    //TODO implement FlowSink
     FlowSinkProcessor<QueueT> sink;
     sink.setInputBuffer(flowSliceQueue);
     auto ebfloWriter = std::make_unique<TaskWriteFlowSlice<OutputPolicyBinary> >();
     ebfloWriter->setFilePath(cfg.fn_path);
     sink.addTask(std::move(ebfloWriter));
 
-// Start Processing
+    // Start Processing
     LOG(INFO) << "Initialization completed";
     LOG(INFO) << "Processing...";
 
-    boost::timer::auto_cpu_timer t;
+    auto timer = std::make_shared<boost::timer::auto_cpu_timer>();
     if(eventReader.startPublishing())
     {
         // TODO handle keyboard interrupts
@@ -75,9 +74,9 @@ int main(int argc, char** argv)
         {
             quantizer.process();
             engine.process();
-            if(flowSliceQueue->size() > 10) break;
         }
     }
+    timer.reset();//trigger time printing
     LOG(INFO) << "Processing finished. Completed " << flowSliceQueue->size() << " FlowSlices!";
 
     sink.start();
@@ -85,10 +84,8 @@ int main(int argc, char** argv)
     {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
+
     sink.stop();
-
-    //shutdown?
     eventReader.stopPublishing();
-
 	return 0;
 }

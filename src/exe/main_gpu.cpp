@@ -52,7 +52,6 @@ int main(int argc, char** argv)
         engine.addFilter(angle);
     }
 
-    //TODO implement FlowSink
     FlowSinkProcessor<QueueT> sink;
     sink.setInputBuffer(flowSliceQueue);
     auto ebfloWriter = std::make_unique<TaskWriteFlowSlice<OutputPolicyBinary> >();
@@ -81,9 +80,8 @@ int main(int argc, char** argv)
     {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
-    sink.stop();
 
-    //shutdown?
+    sink.stop();
     eventReader.stopPublishing();
 
 	return 0;
