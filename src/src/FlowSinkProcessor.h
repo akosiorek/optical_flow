@@ -39,9 +39,12 @@ public:
 
 	void stop()
 	{
-		running_ = false;
-		processThread_->join();
-		processThread_.reset();
+		if(running_==true)
+		{
+			running_ = false;
+			processThread_->join();
+			processThread_.reset();
+		}
 	}
 
 	void addTask(std::unique_ptr<IFlowSinkTask> task)
@@ -55,11 +58,14 @@ private:
 	{
 		while(running_ == true)
 		{
-			auto input = this->inputBuffer_->front();
-			this->inputBuffer_->pop();
-			for(std::size_t i = 0; i<taskQueue_.size(); ++i)
+			if(this->hasInput())
 			{
-				taskQueue_[i]->process(input);
+				auto input = this->inputBuffer_->front();
+				this->inputBuffer_->pop();
+				for(std::size_t i = 0; i<taskQueue_.size(); ++i)
+				{
+					taskQueue_[i]->process(input);
+				}
 			}
 		}
 	}

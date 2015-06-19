@@ -5,6 +5,8 @@
 
 #include <boost/format.hpp>
 
+#include "zlib.h"
+
 #include "IFlowSinkTask.h"
 #include "FlowSlice.h"
 
@@ -17,27 +19,30 @@ protected:
 		std::ofstream filexv(fn_path+(fmt%sliceCount).str()+"_xv.tsv", std::ios::out);
 		std::ofstream fileyv(fn_path+(fmt%sliceCount).str()+"_yv.tsv", std::ios::out);
 
-		auto ptrxv = flowSlice->xv_.data();
-		auto ptryv = flowSlice->yv_.data();
-
-		for(int i = 0; i<flowSlice->xv_.rows(); ++i) // ROWS
+		if(filexv.is_open() && fileyv.is_open())
 		{
-			for(int j = 0; j<flowSlice->xv_.cols(); ++j) // COLS
-			{
-				filexv << *(ptrxv + j + i*flowSlice->xv_.cols());
-				fileyv  << *(ptryv + j + i*flowSlice->xv_.cols());
-				if(j<flowSlice->xv_.cols()-1)
-				{
-					filexv << "\t";
-					fileyv << "\t";
-				}
-			}
-			filexv << "\n";
-			fileyv << "\n";
-		}
+			auto ptrxv = flowSlice->xv_.data();
+			auto ptryv = flowSlice->yv_.data();
 
-		filexv.close();
-		fileyv.close();
+			for(int i = 0; i<flowSlice->xv_.rows(); ++i) // ROWS
+			{
+				for(int j = 0; j<flowSlice->xv_.cols(); ++j) // COLS
+				{
+					filexv << *(ptrxv + j + i*flowSlice->xv_.cols());
+					fileyv  << *(ptryv + j + i*flowSlice->xv_.cols());
+					if(j<flowSlice->xv_.cols()-1)
+					{
+						filexv << "\t";
+						fileyv << "\t";
+					}
+				}
+				filexv << "\n";
+				fileyv << "\n";
+			}
+
+			filexv.close();
+			fileyv.close();
+		}
 	}
 };
 
@@ -49,13 +54,30 @@ protected:
 		boost::format fmt("/%08d");
 		std::ofstream filexv(fn_path+(fmt%sliceCount).str()+"_xv.ebflo", std::ios::out | std::ios::binary);
 		std::ofstream fileyv(fn_path+(fmt%sliceCount).str()+"_yv.ebflo", std::ios::out | std::ios::binary);
-		filexv.write((char*) flowSlice->xv_.data(), flowSlice->xv_.rows() * flowSlice->xv_.cols() * sizeof(float));
-		fileyv.write((char*) flowSlice->yv_.data(), flowSlice->yv_.rows() * flowSlice->yv_.cols() * sizeof(float));
-		filexv.close();
-		fileyv.close();
+		if(filexv.is_open() && fileyv.is_open())
+		{
+			filexv.write((char*) flowSlice->xv_.data(), flowSlice->xv_.rows() * flowSlice->xv_.cols() * sizeof(float));
+			fileyv.write((char*) flowSlice->yv_.data(), flowSlice->yv_.rows() * flowSlice->yv_.cols() * sizeof(float));
+			filexv.close();
+			fileyv.close();
+		}
 	}
 };
 
+class OutputPolicyCompressed
+{
+protected:
+	void write(std::shared_ptr<FlowSlice> flowSlice, const std::string fn_path, int sliceCount)
+	{
+		boost::format fmt("/%08d");
+		gzFile filexv = gzopen(std::string(fn_path+(fmt%sliceCount).str()+"_xv.ebflo.gz").c_str(), "wb");
+		gzFile fileyv = gzopen(std::string(fn_path+(fmt%sliceCount).str()+"_yv.ebflo.gz").c_str(), "wb");
+		gzwrite(filexv, flowSlice->xv_.data(), flowSlice->xv_.rows() * flowSlice->xv_.cols() * sizeof(float));
+		gzwrite(fileyv, flowSlice->yv_.data(), flowSlice->yv_.rows() * flowSlice->yv_.cols() * sizeof(float));
+		gzclose(filexv);
+		gzclose(fileyv);
+	}
+};
 
 template<typename OutputPolicy>//, typename Type> //whereace type is angle/magnitude pairs oder xv,yv seperat
 class TaskWriteFlowSlice: public IFlowSinkTask, private OutputPolicy

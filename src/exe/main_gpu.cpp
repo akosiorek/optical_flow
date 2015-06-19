@@ -63,7 +63,7 @@ int main(int argc, char** argv)
     LOG(INFO) << "Initialization completed";
     LOG(INFO) << "Processing...";
 
-    boost::timer::auto_cpu_timer t;
+    auto timer = std::make_shared<boost::timer::auto_cpu_timer>();
     if(eventReader.startPublishing())
     {
         // TODO handle keyboard interrupts
@@ -71,9 +71,9 @@ int main(int argc, char** argv)
         {
             quantizer.process();
             engine.process();
-            if(flowSliceQueue->size() > 10) break;
         }
     }
+    timer.reset();//trigger time printing
     LOG(INFO) << "Processing finished. Completed " << flowSliceQueue->size() << " FlowSlices!";
 
     sink.start();
