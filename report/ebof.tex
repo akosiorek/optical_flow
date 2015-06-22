@@ -124,39 +124,11 @@ But definitely give a very short summary about other approaches and implementati
 %_____Kapitel 2_________________________________
 \chapter{Main Part}
 
-\section{Algorithm}
-We might want to do a short summary of the original algorithm to outline how it works, so the following sections make sense.
-
-\section{Our Code Design}
-Summary of needs of the algorithm when looking at actual implementations not just mathematical description.
-\subsection{Overview Pipeline}
-As our previous class diagram, as flow chart perhaps
-\subsection{Convolution Engine}
-Detailed look at the convolution engine idea??
-\subsection{Other components}
-Other Stuff??
-
-\section{Implementation}
-Describe our whole C++11 impl in details
-\subsection{Sequential}
-\subsection{Parallel Implementation}
-
-\section{Experimental Results}
-Whole lot of evaluation.
-
-\subsection{Ground Truth}
-How did we get the ground truth, how was it produced. Highlight pit falls
-\subsection{Evaluation Metrics}
-How did we measure our results
-
-\subsection{Results}
-\paragraph{Qualitative:} How does it run, without regards to output quality (simply a measurement of runtimes with parameter fiddling)
-Comparision CPU vs GPU etc.
-
-\paragraph{Quantitative:} How does the output compare to ground truth??
-
-\section{Discussion}
-Dicuss results and look at whether they support the original paper and our code (ye, cause its so fck great :)
+\input{algorithm.tex}
+\input{code_design.tex}
+\input{implementation.tex}
+\input{experimental_results.tex}
+\input{discussion.tex}
 
 %_______________________________________________
 
