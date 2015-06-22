@@ -1,9 +1,10 @@
 *.aux
-*.blg
+*.backup
 *.bbl
-*.toc
+*.blg
 *.kilepr
 *.lof
 *.log
 *.out
 *.pdf
+*.toc
