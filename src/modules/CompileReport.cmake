@@ -2,6 +2,16 @@
 set(REPORT_DIR ${CMAKE_SOURCE_DIR}/../report)
   configure_file(
     ${CMAKE_SOURCE_DIR}/../report/ebof.tex ${CMAKE_CURRENT_BINARY_DIR}/ebof.tex @ONLY)
+  configure_file(
+    ${CMAKE_SOURCE_DIR}/../report/algorithm.tex ${CMAKE_CURRENT_BINARY_DIR}/algorithm.tex @ONLY)
+  configure_file(
+    ${CMAKE_SOURCE_DIR}/../report/code_design.tex ${CMAKE_CURRENT_BINARY_DIR}/code_design.tex @ONLY)
+  configure_file(
+    ${CMAKE_SOURCE_DIR}/../report/discussion.tex ${CMAKE_CURRENT_BINARY_DIR}/discussion.tex @ONLY)
+  configure_file(
+    ${CMAKE_SOURCE_DIR}/../report/experimental_results.tex ${CMAKE_CURRENT_BINARY_DIR}/experimental_results.tex @ONLY)
+  configure_file(
+    ${CMAKE_SOURCE_DIR}/../report/implementation.tex ${CMAKE_CURRENT_BINARY_DIR}/implementation.tex @ONLY)
   add_custom_target(step1
   COMMAND   ${LATEX_COMPILER} ${CMAKE_CURRENT_BINARY_DIR}/ebof.tex
   DEPENDS   ${CMAKE_CURRENT_BINARY_DIR}/ebof.tex
