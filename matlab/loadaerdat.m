@@ -55,7 +55,7 @@ while line(1)=='#',
     if strncmp(line,tok, length(tok))==1,
         version=sscanf(line(length(tok)+1:end),'%f');
     end
-    fprintf('%s',line); % print line using \n for newline, discarding CRLF written by java under windows
+%     fprintf('%s',line); % print line using \n for newline, discarding CRLF written by java under windows
     bof=ftell(f); % save end of comment header location
     line=native2unicode(fgets(f)); % gets the line including line ending chars
 end

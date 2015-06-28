@@ -1,69 +1,89 @@
-function evaluation_algorithm(path_to_data, aedat_file, timecode_file, disregarded_timesteps, data_Descriptor)
+function evaluation_algorithm(path_to_data, aedat_file, timecode_file, disregarded_timesteps, data_Descriptor, filter_times, angles, do_plot, negate_GT_Y)
 %EVALUATION_ALGORITHM Summary of this function goes here
 %   Detailed explanation goes here
 if nargin < 1
-   path_to_data = '../data/quadrat/'; 
+    path_to_data = '../data/quadrat/';
 end
 if nargin < 2
-    %    aedat_file='../data/pushbot_DVS.aedat';
     aedat_file='quadrat_DVS_Only.aedat';
-    
 end
 if nargin < 3
-    %     timecode_file='../data/pushbot-timecode.txt';
     timecode_file='quadrat_Frames_Timecode.txt';
-    
 end
 if nargin < 4
-    %     disregarded_timesteps =0
-    disregarded_timesteps =1;
+    disregarded_timesteps =1; %=0;
     
 end
 if nargin < 5
-   data_Descriptor = 'quadrat' ;
+    data_Descriptor = 'quadrat' ;
+end
+if nargin < 6
+    time_start = 0;
+    time_end = 0.7;
+    time_resolution = 0.01;
+else
+    time_start = filter_times(1);
+    time_end = filter_times(2);
+    time_resolution = filter_times(3);
+end
+if nargin < 7
+    angles = [0 45 90 135 180 225 270 315];
+end
+if nargin < 8
+    do_plot = 0;
+end
+
+if nargin < 9
+    negate_GT_Y = 0; %flag to negate the values of the y-flow from the .flo files (e.g. for pushbot)
 end
 aedat_file = strcat(path_to_data,aedat_file);
 timecode_file=strcat(path_to_data,timecode_file);
 
-%Create logfile
-t = [datetime('now')];
-DateString = datestr(t);
-DateString=strrep(DateString,' ','_');
-logfile_name=strcat(path_to_data,data_Descriptor,'_logfile_', DateString, '.txt');
-diary(logfile_name);
+% %Create logfile (Moved logfile handling to eval_setups.m)
+% t = [datetime('now')];
+% DateString = datestr(t);
+% DateString=strrep(DateString,' ','_');
+% logfile_name=strcat(path_to_data,data_Descriptor,'_logfile_', DateString, '.txt');
+% diary(logfile_name);
+
+%% Set retina size for the camera
+retinaSize=[240 180];
+
 
 
 %% read out events from .aedat file and save them to a .tsv file
-[tsv_matrix, retinaSize] = events_from_aedat(aedat_file);
-eventsfile_tsv_name='../data/eval_events.tsv'
-save_aedat_events(tsv_matrix,eventsfile_tsv_name)
+eventsfile_tsv_name= strcat(path_to_data,data_Descriptor,'_events.tsv');
+
+convert_aedat_to_tsv(aedat_file,eventsfile_tsv_name);
 
 
 %% Read events from the saved .tsv file and calculate optical flow
 % time_end=timecode(2,2);
 % time_start=timecode(2,2)-0.0001*1e6;
-time_start=0;
-time_end=0.5
-time_resolution=0.01;
-total_time=time_end-time_start;
-% time_resolution=total_time/size(timecode,1);
-%match the upscaling of the resolution in quantizer
-% time_resolution = time_resolution*1e-6;
+% total_time=time_end-time_start;
+% angles = [0 30 60 90 120 150 180 210 240 270 300 330]
+
 
 %quantize events according to timecode file
-events = read_events(eventsfile_tsv_name, 1);
+% events = read_events(eventsfile_tsv_name, 1);
 % quantized = timecode_quantizer(events, timecode, retinaSize);
 
-%% run the optical_flow code
-% optical_flow(eventsfile_tsv_name, retinaSize, [time_start time_end], time_resolution);
+%for logfile output
+eventsfile_tsv_name
+data_Descriptor
+retinaSize
+time_start
+time_end
+time_resolution
+angles
+disregarded_timesteps
+negate_GT_Y
+optical_flow(eventsfile_tsv_name, retinaSize, [time_start time_end], time_resolution, angles);
 load('flow.mat');
 opticalFlowX_aedat = opticalFlowX;
 opticalFlowY_aedat = opticalFlowY;
 quantized_timestamps=timestamps;
-%transpose the slices of both arrays
-% opticalFlowX_aedat = permute(opticalFlowX_aedat,[2 1 3]);
-% opticalFlowY_aedat = permute(opticalFlowY_aedat,[2 1 3]);
-% make_quiver_movie('square_quivers.avi',opticalFlowX_aedat, opticalFlowY_aedat);
+
 
 
 
@@ -84,13 +104,16 @@ for i=1:nr_flo_files
     full_path=strcat(path_to_data,flo_name);
     flo_matrix = readFlowFile(full_path);
     opticalFlowX_flo(:,:,i)=flipud(flo_matrix(:,:,1))'; %transpose might be wrong
-    opticalFlowY_flo(:,:,i)=flipud(flo_matrix(:,:,2))';
+    %fix wrong sign for flowY values
+    if (negate_GT_Y)
+        opticalFlowY_flo(:,:,i)=flipud(-1.*flo_matrix(:,:,2))';
+    else
+        opticalFlowY_flo(:,:,i)=flipud(flo_matrix(:,:,2))';
+    end
 end
-% visualize_matrix3d(opticalFlowX_flo,1);
-% visualize_matrix3d(opticalFlowY_flo,1);
-% make_quiver_movie('ground_truth_quivers.avi',opticalFlowX_flo,opticalFlowY_flo);
 
-%% Obtain mask containing th event locations
+
+%% Obtain mask containing the event locations
 
 %The opticalFlow output only saves slices for which the full amount of
 %previous slices were convoluted by the tempral filter. We also remove
@@ -98,10 +121,7 @@ end
 quantizedOffset=size(quantized,1)-size(opticalFlowX_aedat,3);
 mask_eventLocations = createMaskFromQuantized(quantized, quantizedOffset);
 
-%Modify mask to remove erroneous pixels from the left side of the image
-mask_eventLocations(1:50,:,:)=0;
-
-
+% % check for mask correctness
 % mask_eventLocations= permute(mask_eventLocations,[2 1 3]);
 % visualize_matrix3d(mask_eventLocations,0.5);
 
@@ -125,15 +145,10 @@ for i=1:size(indexQuantizedToGT)
     indexQuantizedToGT(i,2)=diff;
 end
 
-% masked_opticalFlowX_aedat = apply_mask(opticalFlowX_aedat,mask_eventLocations);
-% masked_opticalFlowY_aedat =apply_mask(opticalFlowY_aedat,mask_eventLocations);
-% masked_opticalFlowX_flo = apply_mask(opticalFlowY_flo,mask_eventLocations);
-% masked_opticalFlowY_flo= apply_mask(opticalFlowY_flo,mask_eventLocations);
-%consider converting the masked matrices to sparse matrices
-
 % Calculate the angular error for all '1'-events saved in quantized
 angularErrors= calc_angular_errors(opticalFlowX_aedat, opticalFlowY_aedat ...
     , opticalFlowX_flo, opticalFlowY_flo, indexQuantizedToGT);
+disp(['Angular Errors: ']);
 eval_angular_errors(angularErrors, mask_eventLocations);
 
 
@@ -149,22 +164,44 @@ eval_angular_errors(angularErrors, mask_eventLocations);
 % Calculate angular errors
 angularErrors2 = calc_angular_errors(opticalFlowX_aedat, opticalFlowY_aedat, ...
     intp_flowX_GT, intp_flowY_GT);
+disp(['Angular Errors for interpolated ground truth slices: ']);
 eval_angular_errors(angularErrors2, mask_eventLocations);
 
 
 
 %% Visualize results in quiver plot and save logfile
-maskedFlowx=apply_mask(opticalFlowX_aedat,mask_eventLocations);
-maskedFlowy=apply_mask(opticalFlowY_aedat,mask_eventLocations);
 
-% make_quiver_movie(strcat(data_Descriptor,'.avi'),opticalFlowX_aedat, opticalFlowY_aedat);
-% make_quiver_movie(strcat(data_Descriptor,'_masked.avi'),maskedFlowx, maskedFlowy);
-% make_quiver_movie(strcat(data_Descriptor,'_GT.avi'),opticalFlowX_flo,opticalFlowY_flo);
-% make_quiver_movie(strcat(data_Descriptor,'_GT_interp.avi'),intp_flowX_GT,intp_flowY_GT);
 
-% fprintf(fid,'%d\n',5); %write the value into the file
-% fclose(fid);
-diary off;
+
+if (do_plot)
+    maskedFlowx=apply_mask(opticalFlowX_aedat,mask_eventLocations);
+    maskedFlowy=apply_mask(opticalFlowY_aedat,mask_eventLocations);
+    
+    % Create a masked version of the ground truth flow frames for qualitative
+    % comparison
+    maskedFlowX_GT=zeros(size(opticalFlowX_aedat));
+    maskedFlowY_GT=zeros(size(opticalFlowY_aedat));
+    for i=1:size(opticalFlowX_aedat,3)
+        maskedFlowX_GT(:,:,i)=opticalFlowX_flo(:,:,indexQuantizedToGT(i,1));
+        maskedFlowY_GT(:,:,i)=opticalFlowY_flo(:,:,indexQuantizedToGT(i,1));
+    end
+    maskedFlowX_GT=apply_mask(maskedFlowX_GT,mask_eventLocations);
+    maskedFlowY_GT=apply_mask(maskedFlowY_GT,mask_eventLocations);
+    
+    
+    
+    
+    %make_quiver_movie(strcat(data_Descriptor,'.avi'),opticalFlowX_aedat, opticalFlowY_aedat);
+    make_quiver_movie(strcat(data_Descriptor,'_masked.avi'),maskedFlowx, maskedFlowy);
+    % make_quiver_movie(strcat(data_Descriptor,'_GT.avi'),opticalFlowX_flo,opticalFlowY_flo);
+    % make_quiver_movie(strcat(data_Descriptor,'_GT_interp.avi'),intp_flowX_GT,intp_flowY_GT);
+    make_quiver_movie(strcat(data_Descriptor,'_GT_masked.avi'),maskedFlowX_GT,maskedFlowY_GT);
+    
+end
+
+
+
+% diary off;
 
 
 end
@@ -238,7 +275,15 @@ end
 
 
 
-
+% function [matrix] = delete_defect_pixels(matrix, xCoords, yCoords)
+% % matrix(xCoords,yCoords,:)=0;
+% % indeces = [xCoords; yCoords];
+% for i=1:size(matrix,3)
+%     slice = matrix(:,:,i);
+%     slice(sub2ind(size(slice),xCoords,yCoords))=0;
+%     matrix(:,:,i)=slice;
+% end
+% end
 
 
 
@@ -248,8 +293,12 @@ function eval_angular_errors(angularErrors, set_to_nan_mask)
 if nargin >1
     angularErrors(set_to_nan_mask==0)=NaN;
 end
-disp(['Angular Errors: ']);
-
+avg_sqrtMeanAngularError=0;
+c1=0;
+avg_meanAngularErrorAbs=0;
+c2=0;
+avg_medianAngularError=0;
+c3=0;
 for i=1:size(angularErrors,3)
     anglesSlice=angularErrors(:,:,i);
     %     meanAngularError=nanmean(anglesSlice(:));
@@ -261,11 +310,34 @@ for i=1:size(angularErrors,3)
     sqrtMeanAngularError=sqrt(nanmean(tmp(:)));
     meanAngularErrorAbs=nanmean(abs(anglesSlice(:)));
     medianAngularError=nanmedian(anglesSlice(:));
-    disp(['Slice nr ', num2str(i), ' - RMSE angular error: ', num2str(sqrtMeanAngularError)])
-    disp(['Slice nr ', num2str(i), ' - Abs-Mean angular error: ', num2str(meanAngularErrorAbs)])
-    disp(['Slice nr ', num2str(i), ' - Median angular error : ', num2str(medianAngularError)]);
+    disp(['Slice nr ', num2str(i), ' - RMSE angular error: ',char(9), num2str(sqrtMeanAngularError)])
+    disp(['Slice nr ', num2str(i), ' - Abs-Mean angular error: ',char(9), num2str(meanAngularErrorAbs)])
+    disp(['Slice nr ', num2str(i), ' - Median angular error : ',char(9), num2str(medianAngularError)]);
+    
+    if (~isnan(sqrtMeanAngularError))
+        avg_sqrtMeanAngularError=avg_sqrtMeanAngularError+sqrtMeanAngularError;
+        c1=c1+1;
+    end
+    if (~isnan(meanAngularErrorAbs))
+        avg_meanAngularErrorAbs=avg_meanAngularErrorAbs+meanAngularErrorAbs;
+        c2=c2+1;
+    end
+    if (~isnan(medianAngularError))
+        avg_medianAngularError=avg_medianAngularError+medianAngularError;
+        c3=c3+1;
+    end
+    
+    
     
 end
+avg_sqrtMeanAngularError=avg_sqrtMeanAngularError/c1;
+avg_meanAngularErrorAbs=avg_meanAngularErrorAbs/c2;
+avg_medianAngularError=avg_medianAngularError/c3;
+disp(['Mean for all sclices - RMSE angular error: ',char(9), num2str(avg_sqrtMeanAngularError)])
+disp(['Mean for all slices - Abs-Mean angular error: ',char(9), num2str(avg_meanAngularErrorAbs)])
+disp(['Mean for all slices - Median angular error : ',char(9), num2str(avg_medianAngularError)]);
+
+
 disp(['----']);
 
 
@@ -303,6 +375,8 @@ for i=1:size(angularErrors,3)
         (flowX_ref(:,:,compareIndex)./vectorLengths_ref(:,:,compareIndex)) + ...
         (flowY(:,:,i)./vectorLengths(:,:,i)).* ...
         (flowY_ref(:,:,compareIndex)./vectorLengths_ref(:,:,compareIndex)));
+    slice=angularErrors(:,:,i);
+    debug=5;
 end
 
 end
@@ -325,6 +399,7 @@ for j=1:(size(quantized,2))
     mask=zeros(size(quantized_relevant{1}));
     for i=1:size(quantized_relevant,1)
         mask(:,:,i)=full(quantized_relevant{i});
+        debugSlice=mask(:,:,i);
     end
 end
 
@@ -342,6 +417,7 @@ end
 
 [frame_nr time] = textread(timecode_file, '%f %f', ...
     'headerlines', 3+disregarded_timesteps) ;
+% [frame_nr time] = load(timecode_file);
 timecode = [frame_nr time];
 condition_not_empty=timecode(:,1)==NaN;
 timecode(condition_not_empty,:)=[];
@@ -366,7 +442,6 @@ id = (1:size(x))';
 
 
 tsv_matrix=[ts x y pol id];
-retinaSize=[240 180];
 
 end
 

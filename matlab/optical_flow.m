@@ -1,5 +1,5 @@
-function optical_flow(eventFile, retinaSize, time_start_end, time_resolution)
-    clc
+function optical_flow(eventFile, retinaSize, time_start_end, time_resolution,angles)
+   
     
     if nargin < 1
     eventFile='../data/events_medium.tsv';
@@ -19,11 +19,13 @@ function optical_flow(eventFile, retinaSize, time_start_end, time_resolution)
 %         time_resolution=0.0025;
 
     end
-    
+    if nargin < 5
+       angles = [0 45 90 135 180 225 270 315];
+    end
     
 %     time_resolution = 0.01;
 
-    angles = [0 45 90 135 180 225 270 315];
+%     angles = [0 45 90 135 180 225 270 315]
 %     retinaSize = [128 128];
     
     
