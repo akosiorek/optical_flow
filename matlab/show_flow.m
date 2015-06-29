@@ -40,7 +40,7 @@ angles = atan(opticalFlowY./opticalFlowX);
 
 % f=quiver(x,y,maskedFlowX(:,:,j)',maskedFlowY(:,:,j)');
 %Bigger quivers
-scaleFactor=2.5;
+scaleFactor=2.5; %for 'baelle', quivers are very small. Results fairly well visible for >70
 f=quiver(x,y,maskedFlowX(:,:,j)'.*scaleFactor,maskedFlowY(:,:,j)'.*scaleFactor,'AutoScale','off');
     xlabel('x');
     ylabel('y');

@@ -96,10 +96,16 @@ opticalFlowY_flo=zeros(retinaSize(1),retinaSize(2), nr_flo_files);
 
 for i=1:nr_flo_files
     scene_index=i+start_scene_offset;
-    if (scene_index<10)
-        flo_name=strcat('scene0000',num2str(scene_index),'_mdpof.flo');
+%     if (scene_index<10)
+%         flo_name=strcat('scene0000',num2str(scene_index),'_mdpof.flo');
+%     else
+%         flo_name=strcat('scene000',num2str(scene_index),'_mdpof.flo');
+%     end
+    %different string names for 'baelle':
+        if (scene_index<10)
+        flo_name=strcat('gtFlo000',num2str(scene_index),'.flo');
     else
-        flo_name=strcat('scene000',num2str(scene_index),'_mdpof.flo');
+        flo_name=strcat('gtFlo00',num2str(scene_index),'.flo');
     end
     full_path=strcat(path_to_data,flo_name);
     flo_matrix = readFlowFile(full_path);
@@ -191,11 +197,11 @@ if (do_plot)
     
     
     
-    %make_quiver_movie(strcat(data_Descriptor,'.avi'),opticalFlowX_aedat, opticalFlowY_aedat);
-    make_quiver_movie(strcat(data_Descriptor,'_masked.avi'),maskedFlowx, maskedFlowy);
-    % make_quiver_movie(strcat(data_Descriptor,'_GT.avi'),opticalFlowX_flo,opticalFlowY_flo);
+    make_quiver_movie(strcat(data_Descriptor,'.avi'),opticalFlowX_aedat, opticalFlowY_aedat);
+%     make_quiver_movie(strcat(data_Descriptor,'_masked.avi'),maskedFlowx, maskedFlowy);
+%     make_quiver_movie(strcat(data_Descriptor,'_GT.avi'),opticalFlowX_flo,opticalFlowY_flo);
     % make_quiver_movie(strcat(data_Descriptor,'_GT_interp.avi'),intp_flowX_GT,intp_flowY_GT);
-    make_quiver_movie(strcat(data_Descriptor,'_GT_masked.avi'),maskedFlowX_GT,maskedFlowY_GT);
+%     make_quiver_movie(strcat(data_Descriptor,'_GT_masked.avi'),maskedFlowX_GT,maskedFlowY_GT);
     
 end
 
