@@ -69,7 +69,7 @@ int init(int argc, char** argv, EBOFConfig& cfg)
             "Edge length of filter (DEPRECATED!)")
         ("t0", po::value<float>(&cfg.t0)->default_value(0),
             "Start time of the temporal dimension of the Gabor Filter (in seconds)")
-        ("t0", po::value<float>(&cfg.tk)->default_value(0.7),
+        ("t1", po::value<float>(&cfg.tk)->default_value(0.7),
             "End time of the temporal dimension of the Gabor Filter (in seconds)")
         ("timeResolution", po::value<float>(&cfg.timeResolution)->default_value(10000 * 1e-6f),
             "Time resolution of Gabor Filters (DEPRECATED)")
