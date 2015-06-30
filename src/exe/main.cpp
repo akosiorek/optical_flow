@@ -79,13 +79,22 @@ int main(int argc, char** argv)
     timer.reset();//trigger time printing
     LOG(INFO) << "Processing finished. Completed " << flowSliceQueue->size() << " FlowSlices!";
 
-    sink.start();
-    while(!flowSliceQueue->empty())
+    if(!cfg.fn_path.empty())
     {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        FlowSinkProcessor<QueueT> sink;
+        sink.setInputBuffer(flowSliceQueue);
+        auto ebfloWriter = std::make_unique<TaskWriteFlowSlice<OutputPolicyBinary> >();
+        ebfloWriter->setFilePath(cfg.fn_path);
+        sink.addTask(std::move(ebfloWriter));
+        sink.start();
+        while(!flowSliceQueue->empty())
+        {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+        sink.stop();
     }
 
-    sink.stop();
     eventReader.stopPublishing();
+
 	return 0;
 }

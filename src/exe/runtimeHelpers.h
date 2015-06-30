@@ -19,6 +19,9 @@ struct EBOFConfig
 
     // std::vector<int> filterAngles = {0, 45, 90, 135, 180, 225, 270, 315}; // full 360
     std::vector<int> filterAngles = {0, 45, 90, 135};
+
+    int dt = 0;
+    float ts = 1000.0;
 };
 
 void logParameters(EBOFConfig& cfg)
@@ -30,7 +33,7 @@ void logParameters(EBOFConfig& cfg)
 
     LOG(INFO) << "Parameters Setup:";
     LOG(INFO) << "t0: " << cfg.t0;
-    LOG(INFO) << "t1: " << cfg.t0;
+    LOG(INFO) << "t1: " << cfg.tk;
     LOG(INFO) << "timeResolution: " << cfg.timeResolution;
     LOG(INFO) << "spatialRange: " << cfg.spatialRange;
 
@@ -40,6 +43,9 @@ void logParameters(EBOFConfig& cfg)
     // TODO more logging
     LOG(INFO) << "Time slice duration: " << cfg.timeSliceDuration;
     LOG(INFO) << "Filter size: " << cfg.filterSize;
+
+    LOG(INFO) << "dt (edvstools): " << cfg.dt;
+    LOG(INFO) << "ts (edvstools): " << cfg.ts;
 }
 
 //boost program options
@@ -52,6 +58,10 @@ int init(int argc, char** argv, EBOFConfig& cfg)
     desc.add_options()
         ("help", "produce help message")
         ("filename,f", po::value<std::string>(&cfg.fn_input), "Filename for event file / URI")
+        ("dt", po::value<int>(&cfg.dt)->default_value(0),
+            "Time in microseconds to add for each call to get events")
+        ("ts", po::value<float>(&cfg.ts)->default_value(1000.0),
+            "Timescaling for reading events using edvstools library")
         ("output-folder,o", po::value<std::string>(&cfg.fn_path), "Path where EBOF writes ebflo files")
         ("duration,d", po::value<int>(&cfg.timeSliceDuration)->default_value(10000),
             "TimeSlice Duration (in millisecond)")
