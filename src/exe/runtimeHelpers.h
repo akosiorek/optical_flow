@@ -29,6 +29,7 @@ void logParameters(EBOFConfig& cfg)
     // Start Setup
     LOG(INFO) << "Event Based Optical Flow";
     LOG(INFO) << "Using " << Eigen::nbThreads() << " threads for Eigen.";
+    LOG(INFO) << "Using " << cfg.fn_path;
     LOG(INFO) << "Initializing...";
 
     LOG(INFO) << "Parameters Setup:";
@@ -37,15 +38,15 @@ void logParameters(EBOFConfig& cfg)
     LOG(INFO) << "timeResolution: " << cfg.timeResolution;
     LOG(INFO) << "spatialRange: " << cfg.spatialRange;
 
-    LOG(INFO) << "timeSpan_ " << (cfg.tk - cfg.t0) / cfg.timeResolution;
-    LOG(INFO) << "t0_ conv " << cfg.t0 / cfg.timeResolution;
+    LOG(INFO) << "timeSpan_: " << (cfg.tk - cfg.t0) / cfg.timeResolution;
+    LOG(INFO) << "timeRes: " << cfg.t0 / cfg.timeResolution;
 
     // TODO more logging
-    LOG(INFO) << "Time slice duration: " << cfg.timeSliceDuration;
-    LOG(INFO) << "Filter size: " << cfg.filterSize;
+    LOG(INFO) << "TimeSliceDuration: " << cfg.timeSliceDuration;
+    LOG(INFO) << "FilterSize: " << cfg.filterSize;
 
-    LOG(INFO) << "dt (edvstools): " << cfg.dt;
-    LOG(INFO) << "ts (edvstools): " << cfg.ts;
+    LOG(INFO) << "dt: " << cfg.dt;
+    LOG(INFO) << "ts: " << cfg.ts;
 }
 
 //boost program options
@@ -58,13 +59,13 @@ int init(int argc, char** argv, EBOFConfig& cfg)
     desc.add_options()
         ("help", "produce help message")
         ("filename,f", po::value<std::string>(&cfg.fn_input), "Filename for event file / URI")
+        ("output-folder,o", po::value<std::string>(&cfg.fn_path), "Path where EBOF writes ebflo files")
         ("dt", po::value<int>(&cfg.dt)->default_value(0),
             "Time in microseconds to add for each call to get events")
         ("ts", po::value<float>(&cfg.ts)->default_value(1000.0),
             "Timescaling for reading events using edvstools library")
-        ("output-folder,o", po::value<std::string>(&cfg.fn_path), "Path where EBOF writes ebflo files")
         ("duration,d", po::value<int>(&cfg.timeSliceDuration)->default_value(10000),
-            "TimeSlice Duration (in millisecond)")
+            "TimeSlice Duration (in microseconds)")
         ("filterSize", po::value<int>(&cfg.filterSize)->default_value(21),
             "Edge length of filter (DEPRECATED!)")
         ("t0", po::value<float>(&cfg.t0)->default_value(0),
@@ -78,7 +79,7 @@ int init(int argc, char** argv, EBOFConfig& cfg)
                         "loglevel: INFO, WARNING, ERROR, and FATAL are 0, 1, 2, and 3")
         ("logdir", po::value<std::string>(&FLAGS_log_dir)->default_value(FLAGS_log_dir),
                         "Location where log files will be saved")
-        ("logtostderr", po::value<bool>(&FLAGS_logtostderr)->default_value(FLAGS_logtostderr),
+        ("logtostderr", po::value<bool>(&FLAGS_logtostderr)->default_value(1),
                         "Log to stderr")
     ;
     po::variables_map vm;

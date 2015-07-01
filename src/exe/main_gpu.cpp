@@ -33,8 +33,7 @@ int main(int argc, char** argv)
     // Startup
     EventReader<QueueT<Event>> eventReader;
     eventReader.setOutputBuffer(eventQueue);
-    eventReader.setURI(cfg.fn_input);
-
+    eventReader.setURI(cfg.fn_input + "?dt=0?\\&ts=1000");
     Quantizer<QueueT> quantizer(cfg.timeSliceDuration);
     quantizer.setInputBuffer(eventQueue);
     quantizer.setOutputBuffer(eventSliceQueue);
