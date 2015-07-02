@@ -8,18 +8,18 @@ This section concerns itself exclusively with the evaluation of execution speed 
 
 As a simplification, real-time shall be defined as following;
 \begin{defwrp}
-	Given a stream of events, with duration $t_d$, we say it is processed in real-time, if the total processing time $t_p$ is smaller or equal to $t_d$.
+	Given a stream of events with duration $t_d$, it is processed in real-time, if the total processing time $t_p$ is smaller or equal to $t_d$.
 \end{defwrp}
 
-This definition is simplified assumption as real-time constraint as it is oblivious to the fact that many events could occur in a very short time period.
+This definition is a simplified assumption as real-time constraint as it is oblivious to the fact that many events could occur in a very short time period.
 However, since the implementation, both the sequential and parallel one, are quantizing events to discrete slices of events, the effects can be treated as negligible.
-The evaluation speed hereby primarily depends on the temporal granularity of the event slices, or \textit{TimeSliceDuration} in the following, sensor size, and filter size.
+The evaluation speed hereby primarily depends on the temporal granularity of the event slices, henceforth the \textit{time slice duration}, sensor size, and filter size.
 
 In the following we assume a fixed sensor and filter size - this includes only one type of filter (in the sense of speed selectivity).
 In this specific evaluation, a sensor resolution of $128\times128$ and a filter size of $21\times21$ was used.
 Furthermore, the filters were initialized with a speed selectivity of $f_0=0.08$.
 
-Under this assumption, the runtime performance is primarily governed by to parameters of the implementation:
+Under this assumption, the runtime performance is primarily governed by two parameters of the implementation:
 \begin{enumerate}
 	\item Duration of an event slice
 	\item No. of filter orientations
@@ -74,9 +74,24 @@ The dataset is summarized by the following table:\\
 
 
 \subsubsection{Evaluation of Sequential Implementation}
+This section only deals with a small subset of testable parameters.
+This is due to the linear scaling of parameters, as well as the the fact that its far from real-time and not recommended for production usage.
+
 \subsubsection{Evaluation of Parallel Implementation}
-%\paragraph{Duration of event slices}
-%\paragraph{No. of filter orientations}
+\paragraph{Duration of event slices}
+\paragraph{No. of filter orientations}
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[scale=.9]{gpu_fo.eps}
+	\caption{Variation of the number of unique orientations of the spatio-temporal gabor filter. Each orientation corresponds to a separate filter in the filter bank. Blue bar corresponds to the threshold of real-time; above the blue bar means an event stream was processed faster than the time it represents. The cross corresponds to the mean speed across all takes. The black error bars represent the standard deviation across the all takes.}
+	\label{fig:gpu_fo}
+\end{figure}
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[scale=.9]{gpu_tsd.eps}
+	\caption{Variation of the duration of the event slices during the quantizing step.Blue bar corresponds to the threshold of real-time; above the blue bar means an event stream was processed faster than the time it represents. The cross corresponds to the mean speed across all takes. The black error bars represent the standard deviation across the all takes.}
+	\label{fig:gpu_tds}
+\end{figure}
 
 \subsection{Qualitative:} How does the output compare to ground truth??
 CHANGE THIS, but keep it in some way I guess...In this specific evaluation, a sensor resolution of $128\times128$ and a filter size of $21\times21$ was used.
