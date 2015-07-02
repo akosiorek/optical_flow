@@ -3,12 +3,14 @@
 \usepackage{graphicx, color} %Deleted [dvips] in front of {graphicx, color} for usage also with PDFLaTex
 \usepackage[latin1]{inputenc}
 \usepackage{verbatim}
+\usepackage{amsthm}
 
 % for pseudocode
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{pifont}
 
+\newtheorem{defwrp}{Definition}
 % based on the LSR Student Template, last change: 2014-06-05
 
 %_______Kopf- und Fußzeile_______________________________________________________
@@ -108,30 +110,14 @@ Final Submission: &  07.07.2015 \\
 %_________Einleitung__________________________________
 \chapter{Introduction}
 
-\textit{Optic flow} describes the change of light in a scene as perceived by a camera, or the human eye, caused by motion of objects in the scene or ego-motion of the observing entity.
-Using optic flow information, it is possible to infer the motion of objects and consequently, segment a scene based on it into disjunct moving objects.
-In engineering applications, it is used, for example, in video compression to interpolate between frames, or in stereo vision applications.
+Very short introduction to optical flow, and highlight its relevance.
+More detailed about doing event-based things, and why its a very difficult thing.
 
 \section{Problem Statement}
 
-Typical cameras produces full frames at a fixed frequency, e.g., 30 frames per second.
-This implies that regardless of change in the scene, and thus available information, new frames are produced.
-In the context of optic flow, it is however, a much easier to estimate the flow, as looking at two frames produced at times $t_n,t_{n+1}$, they are discretized in time, but also the spatial changes are discretized.
-
-Event-based sensors, such as the DVS, as described in \cite{Delbruck}, offer a new paradigm in computer vision. Operating individual pixels asynchronously, 
-
-BIT ON DVS, a
-
-However, events are highly ambiguous and only carry information about the time of occurrence the location of appearance.
-Due to the event-based nature, many computer vision algorithms can not directly be applied when using Dynamic Vision Sensors.
-
-Consequently, there has only been little progress with regards to translating optical flow algorithms to the sparse event-stream created by a DVS.
-TODO: Here a bit about the failed attempts from others (need for next section?)
-In \cite{Brosch2015}, recently Brosch et al. describe a novel, biologically motivated approach to infer the optic flow field, by convolving the sparse event stream with Gabor filter bank.
-
-The goal of this project was to implement the algorithm designed by Brosch et al. in an efficient, general-purpose language, and evaluate if and how this algorithm can be run under real-time constraints.
-For this purpose, an implementation in C++ with support for CUDA has been chosen.
-In the following, the design decisions and implementation details are described, as well as a thorough evaluation, both quantitatively and qualitatively, is presented.
+What are we gonna do for this project work? Implement a specific EVENT-BASED Optical Flow algorithm.
+Talk more detailed about the algorithm and the needs (parallization, massive filtering etc.).
+High-level overview!
 
 \section{Related Work}
 

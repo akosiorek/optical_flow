@@ -1,13 +1,87 @@
+\newpage
 \section{Experimental Results}
-Whole lot of evaluation.
+In the following, the implementation of the algorithm has been evaluated with regard to its efficiency, as well as to its accurateness with regard to ground truth.
 
-\subsection{Ground Truth}
+\subsection{Quantitative:}
+One of the primary goals of this project was to evaluate the real-time capabilities of this algorithm.
+This section concerns itself exclusively with the evaluation of execution speed of the algorithm with respect to real-time.
+
+As a simplification, real-time shall be defined as following;
+\begin{defwrp}
+	Given a stream of events, with duration $t_d$, we say it is processed in real-time, if the total processing time $t_p$ is smaller or equal to $t_d$.
+\end{defwrp}
+
+This definition is simplified assumption as real-time constraint as it is oblivious to the fact that many events could occur in a very short time period.
+However, since the implementation, both the sequential and parallel one, are quantizing events to discrete slices of events, the effects can be treated as negligible.
+The evaluation speed hereby primarily depends on the temporal granularity of the event slices, or \textit{TimeSliceDuration} in the following, sensor size, and filter size.
+
+In the following we assume a fixed sensor and filter size - this includes only one type of filter (in the sense of speed selectivity).
+In this specific evaluation, a sensor resolution of $128\times128$ and a filter size of $21\times21$ was used.
+Furthermore, the filters were initialized with a speed selectivity of $f_0=0.08$.
+
+Under this assumption, the runtime performance is primarily governed by to parameters of the implementation:
+\begin{enumerate}
+	\item Duration of an event slice
+	\item No. of filter orientations
+\end{enumerate}
+
+As default values, a duration of $10\mathrm{ms}$ and 4 filter orientations are assumed.
+
+The evaluation is presented once for the sequential, as well as for the parallel implementation.
+It was performed on a computer running ArchLinux x64 on an Intel Core2Duo Processor E6400 2M Cache, 2.13 GHz, 1066 MHz FSB).
+The Nvidia GT 440 graphic card with driver version 352.21 and CUDA 7.0.28-2 was used for the parallelized version.
+
+\subsubsection{Dataset}
+Since the evaluation only focuses on the time it takes to process a stream of events, there are no requirements as to available ground truth.
+For this reason, the combined Dynamic Vision / RGB-D dataset from \cite{ebslamdataset} was used.
+The dataset consists of 5 scene set-ups and a total of 26 takes, with lengths varying between 20 to 60 seconds and uneven motion speed (and thus event generation).
+
+The dataset is summarized by the following table:\\
+\begin{center}
+\begin{tabular}{ | c | c | c | c | }
+	\hline		
+	Scenario & Take & Duration & Events\\
+	\hline	
+	\hline	
+	1 & 1 & 30.9s & 1456422\\
+	2 & 1 & 25.0s & 984609\\
+	2 & 2 & 24.8s & 1228999\\
+	2 & 3 & 25.3s & 1420190\\
+	2 & 4 & 25.2s & 1303302\\
+	3 & 1 & 25.1s & 1811233\\
+	3 & 2 & 25.1s & 1822262\\
+	3 & 3 & 36.8s & 2750400\\
+	3 & 4 & 35.3s & 2739406\\
+	3 & 5 & 36.8s & 2475213\\
+	3 & 6 & 46.9s & 3260258\\
+	3 & 7 & 50.3s & 2805818\\
+	3 & 8 & 46.9s & 2046209\\
+	7 & 1 & 23.5s & 1341056\\
+	7 & 2 & 21.5s & 1340804\\
+	7 & 3 & 30.6s & 1769307\\
+	7 & 4 & 31.9s & 2203772\\
+	7 & 5 & 61.7s & 1645344\\
+	7 & 6 & 61.9s & 1469080\\
+	7 & 7 & 42.0s & 1077844\\
+	7 & 8 & 61.9s & 1680188\\
+	8 & 1 & 27.5s & 1603852\\
+	8 & 2 & 27.3s & 1545613\\
+	8 & 3 & 30.5s & 1081577\\
+	8 & 4 & 28.4s & 1143159\\                     
+	\hline			
+\end{tabular}
+\end{center}
+
+
+\subsubsection{Evaluation of Sequential Implementation}
+\subsubsection{Evaluation of Parallel Implementation}
+%\paragraph{Duration of event slices}
+%\paragraph{No. of filter orientations}
+
+\subsection{Qualitative:} How does the output compare to ground truth??
+CHANGE THIS, but keep it in some way I guess...In this specific evaluation, a sensor resolution of $128\times128$ and a filter size of $21\times21$ was used.
+Furthermore, the filters were initialized with a speed selectivity of $f_0=0.08$.
+\paragraph{Ground Truth}
 How did we get the ground truth, how was it produced. Highlight pit falls
-\subsection{Evaluation Metrics}
+\paragraph{Evaluation Metrics}
 How did we measure our results
-
-\subsection{Results}
-\paragraph{Qualitative:} How does it run, without regards to output quality (simply a measurement of runtimes with parameter fiddling)
-Comparision CPU vs GPU etc.
-
-\paragraph{Quantitative:} How does the output compare to ground truth??
