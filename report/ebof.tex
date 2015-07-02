@@ -96,7 +96,14 @@ Final Submission: &  07.07.2015 \\
 \pagenumbering{arabic}
 \phantom{u}
 \begin{abstract}
-  Short Summary about EBOF (the algorithm), our project plan, the achieved goals.
+  Optic flow detection is a fundamental problem in computer vision.
+  It describes the change of structured light in an observed scene by a camera, or the human eye.
+  The change can hereby be caused by either moving objects in the scene, ego-motion of the observer, or both.
+  While it is a well-known problem with many existing solutions when using RGB cameras producing full frames at a frequency $f$, it is still an emerging problem for Dynamic Vision Sensors (DVS).
+  Producing only a sparse event stream, a DVS only reports temporal changes in luminance on a per-pixel basis.
+  Deriving the spatial change of the scene is thus a much more complex problem, than when dense images are available - particularly those produced at a well-known and fixed frequency.
+  This makes it considerably more difficult to compute an optic flow field for an sparse event stream, as it relies on both temporal and spatial information.
+  This project report deals with the implementation and evaluation of a novel, biologically motivated approach to compute the optic flow for an event stream using a filter bank of spatio-temporal Gabor filters.
 \end{abstract}
 %____________________________________________________________
 
@@ -110,14 +117,30 @@ Final Submission: &  07.07.2015 \\
 %_________Einleitung__________________________________
 \chapter{Introduction}
 
-Very short introduction to optical flow, and highlight its relevance.
-More detailed about doing event-based things, and why its a very difficult thing.
+\textit{Optic flow} describes the change of light in a scene as perceived by a camera, or the human eye, caused by motion of objects in the scene or ego-motion of the observing entity.
+Using optic flow information, it is possible to infer the motion of objects and consequently, segment a scene based on it into disjunct moving objects.
+In engineering applications, it is used, for example, in video compression to interpolate between frames, or in stereo vision applications.
 
 \section{Problem Statement}
 
-What are we gonna do for this project work? Implement a specific EVENT-BASED Optical Flow algorithm.
-Talk more detailed about the algorithm and the needs (parallization, massive filtering etc.).
-High-level overview!
+Typical cameras produces full frames at a fixed frequency, e.g., 30 frames per second.
+This implies that regardless of change in the scene, and thus available information, new frames are produced.
+In the context of optic flow, it is however, a much easier to estimate the flow, as looking at two frames produced at times $t_n,t_{n+1}$, they are discretized in time, but also the spatial changes are discretized.
+
+Event-based sensors, such as the DVS, as described in \cite{Delbruck}, offer a new paradigm in computer vision. Operating individual pixels asynchronously, 
+
+BIT ON DVS, a
+
+However, events are highly ambiguous and only carry information about the time of occurrence the location of appearance.
+Due to the event-based nature, many computer vision algorithms can not directly be applied when using Dynamic Vision Sensors.
+
+Consequently, there has only been little progress with regards to translating optical flow algorithms to the sparse event-stream created by a DVS.
+TODO: Here a bit about the failed attempts from others (need for next section?)
+In \cite{Brosch2015}, recently Brosch et al. describe a novel, biologically motivated approach to infer the optic flow field, by convolving the sparse event stream with Gabor filter bank.
+
+The goal of this project was to implement the algorithm designed by Brosch et al. in an efficient, general-purpose language, and evaluate if and how this algorithm can be run under real-time constraints.
+For this purpose, an implementation in C++ with support for CUDA has been chosen.
+In the following, the design decisions and implementation details are described, as well as a thorough evaluation, both quantitatively and qualitatively, is presented.
 
 \section{Related Work}
 
@@ -143,8 +166,20 @@ But definitely give a very short summary about other approaches and implementati
 %_____Zusammenfassung, Ausblick_________________________________
 \chapter{Conclusion}
 
-Don't leave it at the discussion: discuss what you/the reader can learn from the results. Draw some real conclusions. Separate discussion/interpretation of the results clearly from the conclusions you draw from them. (So-called "conclusion creep" tends to upset reviewers. It means surrendering your scientific objectivity.) Identify all shortcomings/limitations of your work, and discuss how they could be fixed ("future work"). It is not a sign of weakness of your work, if you clearly analyse and state the limitations. Informed readers will notice them anyway and draw their own conclusions, if not addressed properly.
-\cite[p.~1]{Elphinstone2014}
+We did/showed:
+- Sequential C++ Impl (FFT) not real-time capable (mention if results exist)
+- Parallel C++ Impl (FFT/CUDA) real-time capable
+- Showed real-time capabilities with regards to parallel impl
+- Qualitative Analysis
+
+What doesn't work yet specific to our impl? 
+-Normalization
+-Efficient CUFFT interface
+-other smaller things???
+
+Give very short outlook here:
+-stereo vision
+-feature detection
 
 %_______________________________________________________________
 
