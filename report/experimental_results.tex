@@ -13,7 +13,7 @@ As a simplification, real-time shall be defined as following;
 
 This definition is a simplified assumption as real-time constraint as it is oblivious to the fact that many events could occur in a very short time period.
 However, since the implementation, both the sequential and parallel one, are quantizing events to discrete slices of events, the effects can be treated as negligible.
-The evaluation speed hereby primarily depends on the temporal granularity of the event slices, henceforth the \textit{time slice duration}, sensor size, and filter size.
+The evaluation speed hereby primarily depends on the temporal granularity of the event slices, henceforth the \textit{event slice duration}, sensor size, and filter size.
 
 In the following we assume a fixed sensor and filter size - this includes only one type of filter (in the sense of speed selectivity).
 In this specific evaluation, a sensor resolution of $128\times128$ and a filter size of $21\times21$ was used.
@@ -22,18 +22,19 @@ Furthermore, the filters were initialized with a speed selectivity of $f_0=0.08$
 Under this assumption, the runtime performance is primarily governed by two parameters of the implementation:
 \begin{enumerate}
 	\item Duration of an event slice
-	\item No. of filter orientations
+	\item Number of filter orientations
 \end{enumerate}
 
 As default values, a duration of $10\mathrm{ms}$ and 4 filter orientations are assumed.
 
-The evaluation is presented once for the sequential, as well as for the parallel implementation.
-It was performed on a computer running ArchLinux x64 on an Intel Core2Duo Processor E6400 2M Cache, 2.13 GHz, 1066 MHz FSB).
+The evaluation is presented for the parallel implementation only.
+The sequential implementation is producing the same results, but real-time is not achieved except for parameter settings which have no practical relevances as no viable results are produced.
+The quantitive analysis was performed on a computer running ArchLinux x64 on an Intel Core2Duo Processor E6400 2M Cache, 2.13 GHz, 1066 MHz FSB).
 The Nvidia GT 440 graphic card with driver version 352.21 and CUDA 7.0.28-2 was used for the parallelized version.
 
 \subsubsection{Dataset}
 Since the evaluation only focuses on the time it takes to process a stream of events, there are no requirements as to available ground truth.
-For this reason, the combined Dynamic Vision / RGB-D dataset from \cite{ebslamdataset} was used.
+For this reason, the combined Dynamic Vision / RGB-D dataset from \cite{weikersdorfer2014event} was used.
 The dataset consists of 5 scene set-ups and a total of 26 takes, with lengths varying between 20 to 60 seconds and uneven motion speed (and thus event generation).
 
 The dataset is summarized by the following table:\\
@@ -73,24 +74,34 @@ The dataset is summarized by the following table:\\
 \end{center}
 
 
-\subsubsection{Evaluation of Sequential Implementation}
-This section only deals with a small subset of testable parameters.
-This is due to the linear scaling of parameters, as well as the the fact that its far from real-time and not recommended for production usage.
+%\subsubsection{Evaluation of Sequential Implementation}
+%This section only deals with a small subset of testable parameters.
+%This is due to the linear scaling of parameters, as well as the the fact that its far from real-time and not recommended for production usage.
 
 \subsubsection{Evaluation of Parallel Implementation}
-\paragraph{Duration of event slices}
-\paragraph{No. of filter orientations}
+\paragraph{Duration of Event Slices}
+One very important parameter is the duration of an event slice. As describe before, all events are quantized and collected into event slices of a duration $t_s$.
+While the optic flow field is the most accurate at a resolution of $1\mu\mathrm{s}$, the resolution of the eDVS timestamps, it is increasing the computational effort a lot.
+Our implementation approach approximates by reducing the temporal granularity and compressing events into event slices, at the cost of accuracy.
+Depending on whether it is more favorable to have approximative, but real-time results, or very accurate results without time constraints is up to the use-case.
+In fig. \ref{fig:gpu_tsd} we can see the development of the run-time performance with increasing durations $t_s$.
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[scale=.9]{gpu_tsd.eps}
+	\caption{Variation of the duration of the event slices during the quantizing step.Blue bar corresponds to the threshold of real-time; above the blue bar means an event stream was processed faster than the time it represents. The cross corresponds to the mean speed across all takes. The black error bars represent the standard deviation across the all takes.}
+	\label{fig:gpu_tsd}
+\end{figure}
+\paragraph{Number of Filter Orientations}
+The algorithm in its basic version utilizes one single type of spatio-temporal Gabor filter.
+This means, that only one specific parametrization of the spatial and temporal components is used.
+In order to correctly infer the optic flow in $x$ and $y$ direction, one rotates the basic Gabor filter and convolutes each event slice with each oriented filter.
+The results are then superimposed and the final velocity vectors are gained.
+Since the quantitative results on the number of filters used
 \begin{figure}[!htb]
 	\centering
 	\includegraphics[scale=.9]{gpu_fo.eps}
 	\caption{Variation of the number of unique orientations of the spatio-temporal gabor filter. Each orientation corresponds to a separate filter in the filter bank. Blue bar corresponds to the threshold of real-time; above the blue bar means an event stream was processed faster than the time it represents. The cross corresponds to the mean speed across all takes. The black error bars represent the standard deviation across the all takes.}
 	\label{fig:gpu_fo}
-\end{figure}
-\begin{figure}[!htb]
-	\centering
-	\includegraphics[scale=.9]{gpu_tsd.eps}
-	\caption{Variation of the duration of the event slices during the quantizing step.Blue bar corresponds to the threshold of real-time; above the blue bar means an event stream was processed faster than the time it represents. The cross corresponds to the mean speed across all takes. The black error bars represent the standard deviation across the all takes.}
-	\label{fig:gpu_tds}
 \end{figure}
 
 \subsection{Qualitative:} How does the output compare to ground truth??
