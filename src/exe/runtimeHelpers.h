@@ -11,6 +11,8 @@ struct EBOFConfig
     int timeSliceDuration = 10000;
     int filterSize = 21;
     int dataSize = 128; // TODO: determine programatically
+    int sensorXSz = 128;
+    int sensorYSz = 128;
 
     float t0 = 0;
     float tk = 0.7;
@@ -66,6 +68,10 @@ int init(int argc, char** argv, EBOFConfig& cfg)
             "Timescaling for reading events using edvstools library")
         ("duration,d", po::value<int>(&cfg.timeSliceDuration)->default_value(10000),
             "TimeSlice Duration (in microseconds)")
+        ("sensor-x", po::value<int>(&cfg.sensorXSz)->default_value(128),
+            "Sensor Size in X")
+        ("sensor-y", po::value<int>(&cfg.sensorYSz)->default_value(128),
+            "Sensor Size in y")
         ("filterSize", po::value<int>(&cfg.filterSize)->default_value(21),
             "Edge length of filter (DEPRECATED!)")
         ("t0", po::value<float>(&cfg.t0)->default_value(0),

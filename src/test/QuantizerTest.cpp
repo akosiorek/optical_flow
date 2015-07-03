@@ -13,7 +13,7 @@
 class QuantizerTest : public testing::Test {
 
     void SetUp() {
-        quantizer = std::make_unique<Quantizer<BlockingQueue>>(2);
+        quantizer = std::make_unique<Quantizer<BlockingQueue>>(2,128,128);
     }
 
 public:
@@ -55,12 +55,12 @@ TEST_F(QuantizerTest, SingleEventTest) {
 }
 
 TEST_F(QuantizerTest, QuantizeTest) {
-    
-    std::vector<Event> events = {{1, 1, 1, 1, 0}, 
-                                 {2, 2, 2, 0, 0}, 
-                                 {3, 3, 3, 0, 0}, 
+
+    std::vector<Event> events = {{1, 1, 1, 1, 0},
+                                 {2, 2, 2, 0, 0},
+                                 {3, 3, 3, 0, 0},
                                  {5, 5, 5, 1, 0}};
-               
+
     quantizer->quantize(events);
     ASSERT_FALSE(quantizer->isEmpty());
 
@@ -80,7 +80,7 @@ TEST_F(QuantizerTest, QuantizeTest) {
 
 TEST_F(QuantizerTest, QuantizeGetMultipleEventsTest) {
 
-    quantizer = std::make_unique<Quantizer<BlockingQueue>>(3);
+    quantizer = std::make_unique<Quantizer<BlockingQueue>>(3,128,128);
     std::vector<Event> events = {
             // time, x, y, parity, id
             {1, 1, 1, 1, 0},

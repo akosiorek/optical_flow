@@ -34,12 +34,12 @@ int main(int argc, char** argv)
     EventReader<QueueT<Event>> eventReader;
     eventReader.setOutputBuffer(eventQueue);
     eventReader.setURI(cfg.fn_input + "?dt=0?\\&ts=1000");
-    Quantizer<QueueT> quantizer(cfg.timeSliceDuration);
+    Quantizer<QueueT> quantizer(cfg.timeSliceDuration,cfg.sensorXSz, cfg.sensorYSz);
     quantizer.setInputBuffer(eventQueue);
     quantizer.setOutputBuffer(eventSliceQueue);
 
     auto factory = std::make_unique<FilterFactory>(cfg.t0, cfg.tk, cfg.timeResolution, cfg.spatialRange, cfg.spatialRange);
-    auto padder = std::make_unique<FourierPadder>(cfg.dataSize, cfg.filterSize);
+    auto padder = std::make_unique<FourierPadder>(cfg.sensorXSz, cfg.sensorYSz, cfg.filterSize, cfg.filterSize);
     auto transformer = std::make_unique<FourierTransformerCUFFTW>(padder->fourierSizeRows_,
                                                                 padder->fourierSizeCols_);
 

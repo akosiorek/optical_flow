@@ -26,10 +26,13 @@ public:
     using InputBuffer = typename BufferedInputPolicy<Event, BufferT>::InputBuffer;
     using OutputBuffer = typename BufferedOutputPolicy<EventSlice::Ptr, BufferT>::OutputBuffer;
 
-    Quantizer(int timeResolution)
+    Quantizer(int timeResolution, int xs, int ys)
     :   initialized_(false),
         nextEventTime_(0),
-        timeResolution_(timeResolution) {
+        timeResolution_(timeResolution),
+        xs_(xs),
+        ys_(ys)
+        {
 
         LOG_FUN_START;
         currentEvents_.reserve(100);
@@ -119,7 +122,7 @@ private:
     {
         LOG_FUN_START;
         if(!currentEvents_.empty()) {
-            EventSlice::Ptr slice(new EventSlice);
+            EventSlice::Ptr slice(new EventSlice(xs_,ys_));
             slice->setFromTriplets(currentEvents_.begin(), currentEvents_.end());
             currentEvents_.clear();
             this->outputBuffer_->push(slice);
@@ -136,6 +139,7 @@ private:
     EventTime nextEventTime_;
     unsigned int timeResolution_;
     std::vector<Eigen::Triplet<int>> currentEvents_;
+    const int xs_, ys_;
 };
 
 
