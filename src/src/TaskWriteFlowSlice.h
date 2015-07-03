@@ -10,6 +10,8 @@
 #include "IFlowSinkTask.h"
 #include "FlowSlice.h"
 
+#define TAG_STRING "PIEH"    // use this when WRITING the file with middlebury
+
 class OutputPolicyTSV
 {
 protected:
@@ -76,6 +78,57 @@ protected:
 		gzwrite(fileyv, flowSlice->yv_.data(), flowSlice->yv_.rows() * flowSlice->yv_.cols() * sizeof(float));
 		gzclose(filexv);
 		gzclose(fileyv);
+	}
+};
+
+class OutputMiddlebury
+{
+protected:
+	void write(std::shared_ptr<FlowSlice> flowSlice, const std::string fn_path, int sliceCount)
+	{
+		boost::format fmt("/%08d");
+		std::string fn = std::string(fn_path+(fmt%sliceCount).str()+".flo");
+
+		int cols = flowSlice->xv_.cols();
+		int rows = flowSlice->xv_.rows();
+		//Write Header
+		std::ofstream file(fn.c_str(), std::ios::out | std::ios::binary);
+		if(file.is_open() && file.is_open())
+		{
+			file << "PIEH";
+			file.write((char*) &cols, sizeof(int));
+			file.write((char*) &rows, sizeof(int));
+
+			for(int y = 0; y < rows; ++y)
+			{
+				for(int x = 0; x < cols; ++x)
+				{
+					file.write((char*) flowSlice->xv_.data() + y*cols + x, sizeof(float));
+					file.write((char*) flowSlice->yv_.data() + y*cols + x, sizeof(float));
+				}
+			}
+
+			file.close();
+		}
+
+		// FILE *stream = fopen(fn.c_str(), "wb");
+		// if (stream == 0) return;
+
+		// // write the header
+		// fprintf(stream, TAG_STRING);
+		// if ((int)fwrite(&cols,  sizeof(int),   1, stream) != 1 ||
+		// 	(int)fwrite(&rows, sizeof(int),   1, stream) != 1)
+		// 	return;
+
+			// // write the rows
+			// int n = nBands * width;
+			// for (int y = 0; y < height; y++) {
+			// 	float* ptr = &img.Pixel(0, y, 0);
+			// 	if ((int)fwrite(ptr, sizeof(float), n, stream) != n)
+			// 		return 0;
+			// }
+
+		// fclose(stream);
 	}
 };
 
