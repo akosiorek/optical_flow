@@ -1,4 +1,4 @@
-function [f] = show_flow(title_string,slice_nr,opticalFlowX,opticalFlowY, quantized)
+function [f] = show_flow(title_string,slice_nr,opticalFlowX,opticalFlowY, timestamp, quantized)
 if nargin <4
     load('flow.mat');
     
@@ -17,7 +17,7 @@ end
 
     maskedFlowX=opticalFlowX;
     maskedFlowY=opticalFlowY;
-if nargin >4
+if nargin >5
 
     quantizedOffset=size(quantized,1)-size(opticalFlowX,3);
     mask=quantized(quantizedOffset+1:size(quantized,1));
@@ -40,11 +40,12 @@ angles = atan(opticalFlowY./opticalFlowX);
 
 % f=quiver(x,y,maskedFlowX(:,:,j)',maskedFlowY(:,:,j)');
 %Bigger quivers
-scaleFactor=2.5; %for 'baelle', quivers are very small. Results fairly well visible for >70
+scaleFactor=250; %for 'baelle', quivers are very small. Results fairly well visible for >70
 f=quiver(x,y,maskedFlowX(:,:,j)'.*scaleFactor,maskedFlowY(:,:,j)'.*scaleFactor,'AutoScale','off');
     xlabel('x');
     ylabel('y');
     title_string=strrep(title_string,'_','-');
+    title_string=strcat(title_string,'-',num2str(timestamp));
     title(title_string);
     
 

@@ -31,7 +31,7 @@ function optical_flow(eventFile, retinaSize, time_start_end, time_resolution,ang
     
     events = read_events(eventFile, 1);
     fprintf('Number of events:\t%d\n', size(events, 1));
-    [quantized timestamps]= quantize_events(events, time_resolution, retinaSize);
+    [quantized timestamps allEvents]= quantize_events(events, time_resolution, retinaSize);
     fprintf('Number of event slices:\t%d\n', size(quantized, 1));
     
 %     % used to convert EventSlices to a displayable format
@@ -69,7 +69,7 @@ function optical_flow(eventFile, retinaSize, time_start_end, time_resolution,ang
         % and in Y direction
         opticalFlowY = opticalFlowY - sin((correctionOffset+angle) / 180 * pi) * responses;
     end
-    save('flow.mat', 'opticalFlowX', 'opticalFlowY','quantized', 'timestamps')
+    save('flow.mat', 'opticalFlowX', 'opticalFlowY','allEvents', 'quantized', 'timestamps')
     
     
 %     make_movie(opticalFlowX, 'flow_x.avi');  
@@ -134,16 +134,16 @@ function responses = convolve(fourierEventSlices, fourierFilterBank, filterSize)
     [N M K] = size(fourierEventSlices);
     toCompute = K - filterDepth;
     
-    waitbarHandle = waitbar(0, 'Computing OpticalFlow. Please wait...');
+%     waitbarHandle = waitbar(0, 'Computing OpticalFlow. Please wait...');
     responses = zeros([([N M] - filterSize + 1) toCompute]);
     for i = 1:toCompute
         responses(:, :, i) = convolve_one(fourierEventSlices(:, :, i:i+filterDepth-1),...
             fourierFilterBank, filterSize);
         if mod(i, 10) == 0
-            waitbar(i / toCompute, waitbarHandle);
+%             waitbar(i / toCompute, waitbarHandle);
         end
     end
-    close(waitbarHandle)
+%     close(waitbarHandle)
 end
 
 function make_movie(data, name)
