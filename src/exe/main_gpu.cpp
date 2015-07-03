@@ -39,7 +39,7 @@ int main(int argc, char** argv)
     quantizer.setOutputBuffer(eventSliceQueue);
 
     auto factory = std::make_unique<FilterFactory>(cfg.t0, cfg.tk, cfg.timeResolution, cfg.spatialRange, cfg.spatialRange);
-    auto padder = std::make_unique<FourierPadder>(cfg.sensorXSz, cfg.sensorYSz, cfg.filterSize, cfg.filterSize);
+    auto padder = std::make_unique<FourierPadder>(cfg.sensorYSz,cfg.sensorXSz, cfg.filterSize, cfg.filterSize);
     auto transformer = std::make_unique<FourierTransformerCUFFTW>(padder->fourierSizeRows_,
                                                                 padder->fourierSizeCols_);
 

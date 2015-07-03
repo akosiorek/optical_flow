@@ -17,7 +17,7 @@ public:
         yv_.setZero();
     }
 
-    FlowSlice() : FlowSlice(128, 128) {}
+    // FlowSlice() : FlowSlice(128, 128) {}
 
     RealMatrix xv_;
     RealMatrix yv_;

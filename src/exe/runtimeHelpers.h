@@ -10,7 +10,7 @@ struct EBOFConfig
     // Configuration Parameters and default values
     int timeSliceDuration = 10000;
     int filterSize = 21;
-    int dataSize = 128; // TODO: determine programatically
+    // int dataSize = 128; // TODO: determine programatically
     int sensorXSz = 128;
     int sensorYSz = 128;
 
