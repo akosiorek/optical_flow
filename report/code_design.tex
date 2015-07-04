@@ -1,19 +1,19 @@
 \section{Discretization}
 
-Computing truly event-based optical flow is challanging from the computational point of view. 
+Computing truly event-based optical flow is challenging from the computational point of view. 
 It would require the algorithm to evaluate how each discrete event contributes to the flow field created by all other events in a given, possibly infinite, time span.
 We make the following simplifications.
 Firstly, we discretize the spatio-temporal Gabor filter in time with a given time step and in space with the resolution equal to that of the DVS camera.
 We choose the spatio-temporal span of the filter as the volume in which the magnitude of the filter's response does not fall below some threshold value.
-The filter thus comprises of discerte time-slices, which we call Filter Slices (FS).
-Secondly, all events occuring in a single time window are grouped together or quantized into the so-called Event Slice (ES) and are assumed to have occured at the same moment, \emph{i.e.} the beginning of the current time step. 
-An ES is a (sparse) square matrix, with the number of entries equal to that of the DVS camera and their value being the sum of events which occured at a given location. 
+The filter thus comprises of discrete time-slices, which we call Filter Slices (FS).
+Secondly, all events occurring in a single time window are grouped together or quantized into the so-called Event Slice (ES) and are assumed to have occurred at the same moment, \emph{i.e.} the beginning of the current time step. 
+An ES is a (sparse) square matrix, with the number of entries equal to that of the DVS camera and their value being the sum of events which occurred at a given location. 
 With this setup, computing optical flow means filtering the incoming stream of Event Slices with the precomputed Gabor filter.
 
 
 \subsection{Computational Pipeline}
 A natural approach is to streamline the work, setting several components up in a computational pipeline.
-Data comes into the pipeline and is processed sequentially by each of the compnents, leaving as a final product or optical flow field in our case. 
+Data comes into the pipeline and is processed sequentially by each of the components, leaving as a final product or optical flow field in our case. 
 Typically, data has to be read and post-processed.
 This gives the final shape to our pipeline, as shown in figure \ref{fig:pipeline}, which consists of EventReader, Quantizer, FilteringEngine and FlowSink objects.
 
@@ -34,7 +34,7 @@ The FlowSink object handles them by either serializing or visualizing the result
 % introduction
 Filtering in spatio-temporal domain is applied to data by convolving it linearly with the filter.
 The filter, discretized as above, as well as Event Slices corresponding to the filter's time span can be seen as big 3-dimensional matrices.
-It is well known that once the matrix' sizes are big enough, filtering in spatio-temporal domain can be prohibitatively expensive.
+It is well known that once the matrix' sizes are big enough, filtering in spatio-temporal domain can be prohibitively expensive.
 We could either exploit sparse structure of Event Slices or transform the problem to the frequency domain, where spatio-temporal convolution corresponds to element-wise multiplication of the filter with data.
 We decided to go with the the 2\textsuperscript{nd} approach.
 \\
