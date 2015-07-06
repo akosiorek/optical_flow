@@ -1,23 +1,21 @@
 \newpage
 \section{Experimental Results}
-In the following, the implementation of the algorithm has been evaluated with regard to its efficiency, as well as to its accurateness with regard to ground truth.
+In the following, the implementation of the algorithm has been evaluated with regard to its efficiency, as well as to its accuracy with regard to ground truth.
 
-\subsection{Quantitative:}
+\subsection{Quantitative}
 One of the primary goals of this project was to evaluate the real-time capabilities of this algorithm.
-This section concerns itself exclusively with the evaluation of execution speed of the algorithm with respect to real-time.
-
-As a simplification, real-time shall be defined as following;
+This section concerns exclusively the evaluation of execution speed of the algorithm with respect to real-time. As a simplification, real-time shall be defined as following;
 \begin{defwrp}
 	Given a stream of events with duration $t_d$, it is processed in real-time, if the total processing time $t_p$ is smaller or equal to $t_d$.
 \end{defwrp}
 
-This definition is a simplified assumption as real-time constraint as it is oblivious to the fact that many events could occur in a very short time period.
-However, since the implementation, both the sequential and parallel one, are quantizing events to discrete slices of events, the effects can be treated as negligible.
-The evaluation speed hereby primarily depends on the temporal granularity of the event slices, henceforth the \textit{event slice duration}, sensor size, and filter size.
+This definition is a simplified assumption of the real-time constraint as it is oblivious to the fact that many events could occur in a very short time period.
+However, since we are quantizing events to time-discrete slices, the effects of this simplification can be neglected.
+\edit{The evaluation speed}{the speed at which we evaluate??} primarily depends on the temporal granularity of event slices, \edit{henceforth}{fancy vocab, but a little hard to read} the \textit{event slice duration}, sensor size, and filter size.
 
-In the following we assume a fixed sensor and filter size - this includes only one type of filter (in the sense of speed selectivity).
+In the following, we assume a fixed sensor and filter size - \edit{this includes only one type of filter (in the sense of speed selectivity).}{could you elaborate or rephrase?}
 In this specific evaluation, a sensor resolution of $128\times128$ and a filter size of $21\times21$ was used.
-Furthermore, the filters were initialized with a speed selectivity of $f_0=0.08$.
+Furthermore, the filters were \edit{initialized with a speed selectivity of $f_0=0.08$.}{not really, it is the frequency selectivity. Speed was something like 12 px/s}
 
 Under this assumption, the runtime performance is primarily governed by two parameters of the implementation:
 \begin{enumerate}
@@ -28,7 +26,7 @@ Under this assumption, the runtime performance is primarily governed by two para
 As default values, a duration of $10\mathrm{ms}$ and 4 filter orientations are assumed.
 
 The evaluation is presented for the parallel implementation only.
-The sequential implementation is producing the same results, but real-time is not achieved except for parameter settings which have no practical relevances as no viable results are produced.
+The sequential implementation produces the same results, but real-time is not achieved except for parameter settings which have \edit{no practical relevances as no viable results are produced.}{too complicated}
 The quantitive analysis was performed on a computer running ArchLinux x64 on an Intel Core2Duo Processor E6400 2M Cache, 2.13 GHz, 1066 MHz FSB).
 The Nvidia GT 440 graphic card with driver version 352.21 and CUDA 7.0.28-2 was used for the parallelized version.
 
@@ -80,23 +78,26 @@ The dataset is summarized by the following table:\\
 
 \subsubsection{Evaluation of Parallel Implementation}
 \paragraph{Duration of Event Slices}
-One very important parameter is the duration of an event slice. As describe before, all events are quantized and collected into event slices of a duration $t_s$.
-While the optic flow field is the most accurate at a resolution of $1\mu\mathrm{s}$, the resolution of the eDVS timestamps, it is increasing the computational effort a lot.
+\edit{One very important parameter is the duration of an event slice.}{previous paragraph was about it, why repeat?}
+As describe before, all events are quantized and collected into event slices of the duration $t_s$.
+While the optic flow field is the most accurate at a resolution of $1\mu\mathrm{s}$, the resolution of the eDVS timestamps, it increases the computational effort a lot.
 Our implementation approach approximates by reducing the temporal granularity and compressing events into event slices, at the cost of accuracy.
 Depending on whether it is more favorable to have approximative, but real-time results, or very accurate results without time constraints is up to the use-case.
 In fig. \ref{fig:gpu_tsd} we can see the development of the run-time performance with increasing durations $t_s$.
 \begin{figure}[!htb]
 	\centering
 	\includegraphics[scale=.9]{gpu_tsd.eps}
-	\caption{Variation of the duration of the event slices during the quantizing step.Blue bar corresponds to the threshold of real-time; above the blue bar means an event stream was processed faster than the time it represents. The cross corresponds to the mean speed across all takes. The black error bars represent the standard deviation across the all takes.}
+	\caption{Variation of the duration of the event slices during the quantizing step. Blue bar corresponds to the threshold of real-time; above the blue bar means an event stream was processed faster than the time it represents. The cross corresponds to the mean speed across all takes. The black error bars represent the standard deviation across all the takes.}
 	\label{fig:gpu_tsd}
 \end{figure}
 \paragraph{Number of Filter Orientations}
 The algorithm in its basic version utilizes one single type of spatio-temporal Gabor filter.
-This means, that only one specific parametrization of the spatial and temporal components is used.
-In order to correctly infer the optic flow in $x$ and $y$ direction, one rotates the basic Gabor filter and convolutes each event slice with each oriented filter.
+This means that only a single specific parametrization of the spatial and temporal component is used.
+\edit{
+In order to correctly infer the optic flow in $x$ and $y$ direction, one rotates the basic Gabor filter and convolves each event slice with each of differently oriented filter.
 The results are then superimposed and the final velocity vectors are gained.
 Since the quantitative results on the number of filters used.
+}{it's all covered in Algorithm section, do we want to repeat?}
 \begin{figure}[!htb]
 	\centering
 	\includegraphics[scale=.9]{gpu_fo.eps}
@@ -107,7 +108,7 @@ Since the quantitative results on the number of filters used.
 \subsection{Qualitative:} 
 To ensure the correctness of the algorithm and investigate effects of different filter parameters on the accuracy, we evaluated the algorithm with multiple ground truth data sets.
 The provided ground truth is created for a sensor resolution of $240\times180$.
-A filter size of $21\times21$ is used and the filters are initialized with a speed selectivity of $f_0=0.08$.
+A filter size of $21\times21$ is used and the filters are initialized with a \edit{speed selectivity of $f_0=0.08$.}{f is a frequency selectivity, speed was something like 12 px/s}
 
 
 We primarily use event data of simple geometric objects moving along predefined trajectories to be able to clearly identify reasons for decreased accuracy.
@@ -116,7 +117,7 @@ By implementing scripts to read out the flow files computed by the c++ code, we 
 \paragraph{Ground Truth}
 For the evaluation of the algorithm, we use ground truth data from real and synthetic scenes created in a separate project \cite{Scherer2015}.
 The real data is produced with a $240\times180$ DVS sensor that has a separate black-and-white camera to record regular dense frames.
-An established optical flow algorithm is used on frames to create a ground truth.
+An established optical flow algorithm is used on frames to create ground truth.
 
 
 Synthetic data is created separately with an open-source 3D content creation program. 
@@ -124,9 +125,7 @@ In this case, the temporal resolution of ground truth frames is significantly hi
 This allows us to perform an accurate temporal matching between our results and the ground truth.
 
 \paragraph{Evaluation Metrics}
-For the qualitative evaluation, we compare the flow generated by the event-based optical flow algorithm with the corresponding ground truth flow field.
-
-As a primary metric, we investigate the angular error between the computed results and the ground truth. 
+For the qualitative evaluation, we compare the flow generated by the event-based optical flow algorithm with the corresponding ground truth flow field. As a primary metric, we investigate the angular error between the computed results and the ground truth. 
 
 To only take into account the flow at the locations of past events, we create a mask that contains the locations of all events of increased light intensity.
 This mask consists of the same number of slices as there are quantized event slices.
@@ -140,7 +139,7 @@ This is particularly the case in scenes where an object followed a linear trajec
 In these cases, calculating the average angle and velocity of the optical flow can even be a more reliable measure. 
 
 \paragraph{Preprocessing}
-In the raw event data, several defect pixels at different locations constantly trigger events \ref{fig:defect-pixel-cleanup}. 
+\edit{In the raw event data several defect pixels at different locations constantly trigger events}{ not in data but in the camera} \ref{fig:defect-pixel-cleanup}. 
 This leads to a deteriorated performance of the algorithm, as these events cause high filter response values with random angles.
 %Add pictures of plots with defect pixels and possibly compare the error
 
@@ -161,12 +160,12 @@ This leads to a deteriorated performance of the algorithm, as these events cause
 
 
 To obtain more meaningful results, we manually eliminate these pixels from the event data.
-To do so, the event data is priorly inspected in jAER Viewer. 
+To do so, the event data is firstly inspected in the jAER Viewer. 
 Within the software, all recorded pixel coordinates can be analyzed individually.
 With the \textit{Hot Pixels} filter, locations of pixels that are triggered very often within a certain time frame can be easily determined.
 %Check whether florian mentions data formats
-Given the locations of the defect pixels, a readout script for \textit{.aedat} files. 
-The script reads out the position, time and parity for all events and deletes all defect pixels events.
+\edit{Given the locations of the defect pixels, a readout script for \textit{.aedat} files. }{ there's no verb; what's with the script?}
+The script reads out the position, time and parity for all events and deletes all defect events.
 The event data is then extended with a unique ID for each event and saved as a tabular file.
 %This way, the event data is readable by the c++ program, which is used to read, write and convert event data.
 % and decrements the index value for all following events.
@@ -175,9 +174,9 @@ The event data is then extended with a unique ID for each event and saved as a t
 %To further process the data, 
 
 \paragraph{Evaluation}
-A first, thorough evaluation of a simple geometric scene was conducted.
+\edit{A first,}{ was there A second?} thorough evaluation of a simple geometric scene was conducted.
 This was done to ensure the correctness of the algorithm and test its performance for different parameter choices.
-In the scene, a rectangular object, moving horizontally to the right, is observed (see Figure \ref{fig:quadrat-snapshots}).
+The scene consists of a horizontally moving rectaungular object (see Figure \ref{fig:quadrat-snapshots}).
 
 
 In this experiment, we only inspect the locations of events of increasing intensity.
@@ -188,13 +187,13 @@ A close-up view that shows the described masking of the flow field is shown in F
 
 The ground truth provides a time stamp for each frame of the ground truth flow.
 While the event data is quantized to Event Slices, a second set of time stamps is generated for each slice of events.
-As the ground truth frames are not created for the exact same times as the quantized slices, we first have to determine to best fitting ground truth flow field for each slice.
+As the ground truth frames are not created for the exact same times as the quantized slices, we first have to determine the best fitting ground truth flow field for each slice.
 For the evaluation, two different approaches of comparing the computed flow with the ground truth are applied.
-Firstly, we directly compare each slice with the ground truth frame for which the difference of the two respective time stamps is the smallest.
+Firstly, we directly compare each slice with the ground truth frame for which the difference of the two respective time stamps is smallest.
 Secondly, we linearly interpolate from the two closest ground truth frames that have been recorded before and after the time of the event slice.
 
 
-It can be observed that the flow directions at the corners of the vertical edge tend to point outwards instead of pointing in $x$-direction. 
+We observe that the flow directions at the corners of the vertical edge tend to point outwards instead of pointing in $x$-direction. 
 This is likely caused by the aperture problem and could be tackled in future experiments by performing a normalization step in the preprocessing.
 Table \ref{tab:error_comparison_square} shows a comparison of calculated errors for the moving square. The RMSE, mean, and median angular error between the computed flow and the ground truth are calculated. 
 The median error dropped to below $5^\circ$ for some parameter settings without additional normalization. 
@@ -351,13 +350,13 @@ $16$ & $0.03$ & $0.001$ & $30.00$\\
 \end{table}
 
 
-In the second scene, a small robot is approaching to the DVS sensor.
+In the second scene, a small robot is approaching the DVS sensor.
 In the ground truth we can observe that the average angle of the computed flow is about $-135^\circ$ (see Figure \ref{fig:pushbot-snapshots}). 
-As seen in Table \ref{tab:error_comparison_pushbot}, angular error between the event-base optical flow and the ground truth is rather high in this case.
+As seen in Table \ref{tab:error_comparison_pushbot}, angular error between the event-based optical flow and the ground truth is rather high in this case.
 One reason for this is the movement direction of the robot.
-In contrast to the first scene, the robot does not move in a direction perpendicular to its edges.
-Without additional normalization, the computed optical flow only points in directions perpendicular to edges, which is why the actual movement direction is not reflected properly by the computed flow.
-Furthermore, apart from the outer edges, noise or other contours on the surface of the robot cause flow in random directions to be detected.
+In contrast to the first scene, the robot does not move in any direction perpendicular to its edges.
+Without additional normalization the computed optical flow points only in the directions perpendicular to the edges, which is why the actual movement direction is not reflected properly by the computed flow.
+Furthermore, noise and other contours on the surface of the robot cause flow in random directions to be detected.
 This further increases the calculated angular error.
 The average angle of the computed flow amounts to about $-100^\circ$, which is close to average angle of the ground truth flow, considering the missing normalization.
 
@@ -450,12 +449,12 @@ pushbot & $12$ & interp & $93.41$ & $77.89$ & $70.33$ &  & \\
 In the third investigated scene, the sensor itself is moved while observing the interior of a room (see Figure \ref{fig:skateboard-snapshots}). 
 Due to the differences in how the flow was computed for the ground truth and the event-based optical flow, the angular errors are rather high as well in this scene.
 
-The ground truth algorithm that works on the dense images computes optical flow with rather homogeneous intensity for the whole scene.
+The ground truth algorithm that works on dense images computes optical flow with rather homogeneous intensity for the whole scene.
 In Figures \ref{fig:skateboard-snapshots1} and \ref{fig:skateboard-snapshots2} one can see that the edges of the walls are causing high responses and are clearly differentiable from the rest of the scene with the event-based optical flow.
-Furthermore, it is notable that the algorithm was able to properly differentiate between the rather high noise caused by the floor and actual edges in the scene.
+Furthermore, it is notable that the algorithm was able to properly distinguish the rather high noise caused by the floor and actual edges in the scene.
 The angular errors for this particular scene are rather high and the average angle of the computed flow varies significantly (see Table \ref{tab:error_comparison_skateboard}). 
 One of the reasons for this is the rather high amount of noise, which partly leads to computed flow of arbitrary angles.
-However, the Figures of the masked ground truth and computed flow indicate a general concurrence.
+However, the figures of the masked ground truth and computed flow indicate a \edit{general concurrence.}{ was?}
 Weighting the angular errors with the response intensity is likely to further reduce the error.
 
 
@@ -708,7 +707,7 @@ square2 & $14$ & interp & $33.19$ & $25.18$ & $19.30$ &  & \\
 The third synthetic scene depicts two balls moving around non-linear trajectories (see Figure \ref{fig:baelle-snapshots}). 
 In Figures \ref{fig:baelle-snapshots1} and \ref{fig:baelle-snapshots2} it can be observed that the computed flow is influenced by the shading effect that was applied in the 3D scene. 
 Due to the shading, the algorithm detects an additional edge in one of the balls, which leads to more ambiguous results.
-However, Table \ref{tab:error_comparison_baelle} shows that the angular error is still median angular error is still rather low in comparison to other scenes.
+However, Table \ref{tab:error_comparison_baelle} shows that the median angular error is still rather low in comparison to other scenes.
 A reason for this might be the shape of the balls. 
 Without normalization, a part of the surface always roughly points in the movement direction, which leads to valid results for the corresponding event locations.
 
