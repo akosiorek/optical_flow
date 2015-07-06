@@ -10,7 +10,7 @@ The pipeline has 4 blocks, each of which depends on the output of the previous o
 They cannot process the same piece of data concurrently, but they can be streamlined, such that each component will be executed asynchronously by an independent worker, with possible parallelization inside of the component.
 This approach requires buffering of data between components, which we realize with blocking unbounded buffers. 
 
-Our another concern is modularity, which not only makes the code easier to maintain, but also enables extensions and an easy exchange of building blocks. 
+Another concern is modularity, which not only makes the code easier to maintain, but also enables extensions and an easy exchange of building blocks. 
 Therefore, we abstract interfaces of each component.
 To further increase it, Fourier-convolution based FilteringEngines use three objects via dependency injection: FilterFactory, which produces filters of given angle, FourierPadder, which pads data and filters to the size required by Fourier-based linear convolution, and FourierTransformer, which carries out forward and backward Fourier transformation. The default implementation of the last one relies on FFTW for efficient computation.
 

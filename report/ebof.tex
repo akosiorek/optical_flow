@@ -13,6 +13,10 @@
 %For Subfigures_________
 \usepackage{subcaption}
 
+%For comments
+\newcommand{\edit}[2]{{{\textcolor{blue}{#1}}\emph{\textcolor{red}{#2}}}}
+
+
 
 \newtheorem{defwrp}{Definition}
 % based on the LSR Student Template, last change: 2014-06-05
@@ -127,13 +131,12 @@ In engineering applications, it is used, for example, in video compression to in
 
 \section{Problem Statement}
 
-Typical cameras produces full frames at a fixed frequency, e.g., 30 frames per second.
+Typical cameras produce full frames at a fixed frequency, e.g., 30 frames per second.
 This implies that regardless of change in the scene, and thus available information, new frames are produced.
 In the context of optic flow, it is however, a much easier to estimate the flow, as looking at two frames produced at times $t_n,t_{n+1}$, they are discretized in time, but also the spatial changes are discretized.
 
-Event-based sensors, such as the DVS, as described in \cite{Delbruck}, offer a new paradigm in computer vision. Operating individual pixels asynchronously, 
-
-BIT ON DVS, a
+Event-based sensors, such as the DVS, as described in \cite{Delbruck}, offer a new paradigm in computer vision. 
+The DVS can register changes in light intensity for individual pixels asynchronously.
 
 However, events are highly ambiguous and only carry information about the time of occurrence the location of appearance.
 Due to the event-based nature, many computer vision algorithms can not directly be applied when using Dynamic Vision Sensors.
@@ -171,6 +174,7 @@ But definitely give a very short summary about other approaches and implementati
 \chapter{Conclusion}
 
 We did/showed:
+- Evaluate the correctness of the proposed algorithm in Matlab
 - Sequential C++ Impl (FFT) not real-time capable (mention if results exist)
 - Parallel C++ Impl (FFT/CUDA) real-time capable
 - Showed real-time capabilities with regards to parallel impl
