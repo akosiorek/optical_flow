@@ -2,7 +2,7 @@
 \section{Experimental Results}
 In the following, the implementation of the algorithm has been evaluated with regard to its efficiency, as well as to its accurateness with regard to ground truth.
 
-\subsection{Quantitative:}
+\subsection{Quantitative Evaluation}
 One of the primary goals of this project was to evaluate the real-time capabilities of this algorithm.
 This section concerns itself exclusively with the evaluation of execution speed of the algorithm with respect to real-time.
 
@@ -104,7 +104,7 @@ Since the quantitative results on the number of filters used.
 	\label{fig:gpu_fo}
 \end{figure}
 
-\subsection{Qualitative:} 
+\subsection{Qualitative Evaluation and Discussion:} 
 To ensure the correctness of the algorithm and investigate effects of different filter parameters on the accuracy, we evaluated the algorithm with multiple ground truth data sets.
 The provided ground truth is created for a sensor resolution of $240\times180$.
 A filter size of $21\times21$ is used and the filters are initialized with a speed selectivity of $f_0=0.08$.
@@ -707,7 +707,7 @@ square2 & $14$ & interp & $33.19$ & $25.18$ & $19.30$ &  & \\
 
 The third synthetic scene depicts two balls moving around non-linear trajectories (see Figure \ref{fig:baelle-snapshots}). 
 In Figures \ref{fig:baelle-snapshots1} and \ref{fig:baelle-snapshots2} it can be observed that the computed flow is influenced by the shading effect that was applied in the 3D scene. 
-Due to the shading, the algorithm detects an additional edge in one of the balls, which leads to more ambiguous results.
+Due to the shading, the algorithm detects an additional edge inside one of the balls, which leads to more ambiguous results.
 However, Table \ref{tab:error_comparison_baelle} shows that the angular error is still median angular error is still rather low in comparison to other scenes.
 A reason for this might be the shape of the balls. 
 Without normalization, a part of the surface always roughly points in the movement direction, which leads to valid results for the corresponding event locations.

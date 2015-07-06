@@ -174,16 +174,25 @@ But definitely give a very short summary about other approaches and implementati
 \chapter{Conclusion}
 
 We did/showed:
-- Evaluate the correctness of the proposed algorithm in Matlab
+After ensuring the correctness of the algorithm, we pursued different approaches in parallelizing the code in order to achieve real-time capabilities.
+
+%- Evaluate the correctness of the proposed algorithm in Matlab
 - Sequential C++ Impl (FFT) not real-time capable (mention if results exist)
 - Parallel C++ Impl (FFT/CUDA) real-time capable
 - Showed real-time capabilities with regards to parallel impl
-- Qualitative Analysis
+
+The qualitative analysis showed that the investigated algorithm can properly compute optic flow on an event-based basis.
+Especially objects that move perpendicularly to the orientation of their edges are recognized very well.
+In order to ensure accurate results in all cases, additional response normalization has to be performed in the post-processing.
+It is also notable that the algorithm is not heavily affected by rather random noise in the image such as events on the floor or background in the case of a moving camera.
 
 What doesn't work yet specific to our impl? 
 -Normalization
 -Efficient CUFFT interface
 -other smaller things???
+
+
+
 
 Give very short outlook here:
 -stereo vision
