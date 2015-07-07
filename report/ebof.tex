@@ -105,13 +105,21 @@ Final Submission: &  07.07.2015 \\
 \phantom{u}
 \begin{abstract}
   Optic flow detection is a fundamental problem in computer vision.
-  It describes the change of structured light in an observed scene by a camera or the human eye.
-  The change can hereby be caused by either moving objects in the scene, ego-motion of the observer, or both.
-  While it is a well-known problem with many existing solutions when using RGB cameras producing full frames at a frequency $f$, it is still an unsolved problem for Dynamic Vision Sensors (DVS).
-  Producing only a sparse event stream, a DVS reports temporal changes in luminance on a per-pixel basis.
-  Deriving the spatial change of the scene is thus a much more complex problem than with dense images - particularly those produced at a well-known and fixed frequency.
-  This makes it considerably more difficult to compute an optic flow field for a sparse event stream, as it relies on both temporal and spatial information.
-  This project report deals with the implementation and evaluation of a novel, biologically motivated approach to compute the optic flow for an event stream using a filter bank of spatio-temporal Gabor filters.
+While it is a problem with many existing solutions when using ordinary producing regular frames, it is still an unsolved problem for Dynamic Vision Sensors (DVS).  
+  Producing only a sparse event stream, a DVS records temporal changes in luminance on a per-pixel basis.
+    This project report deals with the implementation and evaluation of a novel, biologically motivated approach to compute the optic flow for an event stream using a filter bank of spatio-temporal Gabor filters.
+  In order to reach real-time capabilities, the proposed c++ implementation sums up events into event slices and discretizes the filter.
+  We discuss efficient approaches of computing the flow, utilizing the Fourier-based convolution and an implementation in CUDA.
+  The c++ implementation is quantitatively evaluated in terms of speed of flow calculation.
+  Finally, the algorithm itself and its qualitative performance are extensively evaluated by utilizing a provided set of ground truth data.
+  
+%  
+%\edit{  The change can hereby be caused by either moving objects in the scene, ego-motion of the observer, or both.
+%  While it is a well-known problem with many existing solutions when using RGB cameras producing full frames at a frequency $f$, it is still an unsolved problem for Dynamic Vision Sensors (DVS).
+%  Producing only a sparse event stream, a DVS reports temporal changes in luminance on a per-pixel basis.
+%  Deriving the spatial change of the scene is thus a much more complex problem than with dense images - particularly those produced at a well-known and fixed frequency.
+%  This makes it considerably more difficult to compute an optic flow field for a sparse event stream, as it relies on both temporal and spatial information.} {Cut down a lot and replace with actual report content}
+%  This project report deals with the implementation and evaluation of a novel, biologically motivated approach to compute the optic flow for an event stream using a filter bank of spatio-temporal Gabor filters.
 \end{abstract}
 %____________________________________________________________
 
@@ -171,7 +179,6 @@ In the following, the design decisions and implementation details are described,
 %_____Zusammenfassung, Ausblick_________________________________
 \chapter{Conclusion}
 
-We did/showed:
 After ensuring the correctness of the algorithm, we pursued different approaches in parallelizing the code in order to achieve real-time capabilities.
 
 %- Evaluate the correctness of the proposed algorithm in Matlab
