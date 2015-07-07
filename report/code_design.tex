@@ -23,9 +23,9 @@ This gives the final shape to our pipeline, as shown in Figure \ref{fig:pipeline
   \label{fig:pipeline}
 \end{figure}
 
-EventReader reads an event stream from different sources \emph{e.g.} text file, binary file or directly from a DVS camera.
+EventReader reads an event stream from different sources, \emph{e.g.,} text file, binary file or directly from a DVS camera.
 Events are passed to the Quantizer, which quantizes discrete events into Event Slices.
-They are consumed by FilteringEngine. It has an internal buffer, which holds enough events to cover the whole time span of the filter. 
+They are consumed by the FilteringEngine. It has an internal buffer, which holds enough events to cover the whole time span of the filter. 
 Once the buffer fills up, FilteringEngine starts producing Flow Slices.
 The FlowSink object handles them by either serializing or visualizing the resulting optical flow field.
 

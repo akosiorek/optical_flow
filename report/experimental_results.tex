@@ -1,14 +1,14 @@
 %\newpage
 %\section{Experimental Results}
-In the following, the implementation of the algorithm has been evaluated with regard to its efficiency, as well as to its accuracy with regard to ground truth. 
-For the quantitative evaluation, we used large event data sets with a sensor resolution of $128\times$.
+In the following, the implementation of the algorithm has been evaluated with regard to its efficiency, as well as to its accuracy with respect to ground truth. 
+For the quantitative evaluation, we used large event data sets with a sensor resolution of $128\times128$.
 The available ground truth data for the qualitative evaluation used a sensor resolution of $240\times180$.
 Because the ground truth scenes were very short, they were not suitable to be also used in the quantitative evaluation.
 
 \section{Quantitative Evaluation}
 
 One of the primary goals of this project was to evaluate the real-time capabilities of this algorithm.
-This section concerns exclusively the evaluation of execution speed of the algorithm with respect to real-time. As a simplification, real-time shall be defined as following;
+This section concerns itself exclusively with the evaluation of the execution speed of the algorithm with respect to real-time constraint. As a simplification, real-time shall be defined as following;
 \begin{defwrp}
 	Given a stream of events with duration $t_d$, it is processed in real-time, if the total processing time $t_p$ is smaller or equal to $t_d$.
 \end{defwrp}
@@ -28,12 +28,11 @@ Under this assumption, the runtime performance is primarily governed by two para
 	\item Duration of an event slice
 	\item Number of filter orientations
 \end{enumerate}
-
 As default values, a duration of $10\mathrm{ms}$ and 4 filter orientations are assumed.
 
 The evaluation is presented for the parallel implementation only.
-As real-time can only be achieved for the sequential implemention with parameter settings which no practical relevances (e.g., incorrect results), the evaluation is not considered in the scope of this report.
-The quantitive analysis was performed on a computer running ArchLinux x64 on an Intel Core2Duo Processor E6400 2M Cache, 2.13 GHz, 1066 MHz FSB).
+As real-time can only be achieved for the sequential implementation with parameter settings which have no practical relevances (e.g., producing incorrect results), the evaluation is not considered in the scope of this report.
+The quantitative analysis was performed on a computer running ArchLinux x64 on an Intel Core2Duo Processor E6400 2M Cache, 2.13 GHz, 1066 MHz FSB).
 The Nvidia GT 440 graphic card with driver version 352.21 and CUDA 7.0.28-2 was used for the parallelized version.
 
 \subsection{Dataset}
@@ -84,9 +83,10 @@ The dataset is summarized by the following table:\\
 \paragraph{Duration of Event Slices}
 As described before, all events are quantized and collected into ES of the duration $t_s$.
 While the optic flow field is the most accurate at a resolution of $1\mu\mathrm{s}$, the resolution of the eDVS timestamps, it increases the computational effort a lot.
-Our implementation approach approximates by reducing the temporal granularity and compressing events into event slices, at the cost of accuracy.
+Our implementation approach approximates by reducing the temporal granularity and compressing events into event slices, at the cost of accuracy as describe before.
 Depending on whether it is more favorable to have approximative, but real-time results, or very accurate results without time constraints is up to the use-case.
 In fig. \ref{fig:gpu_tsd} we can see the development of the run-time performance with increasing durations $t_s$.
+For $t_s=33.33$ we look at the special case which corresponds to a camera producing frames at 30 frames per seconds.
 \begin{figure}[!htb]
 	\centering
 	\includegraphics[scale=.9]{gpu_tsd.eps}
@@ -115,7 +115,7 @@ A filter size of $21\times21$ is used and the filters are initialized with a spe
 
 We primarily use event data of simple geometric objects moving along predefined trajectories to be able to clearly identify reasons for decreased accuracy.
 We firstly evaluate the correctness of the algorithm by implementing it in Matlab, due to the provided functionality in terms of mathematical methods and visualization.
-By implementing scripts to read out the flow files computed by the c++ code, we can also use the Matlab evaluation scripts for the c++ output.
+By implementing scripts to read out the flow files computed by the C++ code, we can also use the Matlab evaluation scripts for the C++ output.
 \subsection{Ground Truth}
 For the evaluation of the algorithm, we use ground truth data from real and synthetic scenes created in a separate project \cite{Scherer2015}.
 The real data is produced with a $240\times180$ DVS sensor that has a separate black-and-white camera to record regular dense frames.
