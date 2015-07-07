@@ -50,6 +50,20 @@
 \setlength{\parindent}{0pt} % Kein Einrücken beim Absatz!!
 %___________________________________________
 
+
+% Change figure and table alignments
+\renewcommand{\topfraction}{.85}
+\renewcommand{\bottomfraction}{.7}
+\renewcommand{\textfraction}{.15}
+\renewcommand{\floatpagefraction}{.66}
+\renewcommand{\dbltopfraction}{.66}
+\renewcommand{\dblfloatpagefraction}{.66}
+\setcounter{topnumber}{9}
+\setcounter{bottomnumber}{9}
+\setcounter{totalnumber}{20}
+\setcounter{dbltopnumber}{9}	  
+
+
 %_Hyperref for CC Url__________
 \usepackage{hyperref}
 %___________________________________________
@@ -150,20 +164,14 @@ Recently Brosch et al. \cite{Brosch2015} describe a novel biologically motivated
 The goal of this project is to implement the algorithm designed by Brosch et al. in an efficient general-purpose language and evaluate if and how it can be run under real-time constraints.
 For this purpose, an implementation in C++ with support for CUDA has been chosen.
 In the following, the design decisions and implementation details are described, as well as a thorough evaluation, both quantitative and qualitative, is presented.
-
 %\section{Related Work}
-
 %Here we gonna talk about the paper we gonna implement (or in the section above).
 %But definitely give a very short summary about other approaches and implementations (if we can find any public).
-
 %____________________________________________________
-
-
-
 %_____Kapitel 2_________________________________
-\newpage
-\chapter{Implementation of the Algorithm}
-
+%\newpage
+\let\cleardoublepage\clearpage
+\chapter{Implementation of the Algorithm} 	
 \input{algorithm.tex}
 \input{code_design.tex}
 \input{implementation.tex}
@@ -186,21 +194,21 @@ The approach implemented in the scope of this project successfully uses spatio-t
 
 The qualitative analysis showed that the investigated algorithm can properly compute optic flow on an event-based basis.
 Especially objects that move perpendicularly to the orientation of their edges are recognized very well.
-In other cases, such as the push but, additional post-processing, such as response normalization, has the potential to improve the accuracy.
+In other cases, such as the push bot, additional post-processing, such as response normalization, has the potential to improve the accuracy.
 It is also notable that the algorithm is not heavily affected by rather random noise in the image such as events on the floor or background in the case of a moving camera.
 
 Besides evaluating the correctness of the algorithm, the primary goal was to determine if the algorithm can be implemented such, that it is possible to process sparse event streams in real-time.
-We pursued different approaches in parallelizing the code in order to achieve real-time capabilities, particularly translation key components to a parallelized CUDA version.
+We pursued different approaches in parallelizing the code in order to achieve real-time capabilities, particularly translating key components to a parallelized CUDA version.
 
-However, this implementation is still open to several further developments.
+However, this implementation is still open to further developments.
 In order to improve the overall accuracy, response normalization or other filtering mechanism are relevant.
 The pipeline, however, allows for the quick introduction of new processing steps as tasks for the flow sink.
 
 Also, the CUDA interface for performing the FFT on GPUs is not the most efficient yet, as it currently requires unnecessary memory transfers.
 
-Overall, our implementation achieved real-time capability with notable results, which proofed the viability of the original algorithm.
+Overall, our implementation achieved real-time capability with notable results, which proved the viability of the original algorithm.
 Whereas features are common for frame-based computer vision problems, no solution exists yet to determine unique features in event streams.
-This is a first step towards more complex algorithms operating on the sparse event-stream.
+This is the first step towards more complex algorithms operating on the sparse event-stream.
 The possibility to create unique filter responses gives rise to the notion of temporal features.
 
 

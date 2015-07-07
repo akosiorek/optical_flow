@@ -1,5 +1,4 @@
 \section{Algorithm}
-
 The algorithm proposed in \cite{Brosch2015} uses a filter bank of $N$ spatio-temporal Gabor filters $f_i(x, y, t) : \mathcal{R}^3 \rightarrow \mathcal{R}$, $i = 1, \ldots, N$ to filter a stream of incoming events $e_j=(x_j,y_j,t_j,p_j) \in \mathcal{R}^4$, $j \in \mathcal{Z}$. 
 The response of the $i^{th}$ filter w.r.t. the $j^{th}$ event is computed as $r_{i,j} = \sum_{k \in \mathcal{Z}} p_kf_i(x_k - x_j, y_k - y_j, t_k - t_j)$.
 Each filter has its own orientation; the magnitude of its response represents the optical flow parallel to the filter's orientation.
