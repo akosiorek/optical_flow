@@ -1,6 +1,9 @@
 %\newpage
 %\section{Experimental Results}
-In the following, the implementation of the algorithm has been evaluated with regard to its efficiency, as well as to its accuracy with regard to ground truth.
+In the following, the implementation of the algorithm has been evaluated with regard to its efficiency, as well as to its accuracy with regard to ground truth. 
+For the quantitative evaluation, we used large event data sets with a sensor resolution of $128\times$.
+The available ground truth data for the qualitative evaluation used a sensor resolution of $240\times180$.
+Because the ground truth scenes were very short, they were not suitable to be also used in the quantitative evaluation.
 
 \section{Quantitative Evaluation}
 
@@ -102,7 +105,7 @@ Since the quantitative results on the number of filters used.
 \begin{figure}[!htb]
 	\centering
 	\includegraphics[scale=.9]{gpu_fo.eps}
-	\caption{Variation of the number of unique orientations of the spatio-temporal gabor filter. Each orientation corresponds to a separate filter in the filter bank. Blue bar corresponds to the threshold of real-time; above the blue bar means an event stream was processed faster than the time it represents. The cross corresponds to the mean speed across all takes. The black error bars represent the standard deviation across the all takes.}
+	\caption[Variation of the number of unique orientations of the spatio-temporal gabor filter.]{Variation of the number of unique orientations of the spatio-temporal gabor filter. Each orientation corresponds to a separate filter in the filter bank. Blue bar corresponds to the threshold of real-time; above the blue bar means an event stream was processed faster than the time it represents. The cross corresponds to the mean speed across all takes. The black error bars represent the standard deviation across the all takes.}
 	\label{fig:gpu_fo}
 \end{figure}
 
@@ -246,17 +249,7 @@ The flow in the ground truth is consistently directed in $x$-direction, whereas 
   \caption{}
 \end{subfigure}
 \begin{subfigure}{.45\textwidth}
-  \centering
-  \includegraphics[height=.6\linewidth]{figs/quadrat/quadrat-2.png}
-  \caption{}
-\end{subfigure}
-\begin{subfigure}{.45\textwidth}
   \includegraphics[height=.6\linewidth]{figs/quadrat/quadrat-masked-1.png}
-  \caption{}
-\end{subfigure}
-\begin{subfigure}{.45\textwidth}
-  \centering
-  \includegraphics[height=.6\linewidth]{figs/quadrat/quadrat-masked-2.png}
   \caption{}
 \end{subfigure}
 \begin{subfigure}{.45\textwidth}
@@ -266,22 +259,13 @@ The flow in the ground truth is consistently directed in $x$-direction, whereas 
 \end{subfigure}
 \begin{subfigure}{.45\textwidth}
   \centering
-  \includegraphics[height=.6\linewidth]{figs/quadrat/quadrat-GT-2.png}
-  \caption{}
-\end{subfigure}
-\begin{subfigure}{.45\textwidth}
-  \centering
   \includegraphics[height=.6\linewidth]{figs/quadrat/quadrat-GT-masked-1.png}
   \caption{}
 \end{subfigure}
-\begin{subfigure}{.45\textwidth}
-  \centering
-  \includegraphics[height=.6\linewidth]{figs/quadrat/quadrat-GT-masked-2.png}
-  \caption{}
-\end{subfigure}
 \caption[First scene: Robot approaching the DVS sensor.]{Second scene: Robot approaching the DVS sensor.
-Figures (a) and (b) show the computed optical flow for the scene at two time steps. The masked flow fields are shown in Figures (c) and (d).
-The corresponding ground truth is shown in Figures (e) and (f). Applying the same mask leads to Figures (g) and (h)}
+Figure (a) shows the computed optical flow for the scene. 
+The masked flow field is shown in Figure (b).
+The corresponding ground truth before and after masking is shown in Figures (c) and (d).}
 \label{fig:quadrat-snapshots}
 \end{figure}
 
@@ -343,17 +327,7 @@ The average angle of the computed flow amounts to about $-100^\circ$, which is c
   \caption{}
 \end{subfigure}
 \begin{subfigure}{.45\textwidth}
-  \centering
-  \includegraphics[height=.6\linewidth]{figs/pushbot/pushbot-2.png}
-  \caption{}
-\end{subfigure}
-\begin{subfigure}{.45\textwidth}
   \includegraphics[height=.6\linewidth]{figs/pushbot/pushbot-masked-1.png}
-  \caption{}
-\end{subfigure}
-\begin{subfigure}{.45\textwidth}
-  \centering
-  \includegraphics[height=.6\linewidth]{figs/pushbot/pushbot-masked-2.png}
   \caption{}
 \end{subfigure}
 \begin{subfigure}{.45\textwidth}
@@ -363,23 +337,14 @@ The average angle of the computed flow amounts to about $-100^\circ$, which is c
 \end{subfigure}
 \begin{subfigure}{.45\textwidth}
   \centering
-  \includegraphics[height=.6\linewidth]{figs/pushbot/pushbot-GT-2.png}
-  \caption{}
-\end{subfigure}
-\begin{subfigure}{.45\textwidth}
-  \centering
   \includegraphics[height=.6\linewidth]{figs/pushbot/pushbot-GT-masked-1.png}
   \caption{}
 \end{subfigure}
-\begin{subfigure}{.45\textwidth}
-  \centering
-  \includegraphics[height=.6\linewidth]{figs/pushbot/pushbot-GT-masked-2.png}
-  \caption{}
-\end{subfigure}
-\caption[Second scene: Robot approaching the DVS sensor.]{Second scene: A small robot is approaching the DVS sensor. Figures (a) and (b) show the computed optical flow for the scene at two time steps. The masked flow fields are shown in Figures (c) and (d).
-The corresponding ground truth is shown in Figures (e) and (f). Applying the same mask leads to Figures (g) and (h).
-In the ground truth it can be observed that flow is directed to the bottom left of the frame (g)(h). 
-In the computed flow, a horizontal edge at the bottom and a vertical edge at the left of the robot are clearly visible (c)(d).
+\caption[Second scene: Robot approaching the DVS sensor.]{Second scene: A small robot is approaching the DVS sensor. 
+Figure (a) shows the computed optical flow for the scene. 
+The masked flow field is shown in Figure (b).
+The corresponding ground truth before and after masking is shown in Figures (c) and (d). 
+In the computed flow, a horizontal edge at the bottom and a vertical edge at the left of the robot are clearly visible (b).
 The flow pointing from these edges indicates the direction of movement. 
 It is most likely not pointing to the bottom left because of the missing normalization.}
 \label{fig:pushbot-snapshots}
@@ -405,11 +370,12 @@ In the third investigated scene, the sensor itself is moved while observing the 
 Due to the differences in how the flow was computed for the ground truth and the event-based optical flow, the angular errors are rather high as well in this scene.
 
 The ground truth algorithm that works on dense images computes optical flow with rather homogeneous intensity for the whole scene.
-In Figures \ref{fig:skateboard-snapshots1} and \ref{fig:skateboard-snapshots2} one can see that the edges of the walls are causing high responses and are clearly differentiable from the rest of the scene with the event-based optical flow.
+In Figure \ref{fig:skateboard-snapshots1} one can see that the edges of the walls are causing high responses and are clearly differentiable from the rest of the scene with the event-based optical flow.
 Furthermore, it is notable that the algorithm was able to properly distinguish the rather high noise caused by the floor and actual edges in the scene.
-The angular errors for this particular scene are rather high and the average angle of the computed flow varies significantly (see Table \ref{tab:error_comparison_skateboard}). 
+Table \ref{tab:error_comparison_skateboard} shows that the angular errors for this particular scene are rather high.
+The average angle of the computed flow varies significantly for different settings (see Table \ref{tab:app_error_comparison_skateboard}). 
 One of the reasons for this is the rather high amount of noise, which partly leads to computed flow of arbitrary angles.
-However, the figures of the masked ground truth and computed flow show a good visual overlap for the dominant parts of the scenes.
+However, the figure of the masked ground truth and computed flow shows a good visual overlap for the dominant parts of the scenes.
 Weighting the angular errors with the response intensity is likely to further reduce the error.
 
 
@@ -422,18 +388,7 @@ Weighting the angular errors with the response intensity is likely to further re
   \label{fig:skateboard-snapshots1}
 \end{subfigure}
 \begin{subfigure}{.45\textwidth}
-  \centering
-  \includegraphics[height=.6\linewidth]{figs/skateboard/skateboard-2.png}
-  \caption{}
-  \label{fig:skateboard-snapshots2}
-\end{subfigure}
-\begin{subfigure}{.45\textwidth}
   \includegraphics[height=.6\linewidth]{figs/skateboard/skateboard-masked-1.png}
-  \caption{}
-\end{subfigure}
-\begin{subfigure}{.45\textwidth}
-  \centering
-  \includegraphics[height=.6\linewidth]{figs/skateboard/skateboard-masked-2.png}
   \caption{}
 \end{subfigure}
 \begin{subfigure}{.45\textwidth}
@@ -443,26 +398,14 @@ Weighting the angular errors with the response intensity is likely to further re
 \end{subfigure}
 \begin{subfigure}{.45\textwidth}
   \centering
-  \includegraphics[height=.6\linewidth]{figs/skateboard/skateboard-GT-2.png}
-  \caption{}
-\end{subfigure}
-\begin{subfigure}{.45\textwidth}
-  \centering
   \includegraphics[height=.6\linewidth]{figs/skateboard/skateboard-GT-masked-1.png}
   \caption{}
 \end{subfigure}
-\begin{subfigure}{.45\textwidth}
-  \centering
-  \includegraphics[height=.6\linewidth]{figs/skateboard/skateboard-GT-masked-2.png}
-  \caption{}
-\end{subfigure}
 \caption[Third scene: Moving DVS sensor observing interior of a room.]{Third scene: Moving DVS sensor observing interior of a room. 
-Figures (a) and (b) show the computed optical flow for the scene at two time steps. The masked flow fields are shown in Figures (c) and (d).
-The corresponding ground truth is shown in Figures (e) and (f). 
-Applying the same mask leads to Figures (g) and (h).
-
-The computed flow clearly detects edges and dominant structures in the room (a)(b).
-Trough masking, the visual similarities between the results (Figures (c) and (d)) and the ground truth ((g) and (h)) at the event locations become visible.
+Figure (a) shows the computed optical flow for the scene. 
+The masked flow field is shown in Figure (b).
+The corresponding ground truth before and after masking is shown in Figures (c) and (d). 
+Trough masking, the visual similarities between the result (b) and the ground truth (d) at the event locations become visible.
 }
 \label{fig:skateboard-snapshots}
 \end{figure}
@@ -513,17 +456,7 @@ Furthermore, the effects of the aperture are visible again at the outer corners 
   \caption{}
 \end{subfigure}
 \begin{subfigure}{.45\textwidth}
-  \centering
-  \includegraphics[height=.6\linewidth]{figs/square12/square12-2.png}
-  \caption{}
-\end{subfigure}
-\begin{subfigure}{.45\textwidth}
   \includegraphics[height=.6\linewidth]{figs/square12/square12-masked-1.png}
-  \caption{}
-\end{subfigure}
-\begin{subfigure}{.45\textwidth}
-  \centering
-  \includegraphics[height=.6\linewidth]{figs/square12/square12-masked-2.png}
   \caption{}
 \end{subfigure}
 \begin{subfigure}{.45\textwidth}
@@ -533,25 +466,16 @@ Furthermore, the effects of the aperture are visible again at the outer corners 
 \end{subfigure}
 \begin{subfigure}{.45\textwidth}
   \centering
-  \includegraphics[height=.6\linewidth]{figs/square12/square12-GT-2.png}
-  \caption{}
-\end{subfigure}
-\begin{subfigure}{.45\textwidth}
-  \centering
   \includegraphics[height=.6\linewidth]{figs/square12/square12-GT-masked-1.png}
   \caption{}
 \end{subfigure}
-\begin{subfigure}{.45\textwidth}
-  \centering
-  \includegraphics[height=.6\linewidth]{figs/square12/square12-GT-masked-2.png}
-  \caption{}
-\end{subfigure}
 \caption[Fourth scene: Synthetic data of a linearly moving square.]{Fourth scene: Synthetic data of a linearly moving square.
-Figures (a) and (b) show the computed optical flow for the scene at two time steps. The masked flow fields are shown in Figures (c) and (d).
-The corresponding ground truth is shown in Figures (e) and (f). Applying the same mask leads to Figures (g) and (h).
+Figure (a) shows the computed optical flow for the scene. 
+The masked flow field is shown in Figure (b).
+The corresponding ground truth before and after masking is shown in Figures (c) and (d). 
 Due to the synthetic nature of the data, all pixels of the outer edges moved simultaneously.
 This leads to our algorithm failing to recognize the edges at all.
-The effects of the aperture problem are visible a the right and bottom corner of the edges in Figures (a) and (b).
+The effects of the aperture problem are visible a the right and bottom corner of the edges in Figure (a).
 }
 \label{fig:square12-snapshots}
 \end{figure}
@@ -587,17 +511,7 @@ Again, the algorithm fails to recognize the outer edge in movement direction.
   \caption{}
 \end{subfigure}
 \begin{subfigure}{.45\textwidth}
-  \centering
-  \includegraphics[height=.6\linewidth]{figs/square2/square2-2.png}
-  \caption{}
-\end{subfigure}
-\begin{subfigure}{.45\textwidth}
   \includegraphics[height=.6\linewidth]{figs/square2/square2-masked-1.png}
-  \caption{}
-\end{subfigure}
-\begin{subfigure}{.45\textwidth}
-  \centering
-  \includegraphics[height=.6\linewidth]{figs/square2/square2-masked-2.png}
   \caption{}
 \end{subfigure}
 \begin{subfigure}{.45\textwidth}
@@ -607,22 +521,13 @@ Again, the algorithm fails to recognize the outer edge in movement direction.
 \end{subfigure}
 \begin{subfigure}{.45\textwidth}
   \centering
-  \includegraphics[height=.6\linewidth]{figs/square2/square2-GT-2.png}
-  \caption{}
-\end{subfigure}
-\begin{subfigure}{.45\textwidth}
-  \centering
   \includegraphics[height=.6\linewidth]{figs/square2/square2-GT-masked-1.png}
   \caption{}
 \end{subfigure}
-\begin{subfigure}{.45\textwidth}
-  \centering
-  \includegraphics[height=.6\linewidth]{figs/square2/square2-GT-masked-2.png}
-  \caption{}
-\end{subfigure}
 \caption[Fifth scene: Synthetic data of a circularly moving square.]{Fifth scene: Synthetic data of a circularly moving square.
-Figures (a) and (b) show the computed optical flow for the scene at two time steps. The masked flow fields are shown in Figures (c) and (d).
-The corresponding ground truth is shown in Figures (e) and (f). Applying the same mask leads to Figures (g) and (h)}
+Figure (a) shows the computed optical flow for the scene. 
+The masked flow field is shown in Figure (b).
+The corresponding ground truth before and after masking is shown in Figures (c) and (d).}
 \label{fig:square2-snapshots}
 \end{figure}
 
@@ -645,7 +550,7 @@ square2 & S$2$ & interp & $33.19$ & $25.18$ & $19.30$ &  & \\
 \paragraph{Third Synthetic Scene: Two moving balls}
 
 The third synthetic scene depicts two balls moving around non-linear trajectories (see Figure \ref{fig:baelle-snapshots}). 
-In Figures \ref{fig:baelle-snapshots1} and \ref{fig:baelle-snapshots2} it can be observed that the computed flow is influenced by the shading effect that was applied in the 3D scene. 
+In Figure \ref{fig:baelle-snapshots1} it can be observed that the computed flow is influenced by the shading effect that was applied in the 3D scene. 
 
 Due to the shading, the algorithm detects an additional edge inside one of the balls, which leads to more ambiguous results.
 However, Table \ref{tab:error_comparison_baelle} shows that the median angular error is still rather low in comparison to other scenes.
@@ -662,18 +567,7 @@ Without normalization, a part of the surface always roughly points in the moveme
 \label{fig:baelle-snapshots1}
 \end{subfigure}
 \begin{subfigure}{.45\textwidth}
-  \centering
-  \includegraphics[height=.6\linewidth]{figs/baelle/baelle-2.png}
-  \caption{}
-  \label{fig:baelle-snapshots2}
-\end{subfigure}
-\begin{subfigure}{.45\textwidth}
   \includegraphics[height=.6\linewidth]{figs/baelle/baelle-masked-1.png}
-  \caption{}
-\end{subfigure}
-\begin{subfigure}{.45\textwidth}
-  \centering
-  \includegraphics[height=.6\linewidth]{figs/baelle/baelle-masked-2.png}
   \caption{}
 \end{subfigure}
 \begin{subfigure}{.45\textwidth}
@@ -683,23 +577,14 @@ Without normalization, a part of the surface always roughly points in the moveme
 \end{subfigure}
 \begin{subfigure}{.45\textwidth}
   \centering
-  \includegraphics[height=.6\linewidth]{figs/baelle/baelle-GT-2.png}
-  \caption{}
-\end{subfigure}
-\begin{subfigure}{.45\textwidth}
-  \centering
   \includegraphics[height=.6\linewidth]{figs/baelle/baelle-GT-masked-1.png}
   \caption{}
 \end{subfigure}
-\begin{subfigure}{.45\textwidth}
-  \centering
-  \includegraphics[height=.6\linewidth]{figs/baelle/baelle-GT-masked-2.png}
-  \caption{}
-\end{subfigure}
 \caption[Sixth scene: Synthetic data of two balls moving through the scene.]{Sixth scene: Synthetic data of two balls moving through the scene.
-Figures (a) and (b) show the computed optical flow for the scene at two time steps. The masked flow fields are shown in Figures (c) and (d).
-The corresponding ground truth is shown in Figures (e) and (f). Applying the same mask leads to Figures (g) and (h).
-Due to a shading effect, two edges are detected by the algorithm (a)(b).}
+Figure (a) shows the computed optical flow for the scene. 
+The masked flow field is shown in Figure (b).
+The corresponding ground truth before and after masking is shown in Figures (c) and (d). 
+Due to a shading effect, two edges are detected for the upper sphere by the algorithm (a).}
 \label{fig:baelle-snapshots}
 \end{figure}
 
