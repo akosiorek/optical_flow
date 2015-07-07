@@ -7,7 +7,7 @@ Firstly, we discretize the spatio-temporal Gabor filter in time with a given tim
 We choose the spatio-temporal span of the filter as the volume in which the magnitude of the filter's response does not fall below some threshold value.
 The filter thus comprises of discrete time-slices, which we call Filter Slices (FS).
 Secondly, all events occurring in a single time window are grouped together or quantized into the so-called Event Slice (ES) and are assumed to have occurred at the same moment, \emph{i.e.} the beginning of the current time step. 
-An ES is a (sparse) \edit{square matrix}{We could mention that in future implementations, the algorithm will be used for non-square matrices (e.g. DAVIS DVS with 240x180 resolution)}, with the number of entries equal to that of the DVS camera and their value being the sum of events which occurred at a given location. 
+An ES is a (sparse) matrix, with the number of entries equal to that of the DVS camera and their value being the sum of events which occurred at a given location. 
 With this setup, computing optical flow means filtering the incoming stream of Event Slices with the precomputed Gabor filter.
 
 

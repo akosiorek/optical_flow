@@ -125,40 +125,35 @@ Final Submission: &  07.07.2015 \\
 %_________Einleitung__________________________________
 \chapter{Introduction}
 
-\textit{Optic flow} describes the change of light in a scene, as perceived by a camera or the human eye, caused by motion of objects in the scene or ego-motion of the observing entity.
-Using optic flow information, \edit{it is possible to infer the motion of objects and, consequently, segment a scene based on it into disjunct moving objects.}{scene based on what?}
+\textit{Optic flow} describes the change of light in a scene, as perceived by a camera or a human eye, caused by motion of objects in the scene or ego-motion of the observing entity.
+Using optic flow information it is possible to infer the motion of objects and, consequently, segment a scene based its flow field into disjunct moving objects
 In engineering applications it is used, for example, in video compression to interpolate between frames or in stereo vision applications.
+The range of possible applications surpasses these examples by far, making the optic flow detection an important problem in computer vision.
 
 \section{Problem Statement}
 
 Typical cameras produce full frames at a fixed frequency of \emph{e.g.} 30 frames per second.
-This implies that regardless of change in the scene, and thus available information, new frames are produced.
-In the context of optic flow it is, however, much easier to estimate the flow, \edit{as looking at two frames produced at times $t_n,t_{n+1}$, they are discretized in time, but also the spatial changes are discretized.}{I don't get it. What's with the discretization?}
+This implies that regardless of any changes in the scene, and thus available information, new frames are produced.
+It is, however, much easier to estimate the optic flow when two frames produced at times $t_n,t_{n+1}$ are available.
 
-Event-based sensors, such as the DVS \cite{Delbruck}, offer a new \edit{paradigm in computer vision.}{that's a strong statement. What's new about it?} 
-The DVS can register changes in light intensity for individual pixels asynchronously.
-
-However, events are highly ambiguous and carry information only about the direction of intensity change at a given time and location.
-\edit{Due to the event-based nature, many computer vision algorithms can not directly be applied when using Dynamic Vision Sensors.}{it says that the algorithms can't be applied because they have event-based nature, which is not true}
-
-Consequently, there has only been little progress with regards to translating optical flow algorithms to the sparse event-stream created by a DVS.
-\edit{TODO: Here a bit about the failed attempts from others (need for next section?)}
-In \cite{Brosch2015}, recently Brosch et al. describe a novel biologically motivated approach to infer the optic flow field by convolving the sparse event stream with Gabor filter bank.
+Event-based sensors, such as the Dynamic Vision Sensor (DVS) \cite{Delbruck} can register changes in light intensity for individual pixels asynchronously. By nature, events are highly ambiguous and carry only little information. Since the majority of computer vision algorithms are frame-based and can thus not be directly applied to DVS' data. Consequently, there has only been little progress in the area optical flow algorithms operating on the sparse event-stream setting.
+Recently Brosch et al. \cite{Brosch2015} describe a novel biologically motivated approach to infer the optic flow field by convolving the sparse event stream with Gabor filter bank.
 
 The goal of this project is to implement the algorithm designed by Brosch et al. in an efficient general-purpose language and evaluate if and how it can be run under real-time constraints.
 For this purpose, an implementation in C++ with support for CUDA has been chosen.
 In the following, the design decisions and implementation details are described, as well as a thorough evaluation, both quantitative and qualitative, is presented.
 
-\section{Related Work}
+%\section{Related Work}
 
-Here we gonna talk about the paper we gonna implement (or in the section above).
-But definitely give a very short summary about other approaches and implementations (if we can find any public).
+%Here we gonna talk about the paper we gonna implement (or in the section above).
+%But definitely give a very short summary about other approaches and implementations (if we can find any public).
 
 %____________________________________________________
 
 
 
 %_____Kapitel 2_________________________________
+\newpage
 \chapter{Implementation of the Algorithm}
 
 \input{algorithm.tex}
