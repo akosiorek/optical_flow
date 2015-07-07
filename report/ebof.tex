@@ -179,29 +179,35 @@ In the following, the design decisions and implementation details are described,
 %_____Zusammenfassung, Ausblick_________________________________
 \chapter{Conclusion}
 
-After ensuring the correctness of the algorithm, we pursued different approaches in parallelizing the code in order to achieve real-time capabilities.
 
-%- Evaluate the correctness of the proposed algorithm in Matlab
-- Sequential C++ Impl (FFT) not real-time capable (mention if results exist)
-- Parallel C++ Impl (FFT/CUDA) real-time capable
-- Showed real-time capabilities with regards to parallel impl
+Using the bio-inspired DVS camera, it seems like a natural choice to also employ an algorithm to infer optic flow, which is motivated by the measurements made in mammal brains.
+
+The approach implemented in the scope of this project successfully uses spatio-temporal Gabor filters to determine the motion registered by the camera as sparse event stream.
 
 The qualitative analysis showed that the investigated algorithm can properly compute optic flow on an event-based basis.
 Especially objects that move perpendicularly to the orientation of their edges are recognized very well.
-In order to ensure accurate results in all cases, additional response normalization has to be performed in the post-processing.
+In other cases, such as the push but, additional post-processing, such as response normalization, has the potential to improve the accuracy.
 It is also notable that the algorithm is not heavily affected by rather random noise in the image such as events on the floor or background in the case of a moving camera.
 
-What doesn't work yet specific to our impl? 
--Normalization
--Efficient CUFFT interface
--other smaller things???
+Besides evaluating the correctness of the algorithm, the primary goal was to determine if the algorithm can be implemented such, that it is possible to process sparse event streams in real-time.
+We pursued different approaches in parallelizing the code in order to achieve real-time capabilities, particularly translation key components to a parallelized CUDA version.
+
+However, this implementation is still open to several further developments.
+In order to improve the overall accuracy, response normalization or other filtering mechanism are relevant.
+The pipeline, however, allows for the quick introduction of new processing steps as tasks for the flow sink.
+
+Also, the CUDA interface for performing the FFT on GPUs is not the most efficient yet, as it currently requires unnecessary memory transfers.
+
+Overall, our implementation achieved real-time capability with notable results, which proofed the viability of the original algorithm.
+Whereas features are common for frame-based computer vision problems, no solution exists yet to determine unique features in event streams.
+This is a first step towards more complex algorithms operating on the sparse event-stream.
+The possibility to create unique filter responses gives rise to the notion of temporal features.
 
 
 
-
-Give very short outlook here:
--stereo vision
--feature detection
+%Give very short outlook here:
+%-stereo vision
+%-feature detection
 
 % Apendix
 \input{appendix.tex}
