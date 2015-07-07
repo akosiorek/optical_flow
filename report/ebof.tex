@@ -125,7 +125,7 @@ Final Submission: &  07.07.2015 \\
 %_________Einleitung__________________________________
 \chapter{Introduction}
 
-\textit{Optic flow} describes the change of light in a scene, as perceived by a camera or the human eye, caused by motion of objects in the scene or ego-motion of the observing entity.
+\textit{Optic flow} describes the change of light in a scene, as perceived by a camera or a human eye, caused by motion of objects in the scene or ego-motion of the observing entity.
 Using optic flow information it is possible to infer the motion of objects and, consequently, segment a scene based its flow field into disjunct moving objects
 In engineering applications it is used, for example, in video compression to interpolate between frames or in stereo vision applications.
 The range of possible applications surpasses these examples by far, making the optic flow detection an important problem in computer vision.
@@ -133,17 +133,11 @@ The range of possible applications surpasses these examples by far, making the o
 \section{Problem Statement}
 
 Typical cameras produce full frames at a fixed frequency of \emph{e.g.} 30 frames per second.
-New frames are hereby produced regardless of the whether new information - a change in the observed scene occurred, is present or not.
-Since frames are produced at a known interval, we know that two frames occurred at times $t_n,t_{n+1}$.
-Using this temporal information and the spatial changes between two frames the optic flow field can be determined.
+This implies that regardless of any changes in the scene, and thus available information, new frames are produced.
+It is, however, much easier to estimate the optic flow when two frames produced at times $t_n,t_{n+1}$ are available.
 
-Event-based sensors, such as the DVS \cite{Delbruck}, do not work on synchronized pixels producing a full frame, but on asynchronous pixels.
-This enables a DVS to register changes in light intensity for individual pixels asynchronously, and report changes as an event in the \textit{AER}-format.
-
-However, events are highly ambiguous by itself and most existing computer vision algorithms which were developed to operate on full frames can't be applied when using Dynamic Vision Sensors.
-
-Consequently, detecting optic flow using event-based cameras is still challenging problem.
-In \cite{Brosch2015}, recently Brosch et al. describe a novel, biologically motivated approach to infer the optic flow field by convolving the sparse event stream with Gabor filter bank.
+Event-based sensors, such as the Dynamic Vision Sensor (DVS) \cite{Delbruck} can register changes in light intensity for individual pixels asynchronously. Events are highly ambiguous and carry information only about the direction of intensity change at a given time and location. The majority of computer vision algorithms are frame-based and cannot be directly applied to DVS' data. Consequently, there has only been little progress with regards to translating optical flow algorithms to the sparse event-stream setting. \edit{TODO: }{Here a bit about the failed attempts from others (need for next section?).}
+Recently Brosch et al. \cite{Brosch2015} describe a novel biologically motivated approach to infer the optic flow field by convolving the sparse event stream with Gabor filter bank.
 
 The goal of this project is to implement the algorithm designed by Brosch et al. in an efficient general-purpose language and evaluate if and how it can be run under real-time constraints.
 For this purpose, an implementation in C++ with support for CUDA has been chosen.
