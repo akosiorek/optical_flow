@@ -5,7 +5,7 @@ We use Eigen for general-purpose linear algebra, in particular Eigen::SparseMatr
 
 \subsection{Base Implementation}
 
-Since performance is our top priority, we aim for parallel execution and optimize code where possible. 
+Since performance is our top priority, we aim for parallel execution and code optimization where possible. 
 The pipeline has 4 blocks, each of which depends on the output of the previous one. 
 They cannot process the same piece of data concurrently, but they can be streamlined, such that each component will be executed asynchronously by an independent worker, with possible parallelization inside of the component.
 This approach requires buffering of data between components, which we realize with blocking unbounded buffers. 
@@ -16,7 +16,7 @@ To further increase it, Fourier-convolution based FilteringEngines use three obj
 
 Another advantage of basing the algorithm on 2D Fourier convolution is that the following Event Slices do not have to be contiguous in memory (as it would be the case with 3D Fourier convolution for efficiency reasons).
 It allows us to use a circular buffer to store incoming Event Slices.
-When a new Event Slice comes in, the buffer is rotated and the last ES, which isn't needed any more, is overwritten with the new one.
+When a new Event Slice comes in, the buffer is rotated and the last ES, which isn't needed anymore, is overwritten with the new one.
 With this scheme, all memory needed for storing Event Slices (or their intermediate representation in frequency domain) can be allocated at startup of the program, before processing any events, and thus improving run-time performance.
 
 \subsection{CUDA Implementation}
@@ -24,7 +24,7 @@ With this scheme, all memory needed for storing Event Slices (or their intermedi
 The pseudo code of algorithm \ref{algo:optic} suggests, that the most frequent operations are element-wise matrix-matrix multiplication and addition.
 Since each EventSlice enters the circular buffer of the FilteringEngine only once, and leaves only when the final optical flow is computed, the amount of data transferred is insignificant when compared with the number of floating point operations required.
 CUDA usually performs very well under such conditions.
-We use a singleton Cuda class for managing CUDA device handlers.
+We use a singleton CUDA class for managing CUDA device handlers.
 In order not to handle memory management manually, we devised the DeviceBlob class. 
 It acts as a binary data container, capable of allocating and deallocating device memory as well as initializing it and copying data between device and host memory. 
 The filtering algorithm uses two main arithmetic operations: (1) $Y = \alpha X + Y$, or AXPY as defined in BLAS level 1 operations and (2) $Z = X .* Y$ element-wise matrix-matrix multiplication with the result not-aliased with any of the ingredients. We realize the former by a call to CuBLAS' AXPY function and use a specialized CUDA kernel for the latter.
