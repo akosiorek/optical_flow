@@ -14,12 +14,14 @@ This section concerns exclusively the evaluation of execution speed of the algor
 \end{defwrp}
 
 This definition is a simplified assumption of the real-time constraint as it is oblivious to the fact that many events could occur in a very short time period.
-However, since we are quantizing events to time-discrete slices, the effects of this simplification can be neglected.
-\edit{The evaluation speed}{the speed at which we evaluate??} primarily depends on the temporal granularity of event slices, \edit{henceforth}{fancy vocab, but a little hard to read} the \textit{event slice duration}, sensor size, and filter size.
+However, since we are quantizing events to discrete ES, the effects of this simplification can be neglected.
+The processing speed primarily depends on the temporal granularity of event slices, or event slice duration, sensor size, and filter size.
 
-In the following, we assume a fixed sensor and filter size - \edit{this includes only one type of filter (in the sense of speed selectivity).}{could you elaborate or rephrase?}
+In the following, we assume a fixed sensor and filter size.
+Additionally only one type of filter parametrization (e.g., speed selectivity) is employed.
+The only the variation is the orientation of it, as described in the previous chapter.
 In this specific evaluation, a sensor resolution of $128\times128$ and a filter size of $21\times21$ was used.
-Furthermore, the filters were \edit{initialized with a speed selectivity of $f_0=0.08$.}{not really, it is the frequency selectivity. Speed was something like 12 px/s}
+Furthermore, the filters were initialized with a frequency selectivity of $f_0=0.08$.
 
 Under this assumption, the runtime performance is primarily governed by two parameters of the implementation:
 \begin{enumerate}
@@ -82,8 +84,7 @@ The dataset is summarized by the following table:\\
 
 \subsection{Evaluation of Parallel Implementation}
 \paragraph{Duration of Event Slices}
-\edit{One very important parameter is the duration of an event slice.}{previous paragraph was about it, why repeat?}
-As described before, all events are quantized and collected into event slices of the duration $t_s$.
+As described before, all events are quantized and collected into ES of the duration $t_s$.
 While the optic flow field is the most accurate at a resolution of $1\mu\mathrm{s}$, the resolution of the eDVS timestamps, it increases the computational effort a lot.
 Our implementation approach approximates by reducing the temporal granularity and compressing events into event slices, at the cost of accuracy.
 Depending on whether it is more favorable to have approximative, but real-time results, or very accurate results without time constraints is up to the use-case.
@@ -97,17 +98,16 @@ In fig. \ref{fig:gpu_tsd} we can see the development of the run-time performance
 \paragraph{Number of Filter Orientations}
 The algorithm in its basic version utilizes one single type of spatio-temporal Gabor filter.
 This means that only a single specific parametrization of the spatial and temporal component is used.
-\edit{
-In order to correctly infer the optic flow in $x$ and $y$ direction, one rotates the basic Gabor filter and convolves each event slice with each of differently oriented filter.
-The results are then superimposed and the final velocity vectors are gained.
-Since the quantitative results on the number of filters used.
-}{it's all covered in Algorithm section, do we want to repeat?}
+
 \begin{figure}[!htb]
 	\centering
 	\includegraphics[scale=.9]{gpu_fo.eps}
 	\caption[Variation of the number of unique orientations of the spatio-temporal gabor filter.]{Variation of the number of unique orientations of the spatio-temporal gabor filter. Each orientation corresponds to a separate filter in the filter bank. Blue bar corresponds to the threshold of real-time; above the blue bar means an event stream was processed faster than the time it represents. The cross corresponds to the mean speed across all takes. The black error bars represent the standard deviation across the all takes.}
 	\label{fig:gpu_fo}
 \end{figure}
+
+As we can see in fig. \ref{fig:gpu_fo}, with up to 8 filter orientations we can still easily achieve real-time.
+Due to the nearly linear scaling of the performance, one can approximate the performance loss with increasing number of filter orientations.
 
 \section{Qualitative Evaluation} 
 To ensure the correctness of the algorithm and investigate effects of different filter parameters on the accuracy, we evaluated the algorithm with multiple ground truth data sets.
