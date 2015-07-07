@@ -23,11 +23,7 @@ The only the variation is the orientation of it, as described in the previous ch
 In this specific evaluation, a sensor resolution of $128\times128$ and a filter size of $21\times21$ was used.
 Furthermore, the filters were initialized with a frequency selectivity of $f_0=0.08$.
 
-Under this assumption, the runtime performance is primarily governed by two parameters of the implementation:
-\begin{enumerate}
-	\item Duration of an event slice
-	\item Number of filter orientations
-\end{enumerate}
+Under this assumption, the runtime performance is primarily governed by two parameters of the implementation; these parameters are the duration of an event slice and the number of filter orientations.
 As default values, a duration of $10\mathrm{ms}$ and 4 filter orientations are assumed.
 
 The evaluation is presented for the parallel implementation only.
@@ -196,9 +192,9 @@ Secondly, we linearly interpolate from the two closest ground truth frames that 
 For the evaluation of the data recorded by the Davis DVS sensor, we first remove defect pixels from the event data.
 
 \paragraph{First DVS Scene: Moving Square}
-The first scene consists of a horizontally moving rectaungular object (see Figure \ref{fig:quadrat-snapshots}).
+The first scene consists of a horizontally moving rectangular object (see Figure \ref{fig:quadrat-snapshots}).
 We observe that the flow directions at the corners of the vertical edge tend to point outwards instead of pointing in $x$-direction. 
-This is likely caused by the aperture problem and could be tackled in future experiments by performing a normalization step in the preprocessing.
+This is likely caused by the aperture problem and could be tackled in future experiments by performing a normalization step in the post-processing.
 Table \ref{tab:error_comparison_square} shows a comparison of calculated errors for the moving square. The RMSE, mean, and median angular error between the computed flow and the ground truth are calculated. 
 The median error dropped to below $5^\circ$ for some parameter settings without additional normalization. 
 
