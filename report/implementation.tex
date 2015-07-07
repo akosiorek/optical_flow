@@ -22,7 +22,7 @@ With this scheme, all memory needed for storing Event Slices (or their intermedi
 \subsection{CUDA Implementation}
 
 The pseudo code of algorithm \ref{algo:optic} suggests, that the most frequent operations are element-wise matrix-matrix multiplication and addition.
-Since each EventSlice enters the circular buffer of the FilteringEngine only once, and leaves only when the final optical flow is computed, the amount of data transfered is insignificant when compared with the number of floating point operations required.
+Since each EventSlice enters the circular buffer of the FilteringEngine only once, and leaves only when the final optical flow is computed, the amount of data transferred is insignificant when compared with the number of floating point operations required.
 CUDA usually performs very well under such conditions.
 We use a singleton Cuda class for managing CUDA device handlers.
 In order not to handle memory management manually, we devised the DeviceBlob class. 
