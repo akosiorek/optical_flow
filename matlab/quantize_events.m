@@ -9,6 +9,7 @@ function [quantized, timestamps, allEvents] = quantize_events(events, time_resol
     allEvents = cell(time_steps, 1);
     timestamps=zeros(time_steps,1);
     
+    time_start = events(1,1);
     time_end = events(1, 1) + time_resolution;
     current_step = 1;
     quantized{1} = zeros(retinaSize(1), retinaSize(2));
@@ -21,9 +22,10 @@ function [quantized, timestamps, allEvents] = quantize_events(events, time_resol
         allEvents{current_step} = sparse(allEvents{current_step});
 
         if events(i, 1) > time_end
+            timestamps(current_step)=time_start;
+            time_start = time_end; %Save the timestamp for the first event in the slice
             time_end = time_end + time_resolution;
 %             disp(['Slice number', num2str(current_step), ', at time ', num2str(time_end), ', with ', num2str(i), ' events']);
-            timestamps(current_step)=time_end;
             current_step = current_step + 1;
             quantized{current_step} = zeros(retinaSize(1), retinaSize(2));
             allEvents{current_step} = zeros(retinaSize(1), retinaSize(2));
@@ -42,7 +44,7 @@ function [quantized, timestamps, allEvents] = quantize_events(events, time_resol
         end
         i = i + 1;        
     end
-    timestamps(current_step)=events(end,1);
+    timestamps(current_step)=time_start;
     quantized{current_step} = sparse(quantized{current_step});
 %     close(waitbarHandle)
 end

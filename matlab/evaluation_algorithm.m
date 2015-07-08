@@ -63,7 +63,17 @@ retinaSize=[240 180];
 %% read out events from .aedat file and save them to a .tsv file
 eventsfile_tsv_name= strcat(path_to_data,data_Descriptor,'_events.tsv');
 
-convert_aedat_to_tsv(aedat_file,eventsfile_tsv_name);
+%set up cleaner, depending on descriptor
+if (strcmp(data_Descriptor,'quadrat'))
+    cleaner_nr=1;
+elseif (strcmp(data_Descriptor,'pushbot'))
+        cleaner_nr=2;
+elseif (strcmp(data_Descriptor,'skateboard'))
+        cleaner_nr=3;
+else
+    cleaner_nr=0
+end
+convert_aedat_to_tsv(aedat_file,eventsfile_tsv_name,cleaner_nr);
 
 
 %% Read events from the saved .tsv file and calculate optical flow
@@ -88,7 +98,7 @@ angles
 disregarded_timesteps
 negate_GT_Y
 withFloReference
-% optical_flow(eventsfile_tsv_name, retinaSize, [time_start time_end], time_resolution, angles);
+optical_flow(eventsfile_tsv_name, retinaSize, [time_start time_end], time_resolution, angles);
 load('flow.mat');
 opticalFlowX_aedat = opticalFlowX;
 opticalFlowY_aedat = opticalFlowY;
@@ -112,9 +122,20 @@ if (withFloReference)
             %different string names for 'baelle':
             if (scene_index<10)
                 flo_name=strcat('gtFlo000',num2str(scene_index),'.flo');
-            else
+            elseif (scene_index <100)
                 flo_name=strcat('gtFlo00',num2str(scene_index),'.flo');
+            else
+                flo_name=strcat('gtFlo0',num2str(scene_index),'.flo');
             end
+        elseif (strcmp(data_Descriptor, 'square1.2') || strcmp(data_Descriptor, 'square2'))
+            if (scene_index<10)
+                flo_name=strcat('gtFlo_000',num2str(scene_index),'.flo');
+            elseif (scene_index<100)
+                flo_name=strcat('gtFlo_00',num2str(scene_index),'.flo');
+            else
+                flo_name=strcat('gtFlo_0',num2str(scene_index),'.flo');
+            end
+            
             
         else
             if (scene_index<10)
@@ -178,6 +199,7 @@ if (withFloReference)
     angularErrors= calc_angular_errors(opticalFlowX_aedat, opticalFlowY_aedat ...
         , opticalFlowX_flo, opticalFlowY_flo, indexQuantizedToGT);
     disp(['Angular Errors: ']);
+    debugSlice = angularErrors(:,:,1);
     [RMSE1, AbsMean1, Median1, avgRMSE1, avgAbsMean1, avgMedian1] = eval_angular_errors(angularErrors, mask_eventLocations);
     
 end
@@ -200,6 +222,20 @@ if (withFloReference)
     [RMSE2, AbsMean2, Median2, avgRMSE2, avgAbsMean2, avgMedian2] = eval_angular_errors(angularErrors2, mask_eventLocations);
     
 end
+
+
+%calculate angular errors relative to x-axis and average abs speed
+[avgAbsSpeed, avgSpeedAll, anglesMean, anglesMedian, anglesMeanAll, anglesMedianAll]= ... 
+    calc_avgAngle_avgSpeed(opticalFlowX_aedat, opticalFlowY_aedat, mask_eventLocations);
+% meanAngle=repmat(meanAngle, nrOfEntries,1);
+% meanSpeed=repmat(meanSpeed, nrOfEntries,1);
+xAxisX = ones(size(opticalFlowX_aedat));
+xAxisY = zeros(size(opticalFlowX_aedat));
+
+% angularErrorsXaxis = calc_angular_errors(opticalFlowX_aedat, opticalFlowY_aedat, ...
+%         xAxisX, xAxisY);
+%     disp(['Angular errors relative to x-axis:']);
+%     [anglesMean, anglesMedian] = mean_median_angles(opticalFlowX_aedat, opticalFlowY_aedat,mask_eventLocations);
 
 
 %% create table with all relevant results
@@ -230,12 +266,20 @@ if (~withFloReference)
     
     
 end
+
+
 avgRMSE1=repmat(avgRMSE1, nrOfEntries,1);
 avgRMSE2=repmat(avgRMSE2, nrOfEntries,1);
 avgAbsMean1=repmat(avgAbsMean1, nrOfEntries,1);
 avgAbsMean2=repmat(avgAbsMean2, nrOfEntries,1);
 avgMedian1=repmat(avgMedian1, nrOfEntries,1);
 avgMedian2=repmat(avgMedian2, nrOfEntries,1);
+
+anglesMeanAll=repmat(anglesMeanAll, nrOfEntries,1);
+anglesMedianAll=repmat(anglesMedianAll, nrOfEntries,1);
+% angleavgMedian=repmat(angleavgMedian2, nrOfEntries,1);
+avgSpeedAll=repmat(avgSpeedAll, nrOfEntries,1);
+
 t_data_Descriptor = {data_Descriptor};
 t_data_Descriptor = repmat(t_data_Descriptor, nrOfEntries,1);
 retinaSizeX = repmat(retinaSize(:,1), nrOfEntries,1);
@@ -247,19 +291,19 @@ angles = {mat2str(angles)};
 angles = repmat(angles, nrOfEntries,1);
 sliceNr=(1:nrOfEntries)';
 
-[avgAngle, avgSpeed] = calc_avgAngle_avgSpeed(opticalFlowX_aedat, opticalFlowY_aedat, mask_eventLocations);
-% meanAngle=repmat(meanAngle, nrOfEntries,1);
-% meanSpeed=repmat(meanSpeed, nrOfEntries,1);
 
-
-results_table = table(t_data_Descriptor,retinaSizeX, retinaSizeY,time_start,time_end,time_resolution,angles,sliceNr,...
-    quantized_timestamps, avgAngle, avgSpeed, RMSE1, AbsMean1, Median1, indexQuantizedToGT(:,2), RMSE2, AbsMean2, Median2, ...
+% 
+results_table = table(t_data_Descriptor, retinaSizeX, retinaSizeY,time_start,time_end,time_resolution,angles,sliceNr,...
+    quantized_timestamps, avgAbsSpeed, avgSpeedAll, anglesMean, anglesMedian,  ...
+    RMSE1, AbsMean1, Median1, indexQuantizedToGT(:,2), RMSE2, AbsMean2, Median2, ...
     avgRMSE1, avgAbsMean1, avgMedian1, avgRMSE2, avgAbsMean2, avgMedian2, ...
+    anglesMeanAll, anglesMedianAll, ...
     'VariableNames',{'Descriptor' 'retinaSizeX' 'retinaSizeY' 'time_start' 'time_end' 'time_resolution' 'angles' ...
-    'Slice_Nr' 'Quantized_time' 'avgAngle' 'avgSpeed' 'RMSE_direct' 'AbsMean_direct' 'Median_direct' 'timeDiff_direct' ...
-    'RMSE_intp' 'AbsMean_intp' 'Median_intp' ...
-    'avgRMSE_direct' 'avgAbsMean_direct' 'avgMedian_direct' ...
-    'avgRMSE_intp' 'avgAbsMean_intp' 'avgMedian_intp'});
+    'Slice_Nr' 'Quantized_time' 'avgSpeed' 'avgSpeedAll' 'meanAngle' 'medianAngle' 'RMSE_directErr' 'AbsMean_directErr' 'Median_directErr' 'timeDiff_directErr' ...
+    'RMSE_intpErr' 'AbsMean_intpErr' 'Median_intpErr' ...
+    'avgRMSE_directErr' 'avgAbsMean_directErr' 'avgMedian_directErr' ...
+    'avgRMSE_intpErr' 'avgAbsMean_intpErr' 'avgMedian_intpErr' ...
+    'avgMeanAngle' 'avgMedianAngle'});
 
 %% Visualize results in quiver plot and save logfile
 
@@ -269,7 +313,7 @@ if (do_plot)
     maskedFlowx=apply_mask(opticalFlowX_aedat,mask_eventLocations);
     maskedFlowy=apply_mask(opticalFlowY_aedat,mask_eventLocations);
     
-
+% 
     make_quiver_movie(strcat(data_Descriptor,strTimeInfo),opticalFlowX_aedat, opticalFlowY_aedat, quantized_timestamps);
     make_quiver_movie(strcat(data_Descriptor,strTimeInfo,'_masked'),maskedFlowx, maskedFlowy, quantized_timestamps);
     
@@ -278,16 +322,27 @@ if (do_plot)
         % comparison
         maskedFlowX_GT=zeros(size(opticalFlowX_aedat));
         maskedFlowY_GT=zeros(size(opticalFlowY_aedat));
+        %Adjust the ground truth frames such that they are matching the
+        %timestamp of the corresponding quantized events
         for i=1:size(opticalFlowX_aedat,3)
             maskedFlowX_GT(:,:,i)=opticalFlowX_flo(:,:,indexQuantizedToGT(i,1));
             maskedFlowY_GT(:,:,i)=opticalFlowY_flo(:,:,indexQuantizedToGT(i,1));
+            opticalFlowX_flo(:,:,i)=opticalFlowX_flo(:,:,indexQuantizedToGT(i,1));
+            opticalFlowY_flo(:,:,i)=opticalFlowY_flo(:,:,indexQuantizedToGT(i,1));
         end
         maskedFlowX_GT=apply_mask(maskedFlowX_GT,mask_eventLocations);
         maskedFlowY_GT=apply_mask(maskedFlowY_GT,mask_eventLocations);
-        
-        % make_quiver_movie(strcat(data_Descriptor,'_GT'),opticalFlowX_flo,opticalFlowY_flo);
-        % make_quiver_movie(strcat(data_Descriptor,'_GT_interp'),intp_flowX_GT,intp_flowY_GT);
-%         make_quiver_movie(strcat(data_Descriptor,'_GT_masked'),maskedFlowX_GT,maskedFlowY_GT, quantized_timestamps);
+        adjustedTimecode=zeros(size(quantized_timestamps,1),1);
+        nrSlices=size(opticalFlowX_aedat,3);
+        for i=1:nrSlices
+            adjustedTimecode(i)=timecode(indexQuantizedToGT(i,1),2);
+        end
+        %cut off defect frames from flo file
+        opticalFlowX_flo=opticalFlowX_flo(:,:,1:size(opticalFlowX_aedat,3));
+        opticalFlowY_flo=opticalFlowY_flo(:,:,1:size(opticalFlowX_aedat,3));
+
+%         make_quiver_movie(strcat(data_Descriptor,'_GT',strTimeInfo),opticalFlowX_flo,opticalFlowY_flo,adjustedTimecode);
+%         make_quiver_movie(strcat(data_Descriptor,'_GT_masked',strTimeInfo),maskedFlowX_GT,maskedFlowY_GT, adjustedTimecode);
     end
     
     
@@ -387,7 +442,7 @@ end
 
 function [RMSE, AbsMean, Median, avgRSME, avgAbsMean, avgMedian] = eval_angular_errors(angularErrors, set_to_nan_mask)
 if nargin >1
-    angularErrors(set_to_nan_mask==0)=NaN;
+   angularErrors(set_to_nan_mask==0)=NaN;
 end
 avg_sqrtMeanAngularError=0;
 c1=0;
@@ -478,7 +533,10 @@ for i=1:size(angularErrors,3)
     else
         compareIndex=i;
     end
-    
+    floxXslice = flowX(:,:,i);
+    flowYsclie = flowY(:,:,i);
+    flowXrefslice = flowX_ref(:,:,compareIndex);
+    flowYrefslice = flowY_ref(:,:,compareIndex);
     angularErrors(:,:,i) = 180/pi * acos( ...
         (flowX(:,:,i)./vectorLengths(:,:,i)).* ...
         (flowX_ref(:,:,compareIndex)./vectorLengths_ref(:,:,compareIndex)) + ...
@@ -490,29 +548,62 @@ end
 end
 
 
-function [avgSpeed, avgAngle] = calc_avgAngle_avgSpeed(flowX, flowY, set_to_nan_mask)
+function [avgSpeed, avgSpeedAll, meanAngle, medianAngle, allMeanAngle, allMedianAngle] = ...
+    calc_avgAngle_avgSpeed(flowX, flowY, set_to_nan_mask)
 angles = zeros(size(flowX,1),size(flowX,2));
-vectorLengths = zeros(size(angles));
+% vectorLengths = zeros(size(angles));
 avgSpeed=zeros(size(flowX,3),1);
-avgAngle=zeros(size(flowX,3),1);
+meanAngle=zeros(size(flowX,3),1);
+medianAngle=zeros(size(flowX,3),1);
 
 % avgSpeed=nanmean(abs(angles(:)));
 % avgAngle=nnanmean(abs(vectorLengths(:)));
 
 for i=1:size(flowX,3)
-    
+%     sliceX = flowX(:,:,i);
+%     sliceY = flowY(:,:,1);
+%     sliceMask= set_to_nan_mask(:,:,i);
+%     sliceX(set_to_nan_mask(:,:,i)==0)=NaN;
+%     sliceY(set_to_nan_mask(:,:,i)==0)=NaN;
+
     vectorLengths = sqrt( ...
         flowX(:,:,i).*flowX(:,:,i)+ ...
         flowY(:,:,i).*flowY(:,:,i));
-    angles = 180/pi * mod(atan2(flowY(:,:,i),flowX(:,:,i)),2*pi);
-    %     angles(angles<0)=angles+360;
+    angles =  mod(atan2(flowY(:,:,i),flowX(:,:,i)),2*pi);
     angles(set_to_nan_mask(:,:,i)==0)=NaN;
+    %create vector with all non-nan entries
+    angles = angles(:);
+    angles(isnan(angles)) = [];
+    if (size(angles,1)>0)
+       meanAngle(i) = circ_mean(angles);
+       medianAngle(i) = circ_median(angles);
+    else
+        meanAngle(i) = NaN;
+        medianAngle(i) = NaN;
+    end
+
+%         %angles are between 0 and 360. To get sth meaningful, get difference
+%     %from zero as median
+%     angles(angles>
+%     angles(set_to_nan_mask(:,:,i)==0)=NaN;
+
     vectorLengths(set_to_nan_mask(:,:,i)==0)=NaN;
     avgSpeed(i)=nanmean(abs(vectorLengths(:)));
-    avgAngle(i)=nanmean(abs(angles(:)));
+%     avgAngle(i)=nanmean(abs(angles(:)));
     
 end
+avgSpeedAll=nanmean(avgSpeed(:));
 
+tmpMeanAngle = meanAngle;
+tmpMedianAngle = medianAngle;
+    tmpMeanAngle(isnan(tmpMeanAngle)) = [];
+    tmpMedianAngle(isnan(tmpMedianAngle)) = [];
+
+
+allMeanAngle = 180/pi * circ_mean(tmpMeanAngle(:));
+allMedianAngle = 180/pi * circ_mean(tmpMedianAngle(:));
+meanAngle = 180/pi * meanAngle;
+medianAngle = 180/pi * medianAngle;
 %
 %
 % for i=1:size(angles,3)
